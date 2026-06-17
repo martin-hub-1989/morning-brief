@@ -3,12 +3,13 @@
 
 依次执行:
   1. import_seed.py          — 数据库不存在时从 Excel 导入
-  2. update_data.py          — 生成增量更新计划
-  3. fetch_data.py           — 从同花顺 EDB 拉取最新数据
-  4. fetch_wind.py           — 从 Wind MCP 拉取补充数据
-  5. recompute_fx_derived.py — 从原始数据复算外汇衍生序列
-  6. fetch_emotion.py        — 从华泰智研 MCP 拉取市场情绪数据
-  7. generate_interactive_dashboard.py — 生成交互式 HTML 看板
+  2. import_fx_data.py       — FX 数据不存在时从 Excel 导入
+  3. update_data.py          — 生成增量更新计划
+  4. fetch_data.py           — 从同花顺 EDB 拉取最新数据
+  5. fetch_wind.py           — 从 Wind MCP 拉取补充数据
+  6. recompute_fx_derived.py — 从原始数据复算外汇衍生序列
+  7. fetch_emotion.py        — 从华泰智研 MCP 拉取市场情绪数据
+  8. generate_interactive_dashboard.py — 生成交互式 HTML 看板
 
 用法:
   python3 scripts/run_daily.py                    # 完整流水线
@@ -18,6 +19,8 @@
 """
 
 import argparse
+import os
+import sqlite3
 import subprocess
 import sys
 from pathlib import Path
@@ -26,9 +29,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON = sys.executable
 
+# Windows 默认 GBK 编码无法输出 ✓✗⚠ 等 Unicode 字符，强制 UTF-8
+_UTF8_ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+
 
 def run(args):
-    subprocess.run([PYTHON, *args], cwd=ROOT, check=True)
+    subprocess.run([PYTHON, *args], cwd=ROOT, check=True, env=_UTF8_ENV)
 
 
 def main():
@@ -47,6 +53,19 @@ def main():
     if not db.exists():
         print("[run_daily] Database not found, importing from Excel seed...")
         run(["scripts/import_seed.py"])
+
+    _conn = sqlite3.connect(str(db))
+    _has_fx = _conn.execute(
+        "SELECT COUNT(*) FROM series WHERE series_id LIKE 'fx:%'"
+    ).fetchone()[0] > 0
+    _conn.close()
+    if not _has_fx:
+        print("[run_daily] FX data not found, importing from Excel seed...")
+        try:
+            run(["scripts/import_fx_data.py"])
+        except subprocess.CalledProcessError as e:
+            print(f"[run_daily] WARNING: import_fx_data.py failed with exit code {e.returncode}")
+            print("[run_daily] Continuing...")
 
     total_steps = 6
     step = 0

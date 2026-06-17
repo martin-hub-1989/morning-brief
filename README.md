@@ -16,20 +16,28 @@ cd morning-brief
 # 2. 安装依赖（仅 pandas + openpyxl）
 pip install -r requirements.txt
 
-# 3. 从种子数据重建数据库
+# 3. 从种子数据重建数据库（趋势/估值/利率/汇率/商品）
 python3 scripts/import_seed.py --replace
 
-# 4. 安装 Claude Code skill（可选）
-mkdir -p ~/.claude/skills/morning-brief
-cp SKILL.md ~/.claude/skills/morning-brief/SKILL.md
+# 4. 导入外汇数据（中间价/即期/远期/掉期点，必需步骤）
+python3 scripts/import_fx_data.py
 
-# 5. 生成看板（使用种子数据，不拉取新数据）
+# 5. 安装 Claude Code skill（可选）
+mkdir -p ~/.claude/skills/morning-brief
+cp SKILL.md ~/.claude/skills/morning-brief/SKILL.md   # macOS / Linux
+# Windows: copy SKILL.md %USERPROFILE%\.claude\skills\morning-brief\SKILL.md
+
+# 6. 生成看板（使用种子数据，不拉取新数据）
 python3 scripts/run_daily.py --skip-fetch
 
-# 6. 打开看板
-open output/interactive_dashboard.html
+# 7. 打开看板
+open output/interactive_dashboard.html                # macOS
+# start output\interactive_dashboard.html             # Windows
+# xdg-open output/interactive_dashboard.html          # Linux
 ```
 
+> **Windows 用户**：如遇 `UnicodeEncodeError` 报错，请使用 Windows Terminal（默认 UTF-8），或运行前执行 `set PYTHONIOENCODING=utf-8`。PowerShell 中执行 `$env:PYTHONIOENCODING="utf-8"`。
+>
 > 如需每日自动拉取最新数据，需配置同花顺 EDB + Wind MCP 凭证（见下方环境要求）。
 
 ## 环境要求
@@ -118,17 +126,20 @@ python3 scripts/import_seed.py --replace
 ## 每日流水线
 
 ```text
-update_data.py → fetch_data.py (EDB) → fetch_wind.py (Wind)
-       → recompute_fx_derived.py → fetch_emotion.py (HTSC)
-       → generate_interactive_dashboard.py
+首次运行: import_seed.py → import_fx_data.py → update_data.py → ...
+日常运行: update_data.py → fetch_data.py (EDB) → fetch_wind.py (Wind)
+         → recompute_fx_derived.py → fetch_emotion.py (HTSC)
+         → generate_interactive_dashboard.py
 ```
 
-1. **update_data.py** — 扫描数据库，生成增量更新计划
-2. **fetch_data.py** — 同花顺 EDB 拉取日频数据，验证后 UPSERT
-3. **fetch_wind.py** — Wind MCP 拉取外汇原始数据 + 全收益指数 + 估值
-4. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（幂等）
-5. **fetch_emotion.py** — 华泰智研 MCP 拉取市场情绪数据
-6. **generate_interactive_dashboard.py** — 生成单文件 HTML 看板
+1. **import_seed.py** — 首次运行：从 Excel 种子文件导入趋势/估值/利率/汇率/商品
+2. **import_fx_data.py** — 首次运行：从 Excel 种子文件导入外汇中间价/即期/远期/掉期点
+3. **update_data.py** — 扫描数据库，生成增量更新计划
+4. **fetch_data.py** — 同花顺 EDB 拉取日频数据，验证后 UPSERT
+5. **fetch_wind.py** — Wind MCP 拉取外汇原始数据 + 全收益指数 + 估值
+6. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（幂等）
+7. **fetch_emotion.py** — 华泰智研 MCP 拉取市场情绪数据
+8. **generate_interactive_dashboard.py** — 生成单文件 HTML 看板
 
 ## 数据口径
 
@@ -143,7 +154,7 @@ update_data.py → fetch_data.py (EDB) → fetch_wind.py (Wind)
 `scripts/recompute_fx_derived.py` 从原始数据计算三类衍生序列：
 
 | 类别 | 序列数 | 公式 |
-|------|:------:|------|
+| ---- | :----: | ---- |
 | 即期汇率变动拆解 | 8 | 夜盘调整/日盘变动/累积值/5MA/20MA ← fixing + spot |
 | 套保成本 | 8 | CNY = swap/10000/spot；CNH = DF/spot - 1 |
 | 年化套保成本 | 8 | (1 + hedge)^n - 1（n = 12/4/2/1） |
@@ -161,7 +172,7 @@ update_data.py → fetch_data.py (EDB) → fetch_wind.py (Wind)
 ## 当前状态（2026-06-17）
 
 | 指标 | 数值 |
-|------|------|
+| ---- | ---- |
 | 趋势序列 | 55 个 |
 | 估值序列 (PE/PB/DY) | 51 个 |
 | 外汇原始序列 | 13 个（中间价/即期/CNH远期/掉期点/债券收益率） |

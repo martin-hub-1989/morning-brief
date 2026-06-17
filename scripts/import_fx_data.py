@@ -60,6 +60,14 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+# Windows GBK 编码兼容：强制 stdout/stderr 使用 UTF-8
+if sys.platform == 'win32':
+    for _s in (sys.stdout, sys.stderr):
+        try:
+            _s.reconfigure(encoding='utf-8')
+        except Exception:
+            pass
+
 try:
     import openpyxl
 except ImportError:
