@@ -322,3 +322,34 @@ node --check /tmp/dash.js
 7. **替换底稿前先验证**：临时导入到独立 SQLite 文件核查序列和点数，再用 `--replace` 重建主库。
 8. **JS 改动后做语法检查**：`node --check` 验证提取出的 JS。
 9. **衍生数据写入 SQLite**：不在 generate 时临时计算，确保看板数据与 DB 一致且可溯源。
+
+## GitHub 仓库
+
+| 项目 | 值 |
+| ---- | --- |
+| **地址** | [github.com/martin-hub-1989/morning-brief](https://github.com/martin-hub-1989/morning-brief) |
+| **可见性** | Public |
+| **默认分支** | `main` |
+| **远程名** | `origin` |
+
+### .gitignore 排除项
+
+```text
+data/morning_brief.sqlite    160MB 数据库
+output/interactive_dashboard.html  生成的看板
+data/fetch_summary.json      运行时产物
+data/update_plan.json        运行时产物
+__pycache__/                  Python 编译缓存
+*.pyc *.bak .DS_Store
+```
+
+### 同步更改
+
+```bash
+cd "/Users/martin_ai/Desktop/Martin Morning Brief"
+git add -A
+git commit -m "描述改动内容"
+git push
+```
+
+或对 Claude Code 说「推到 GitHub」即可自动执行以上三步。

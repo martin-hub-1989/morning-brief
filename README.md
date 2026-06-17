@@ -6,6 +6,32 @@
 >
 > Claude Code 中使用 `morning-brief` skill 一键执行每日更新。
 
+## 快速开始
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/martin-hub-1989/morning-brief.git
+cd morning-brief
+
+# 2. 安装依赖（仅 pandas + openpyxl）
+pip install -r requirements.txt
+
+# 3. 从种子数据重建数据库
+python3 scripts/import_seed.py --replace
+
+# 4. 安装 Claude Code skill（可选）
+mkdir -p ~/.claude/skills/morning-brief
+cp SKILL.md ~/.claude/skills/morning-brief/SKILL.md
+
+# 5. 生成看板（使用种子数据，不拉取新数据）
+python3 scripts/run_daily.py --skip-fetch
+
+# 6. 打开看板
+open output/interactive_dashboard.html
+```
+
+> 如需每日自动拉取最新数据，需配置同花顺 EDB + Wind MCP 凭证（见下方环境要求）。
+
 ## 环境要求
 
 - Python 3（标准库 + `pandas` + `openpyxl`）
