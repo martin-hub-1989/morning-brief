@@ -1,0 +1,359 @@
+{
+  "version": 1,
+  "last_updated": "2026-06-17",
+  "auth": {
+    "note": "Wind MCP 认证由 CLI 自动处理（用户全局配置 > Skill 本地配置 > WIND_API_KEY 环境变量）"
+  },
+  "fetch": {
+    "cli_dir": "~/.claude/skills/wind-mcp-skill",
+    "delay_between_calls_seconds": 1.5,
+    "request_timeout_seconds": 30,
+    "max_retries": 1,
+    "lookback_calendar_days": 90,
+    "note": "Wind 积分有限，使用保守的调用间隔和重试策略"
+  },
+  "validation": {
+    "float_relative_tolerance": 0.0005,
+    "float_absolute_tolerance": 0.005,
+    "note": "Wind 与 DB 数据同源，容差与 THS EDB 一致"
+  },
+  "mappings": {
+    "trend:300收益": {
+      "method": "kline",
+      "windcode": "H00300.CSI",
+      "category": "total_return_a",
+      "notes": "沪深300全收益"
+    },
+    "trend:500收益": {
+      "method": "kline",
+      "windcode": "H00905.CSI",
+      "category": "total_return_a",
+      "notes": "中证500全收益"
+    },
+    "trend:中证1000全收益": {
+      "method": "kline",
+      "windcode": "H00852.SH",
+      "category": "total_return_a",
+      "notes": "中证1000全收益"
+    },
+    "trend:中证红利全收益": {
+      "method": "kline",
+      "windcode": "H00922.CSI",
+      "category": "total_return_a",
+      "notes": "中证红利全收益"
+    },
+    "trend:创业板R": {
+      "method": "kline",
+      "windcode": "399606.SZ",
+      "category": "total_return_a",
+      "notes": "创业板全收益"
+    },
+    "trend:科创50(全)": {
+      "method": "kline",
+      "windcode": "000688CNY01.SH",
+      "category": "total_return_a",
+      "notes": "科创50全收益"
+    },
+    "trend:恒生指数R": {
+      "method": "kline",
+      "windcode": "HSIRH.HI",
+      "category": "total_return_hk",
+      "notes": "恒生指数总回报"
+    },
+    "trend:恒生科技R": {
+      "method": "kline",
+      "windcode": "HSTECHT.HI",
+      "category": "total_return_hk",
+      "notes": "恒生科技总回报"
+    },
+    "trend:恒生高股息率R": {
+      "method": "kline",
+      "windcode": "HSI52.HI",
+      "category": "total_return_hk",
+      "notes": "恒生高股息率总回报"
+    },
+    "trend:标普500全收益指数": {
+      "method": "kline",
+      "windcode": "SP500TR.SPI",
+      "category": "total_return_us",
+      "notes": "标普500全收益"
+    },
+    "trend:纳斯达克总回报指数": {
+      "method": "kline",
+      "windcode": "XCMP.GI",
+      "category": "total_return_us",
+      "notes": "纳斯达克总回报"
+    },
+    "trend:万得全A": {
+      "method": "kline",
+      "windcode": "881001.WI",
+      "category": "a_share_index",
+      "notes": "万得全A — THS EDB 不支持"
+    },
+    "trend:周期(风格.中信)": {
+      "method": "kline",
+      "windcode": "CI005918.WI",
+      "category": "citic_style",
+      "notes": "THS EDB 数据源不同(~0.57%偏差)，Wind 与 DB 一致"
+    },
+    "trend:金融(风格.中信)": {
+      "method": "kline",
+      "windcode": "CI005917.WI",
+      "category": "citic_style",
+      "notes": "THS EDB 数据源不同(~0.57%偏差)，Wind 与 DB 一致"
+    },
+    "trend:成长(风格.中信)": {
+      "method": "kline",
+      "windcode": "CI005920.WI",
+      "category": "citic_style",
+      "notes": "THS EDB 数据源不同(~0.57%偏差)，Wind 与 DB 一致"
+    },
+    "trend:消费(风格.中信)": {
+      "method": "kline",
+      "windcode": "CI005919.WI",
+      "category": "citic_style",
+      "notes": "THS EDB 数据源不同(~0.57%偏差)，Wind 与 DB 一致"
+    },
+    "trend:稳定(风格.中信)": {
+      "method": "kline",
+      "windcode": "CI005921.WI",
+      "category": "citic_style",
+      "notes": "THS EDB 数据源不同(~0.57%偏差)，Wind 与 DB 一致"
+    },
+    "trend:德-10债": {
+      "method": "economic",
+      "metricIdsStr": "德国国债收益率10年",
+      "indicator_filter": "德国:国债收益率:10年",
+      "category": "bond_yield",
+      "notes": "THS EDB 有 ~9bp 偏差，Wind 与 DB 一致"
+    },
+    "trend:日-10债": {
+      "method": "economic",
+      "metricIdsStr": "日本国债利率10年",
+      "indicator_filter": "日本:国债利率:10年",
+      "category": "bond_yield",
+      "notes": "THS EDB 有 ~2bp 偏差"
+    },
+    "trend:日-30债": {
+      "method": "economic",
+      "metricIdsStr": "日本国债利率30年",
+      "indicator_filter": "日本:国债利率:30年",
+      "category": "bond_yield",
+      "notes": "THS EDB 有 ~2bp 偏差"
+    },
+    "trend:GBPCNY": {
+      "method": "economic",
+      "metricIdsStr": "英镑兑人民币即期汇率",
+      "indicator_filter": "CFETS:即期汇率:英镑兑人民币",
+      "category": "fx",
+      "notes": "DB 有前向填补值，Wind 提供真实日频数据"
+    },
+    "trend:USDJPY": {
+      "method": "economic",
+      "metricIdsStr": "美元兑日元即期汇率",
+      "indicator_filter": "即期汇率:美元兑日元",
+      "category": "fx",
+      "notes": "DB 有前向填补值，Wind 提供真实日频数据"
+    },
+    "trend:CNYX": {
+      "method": "economic",
+      "metricIdsStr": "CFETS人民币汇率指数",
+      "indicator_filter": "CFETS人民币汇率指数:日:向前复制",
+      "category": "fx_index",
+      "notes": "THS EDB 仅稀疏周频数据，Wind 提供日频"
+    },
+    "fx:usdcny-fixing": {
+      "method": "economic",
+      "metricIdsStr": "美元兑人民币中间价",
+      "indicator_filter": "即期汇率:美元兑人民币:中间价",
+      "category": "fx",
+      "notes": "CFETS 中间价。EDB 备选源，Wind 为主力"
+    },
+    "fx:usdcny-spot": {
+      "method": "economic",
+      "metricIdsStr": "美元兑人民币即期汇率",
+      "indicator_filter": "即期汇率:美元兑人民币:收盘价",
+      "category": "fx",
+      "notes": "CFETS 即期汇率。EDB 备选源，Wind 为主力"
+    },
+    "fx:usdcnh-spot": {
+      "method": "economic",
+      "metricIdsStr": "美元兑离岸人民币即期汇率",
+      "indicator_filter": "即期汇率:美元兑离岸人民币",
+      "category": "fx",
+      "notes": "CNH 即期汇率"
+    },
+    "fx:cnh-df-1m": {
+      "method": "economic",
+      "metricIdsStr": "USDCNH DF 1M",
+      "indicator_filter": "USDCNH:DF:1M",
+      "category": "fx_forward",
+      "notes": "CNH 远期 1 个月"
+    },
+    "fx:cnh-df-3m": {
+      "method": "economic",
+      "metricIdsStr": "USDCNH DF 3M",
+      "indicator_filter": "USDCNH:DF:3M",
+      "category": "fx_forward",
+      "notes": "CNH 远期 3 个月"
+    },
+    "fx:cnh-df-6m": {
+      "method": "economic",
+      "metricIdsStr": "USDCNH DF 6M",
+      "indicator_filter": "USDCNH:DF:6M",
+      "category": "fx_forward",
+      "notes": "CNH 远期 6 个月"
+    },
+    "fx:cnh-df-1y": {
+      "method": "economic",
+      "metricIdsStr": "USDCNH DF 1Y",
+      "indicator_filter": "USDCNH:DF:1Y",
+      "category": "fx_forward",
+      "notes": "CNH 远期 1 年"
+    },
+    "fx:cny-swap-1m": {
+      "method": "economic",
+      "metricIdsStr": "美元兑人民币掉期点 1M",
+      "indicator_filter": "USDCNY:掉期点:1M",
+      "category": "fx_swap",
+      "notes": "在岸掉期点 1 个月"
+    },
+    "fx:cny-swap-3m": {
+      "method": "economic",
+      "metricIdsStr": "美元兑人民币掉期点 3M",
+      "indicator_filter": "USDCNY:掉期点:3M",
+      "category": "fx_swap",
+      "notes": "在岸掉期点 3 个月"
+    },
+    "fx:cny-swap-6m": {
+      "method": "economic",
+      "metricIdsStr": "美元兑人民币掉期点 6M",
+      "indicator_filter": "USDCNY:掉期点:6M",
+      "category": "fx_swap",
+      "notes": "在岸掉期点 6 个月"
+    },
+    "fx:cny-swap-1y": {
+      "method": "economic",
+      "metricIdsStr": "美元兑人民币掉期点 1Y",
+      "indicator_filter": "USDCNY:掉期点:1Y",
+      "category": "fx_swap",
+      "notes": "在岸掉期点 1 年"
+    },
+    "fx:cny-bond-1y": {
+      "method": "economic",
+      "metricIdsStr": "中债国债收益率1年",
+      "indicator_filter": "中债国债:收益率:1年",
+      "category": "bond_yield",
+      "notes": "中债 1Y 国债。EDB 备选源"
+    },
+    "fx:usd-bond-1y": {
+      "method": "economic",
+      "metricIdsStr": "美国国债收益率1年",
+      "indicator_filter": "美国国债:收益率:1年",
+      "category": "bond_yield",
+      "notes": "美国 1Y 国债。EDB 备选源"
+    }
+  },
+  "note": "共 38 个序列（新增 14 个 fx: 外汇原始序列）。K-line 方法 18 个，economic 方法 20 个。",
+  "valuation": {
+    "note": "估值序列（PE TTM + PB LF + 股息率）。每次 get_index_fundamentals 调用返回三个指标，覆盖 3 个 series。16 个指数 × 1 次调用/天 = 16 次 Wind 调用/天。",
+    "indices": {
+      "沪深300": {
+        "wind_query": "沪深300",
+        "pe_series": "pe_ttm:300收益",
+        "pb_series": "pb_lf:300收益",
+        "dy_series": "dividend_yield:300收益"
+      },
+      "中证500": {
+        "wind_query": "中证500",
+        "pe_series": "pe_ttm:500收益",
+        "pb_series": "pb_lf:500收益",
+        "dy_series": "dividend_yield:500收益"
+      },
+      "中证1000": {
+        "wind_query": "中证1000",
+        "pe_series": "pe_ttm:中证1000全收益",
+        "pb_series": "pb_lf:中证1000全收益",
+        "dy_series": "dividend_yield:中证1000全收益"
+      },
+      "创业板指": {
+        "wind_query": "创业板指",
+        "pe_series": "pe_ttm:创业板R",
+        "pb_series": "pb_lf:创业板R",
+        "dy_series": "dividend_yield:创业板R"
+      },
+      "科创50": {
+        "wind_query": "科创50",
+        "pe_series": "pe_ttm:科创50(全)",
+        "pb_series": "pb_lf:科创50(全)",
+        "dy_series": "dividend_yield:科创50(全)"
+      },
+      "中证红利": {
+        "wind_query": "中证红利",
+        "pe_series": "pe_ttm:中证红利全收益",
+        "pb_series": "pb_lf:中证红利全收益",
+        "dy_series": "dividend_yield:中证红利全收益"
+      },
+      "金融(风格.中信)": {
+        "wind_query": "CI005917.WI",
+        "pe_series": "pe_ttm:金融(风格.中信)",
+        "pb_series": "pb_lf:金融(风格.中信)",
+        "dy_series": "dividend_yield:金融(风格.中信)"
+      },
+      "周期(风格.中信)": {
+        "wind_query": "CI005918.WI",
+        "pe_series": "pe_ttm:周期(风格.中信)",
+        "pb_series": "pb_lf:周期(风格.中信)",
+        "dy_series": "dividend_yield:周期(风格.中信)"
+      },
+      "消费(风格.中信)": {
+        "wind_query": "CI005919.WI",
+        "pe_series": "pe_ttm:消费(风格.中信)",
+        "pb_series": "pb_lf:消费(风格.中信)",
+        "dy_series": "dividend_yield:消费(风格.中信)"
+      },
+      "成长(风格.中信)": {
+        "wind_query": "CI005920.WI",
+        "pe_series": "pe_ttm:成长(风格.中信)",
+        "pb_series": "pb_lf:成长(风格.中信)",
+        "dy_series": "dividend_yield:成长(风格.中信)"
+      },
+      "稳定(风格.中信)": {
+        "wind_query": "CI005921.WI",
+        "pe_series": "pe_ttm:稳定(风格.中信)",
+        "pb_series": "pb_lf:稳定(风格.中信)",
+        "dy_series": "dividend_yield:稳定(风格.中信)"
+      },
+      "恒生指数": {
+        "wind_query": "恒生指数",
+        "pe_series": "pe_ttm:恒生指数R",
+        "pb_series": "pb_lf:恒生指数R",
+        "dy_series": "dividend_yield:恒生指数R"
+      },
+      "恒生科技": {
+        "wind_query": "恒生科技指数",
+        "pe_series": "pe_ttm:恒生科技R",
+        "pb_series": "pb_lf:恒生科技R",
+        "dy_series": "dividend_yield:恒生科技R"
+      },
+      "恒生高股息率": {
+        "wind_query": "恒生高股息率指数",
+        "pe_series": "pe_ttm:恒生高股息率R",
+        "pb_series": "pb_lf:恒生高股息率R",
+        "dy_series": "dividend_yield:恒生高股息率R"
+      },
+      "标普500": {
+        "wind_query": "标普500",
+        "pe_series": "pe_ttm:标普500全收益指数",
+        "pb_series": "pb_lf:标普500全收益指数",
+        "dy_series": "dividend_yield:标普500全收益指数"
+      },
+      "纳斯达克": {
+        "wind_query": "纳斯达克指数",
+        "pe_series": "pe_ttm:纳斯达克总回报指数",
+        "pb_series": "pb_lf:纳斯达克总回报指数",
+        "dy_series": "dividend_yield:纳斯达克总回报指数"
+      }
+    }
+  }
+}

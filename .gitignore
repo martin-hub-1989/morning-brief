@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.bak
+.DS_Store
+
+# Runtime artifacts
+data/fetch_summary.json
+data/update_plan.json
+data/edb_index_cache.json
+
+# Database (large binary)
+data/morning_brief.sqlite
+
+# Generated output
+output/interactive_dashboard.html
