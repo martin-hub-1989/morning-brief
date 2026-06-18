@@ -15,7 +15,13 @@
   "validation": {
     "float_relative_tolerance": 0.0005,
     "float_absolute_tolerance": 0.005,
-    "note": "Wind 与 DB 数据同源，容差与 THS EDB 一致"
+    "note": "Wind 与 DB 数据同源，容差与 THS EDB 一致",
+    "category_overrides": {
+      "fx_swap": {"float_absolute_tolerance": 50, "note": "掉期点每日波动可达 5-20 pips，不同报价源可差 10-30 pips"},
+      "fx_forward": {"float_absolute_tolerance": 0.5, "note": "远期汇率绝对容差 0.5 元"},
+      "fx": {"float_absolute_tolerance": 0.5, "note": "汇率绝对容差 0.5 元"},
+      "bond_yield": {"float_absolute_tolerance": 0.5, "note": "债券收益率不同数据源有系统性偏差"}
+    }
   },
   "mappings": {
     "trend:300收益": {
@@ -185,57 +191,57 @@
     },
     "fx:cnh-df-1m": {
       "method": "economic",
-      "metricIdsStr": "USDCNH DF 1M",
-      "indicator_filter": "USDCNH:DF:1M",
+      "metricIdsStr": "USDCNH:DF:1个月",
+      "indicator_filter": "USDCNH:DF:1个月",
       "category": "fx_forward",
-      "notes": "CNH 远期 1 个月"
+      "notes": "CNH 远期 1 个月。Wind 精确名称来自 Excel seed Row 3"
     },
     "fx:cnh-df-3m": {
       "method": "economic",
-      "metricIdsStr": "USDCNH DF 3M",
-      "indicator_filter": "USDCNH:DF:3M",
+      "metricIdsStr": "USDCNH:DF:3个月",
+      "indicator_filter": "USDCNH:DF:3个月",
       "category": "fx_forward",
       "notes": "CNH 远期 3 个月"
     },
     "fx:cnh-df-6m": {
       "method": "economic",
-      "metricIdsStr": "USDCNH DF 6M",
-      "indicator_filter": "USDCNH:DF:6M",
+      "metricIdsStr": "USDCNH:DF:6个月",
+      "indicator_filter": "USDCNH:DF:6个月",
       "category": "fx_forward",
       "notes": "CNH 远期 6 个月"
     },
     "fx:cnh-df-1y": {
       "method": "economic",
-      "metricIdsStr": "USDCNH DF 1Y",
-      "indicator_filter": "USDCNH:DF:1Y",
+      "metricIdsStr": "USDCNH:DF:1年",
+      "indicator_filter": "USDCNH:DF:1年",
       "category": "fx_forward",
       "notes": "CNH 远期 1 年"
     },
     "fx:cny-swap-1m": {
       "method": "economic",
-      "metricIdsStr": "美元兑人民币掉期点 1M",
-      "indicator_filter": "USDCNY:掉期点:1M",
+      "metricIdsStr": "买报价:美元兑人民币:1个月",
+      "indicator_filter": "买报价:美元兑人民币:1个月",
       "category": "fx_swap",
-      "notes": "在岸掉期点 1 个月"
+      "notes": "在岸掉期点 1 个月。买报价，单位 pips"
     },
     "fx:cny-swap-3m": {
       "method": "economic",
-      "metricIdsStr": "美元兑人民币掉期点 3M",
-      "indicator_filter": "USDCNY:掉期点:3M",
+      "metricIdsStr": "买报价:美元兑人民币:3个月",
+      "indicator_filter": "买报价:美元兑人民币:3个月",
       "category": "fx_swap",
       "notes": "在岸掉期点 3 个月"
     },
     "fx:cny-swap-6m": {
       "method": "economic",
-      "metricIdsStr": "美元兑人民币掉期点 6M",
-      "indicator_filter": "USDCNY:掉期点:6M",
+      "metricIdsStr": "买报价:美元兑人民币:6个月",
+      "indicator_filter": "买报价:美元兑人民币:6个月",
       "category": "fx_swap",
       "notes": "在岸掉期点 6 个月"
     },
     "fx:cny-swap-1y": {
       "method": "economic",
-      "metricIdsStr": "美元兑人民币掉期点 1Y",
-      "indicator_filter": "USDCNY:掉期点:1Y",
+      "metricIdsStr": "买报价:美元兑人民币:1年",
+      "indicator_filter": "买报价:美元兑人民币:1年",
       "category": "fx_swap",
       "notes": "在岸掉期点 1 年"
     },

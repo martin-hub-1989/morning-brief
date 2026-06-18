@@ -9,7 +9,7 @@ import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_XLSX = ROOT / "seed" / "20260617-Morning Brief Skill（日频全量）.xlsx"
+DEFAULT_XLSX = ROOT / "seed" / "seed.xlsx"
 DEFAULT_DB = ROOT / "data" / "morning_brief.sqlite"
 
 SHEET_PREFIX = {

@@ -324,8 +324,8 @@ def get_validation_dates(conn, series_id):
 
 # ── validation ────────────────────────────────────────────────────────
 
-def values_match(db_val, fetched_val, config):
-    """检查两个值在容差范围内是否一致。"""
+def values_match(db_val, fetched_val, config, category=None):
+    """检查两个值在容差范围内是否一致。支持 category 级别容差覆盖。"""
     try:
         db_val = float(db_val)
         fetched_val = float(fetched_val)
@@ -333,16 +333,28 @@ def values_match(db_val, fetched_val, config):
         return db_val == fetched_val
     if db_val == fetched_val:
         return True
+
+    # Apply category-level tolerance overrides
+    overrides = config.get("category_overrides", {})
+    rel_tol = config["float_relative_tolerance"]
+    abs_tol = config["float_absolute_tolerance"]
+    if category and category in overrides:
+        override = overrides[category]
+        if "float_relative_tolerance" in override:
+            rel_tol = override["float_relative_tolerance"]
+        if "float_absolute_tolerance" in override:
+            abs_tol = override["float_absolute_tolerance"]
+
     if abs(db_val) > 1e-8:
         rel_diff = abs(fetched_val - db_val) / abs(db_val)
-        if rel_diff <= config["float_relative_tolerance"]:
+        if rel_diff <= rel_tol:
             return True
-    if abs(fetched_val - db_val) <= config["float_absolute_tolerance"]:
+    if abs(fetched_val - db_val) <= abs_tol:
         return True
     return False
 
 
-def validate_series(conn, series_id, fetched_points, validation_config):
+def validate_series(conn, series_id, fetched_points, validation_config, category=None):
     """比较拉取值与数据库 validation_dates 的值。"""
     vdates = get_validation_dates(conn, series_id)
     if not vdates:
@@ -378,7 +390,7 @@ def validate_series(conn, series_id, fetched_points, validation_config):
     mismatches = []
     for vd, vv in overlapping:
         fv = fetched_dict[vd]
-        if values_match(vv, fv, validation_config):
+        if values_match(vv, fv, validation_config, category):
             matches += 1
         else:
             mismatches.append(f"{vd}: DB={vv} vs Wind={fv}")
@@ -506,7 +518,8 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
         if data is None:
             continue
 
-        status, msg = validate_series(conn, sid, data, validation_cfg)
+        category = item.get("category", "")
+        status, msg = validate_series(conn, sid, data, validation_cfg, category)
         if verbose or status == "fail":
             log(f"{sid}: validate={status} — {msg}",
                 "ERROR" if status == "fail" else ("WARN" if status == "partial" else "OK"))
@@ -631,7 +644,8 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
 
                 if vdates:
                     db_date, db_val = vdates[-1]  # most recent
-                    if values_match(db_val, wind_val, validation_cfg):
+                    # Pass category=None for valuation series (no category override needed)
+                    if values_match(db_val, wind_val, validation_cfg, category=None):
                         val_ok += 1
                         if verbose:
                             log(f"  {sid}: DB={db_val} vs Wind={wind_val} ✓", "OK")

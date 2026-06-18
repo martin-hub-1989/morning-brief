@@ -16,11 +16,12 @@ cd morning-brief
 # 2. 安装依赖（仅 pandas + openpyxl）
 pip install -r requirements.txt
 
-# 3. 从种子数据重建数据库（趋势/估值/利率/汇率/商品）
+# 3. 重建数据库（趋势/估值 + 外汇原始数据，单文件 ~6.5 MB）
 python3 scripts/import_seed.py --replace
-
-# 4. 导入外汇数据（中间价/即期/远期/掉期点，必需步骤）
 python3 scripts/import_fx_data.py
+
+# 4. 复算外汇衍生序列（汇率拆解 + 套保成本 + 年化，24 个序列）
+python3 scripts/recompute_fx_derived.py
 
 # 5. 安装 Claude Code skill（可选）
 mkdir -p ~/.claude/skills/morning-brief
@@ -55,8 +56,7 @@ open output/interactive_dashboard.html                # macOS
 ├── .gitignore
 ├── requirements.txt               ← Python 依赖
 ├── seed/                          ← 历史数据种子文件
-│   ├── 20260617-Morning Brief Skill（日频全量）.xlsx
-│   └── 中间价与套保成本.xlsx
+│   └── seed.xlsx                  ← 合并种子（走势/估值/外汇原始/债券，~6.5 MB）
 ├── config/                        ← 数据源查询映射
 │   ├── edb_mapping.json           ← series_id → EDB 查询词
 │   └── wind_mapping.json          ← series_id → Wind MCP 参数
@@ -169,7 +169,7 @@ python3 scripts/import_seed.py --replace
 - 一点不匹配 → 记录警告，仍追加新日期
 - 两点都不匹配 → 跳过该序列，保留原库数据（人工复核）
 
-## 当前状态（2026-06-17）
+## 当前状态（2026-06-18）
 
 | 指标 | 数值 |
 | ---- | ---- |
@@ -178,7 +178,7 @@ python3 scripts/import_seed.py --replace
 | 外汇原始序列 | 13 个（中间价/即期/CNH远期/掉期点/债券收益率） |
 | 外汇衍生序列 | 24 个（汇率拆解 + 套保成本 + 年化） |
 | **THS EDB 覆盖** | 36 个（32 趋势 + 4 FX） |
-| **Wind MCP 覆盖** | 37 个（23 趋势 + 14 FX） + 51 估值 |
+| **Wind MCP 覆盖** | 38 个（25 趋势 + 13 FX） + 51 估值 |
 | **Python 复算** | 24 FX 衍生序列 |
-| **总覆盖** | **~130 序列，100% 覆盖** |
+| **总覆盖** | **143 序列，100% 覆盖** |
 | 数据起点 | 趋势 1989-06-05，估值 1990-12-19，外汇 1981-01-02 |
