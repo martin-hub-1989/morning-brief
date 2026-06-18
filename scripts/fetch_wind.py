@@ -12,38 +12,22 @@
 import argparse
 import json
 import os
-import sqlite3
 import subprocess
 import sys
 import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-# Windows GBK 编码兼容：强制 stdout/stderr 使用 UTF-8
-if sys.platform == 'win32':
-    for _s in (sys.stdout, sys.stderr):
-        try:
-            _s.reconfigure(encoding='utf-8')
-        except Exception:
-            pass
+from lib import (
+    ROOT, DEFAULT_DB, log, load_json, open_db,
+    get_validation_dates, values_match,
+)
 
-ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DB = ROOT / "data" / "morning_brief.sqlite"
 DEFAULT_MAPPING = ROOT / "config" / "wind_mapping.json"
-WIND_SKILL_DIR = Path.home() / ".claude" / "skills" / "wind-mcp-skill"
-
-
-# ── helpers ──────────────────────────────────────────────────────────
-
-def log(msg, level="INFO"):
-    prefix = {"INFO": "  ", "WARN": "  ⚠", "ERROR": "  ✗", "OK": "  ✓"}
-    print(f"{prefix.get(level, '  ')} {msg}",
-          file=sys.stderr if level == "ERROR" else sys.stdout)
-
-
-def load_json(path):
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+WIND_SKILL_DIR = Path(os.environ.get(
+    "WIND_SKILL_DIR",
+    str(Path.home() / ".claude" / "skills" / "wind-mcp-skill")
+))
 
 
 # ── Wind CLI ─────────────────────────────────────────────────────────
@@ -78,7 +62,7 @@ def call_wind_cli(server_type, tool_name, params, timeout=30):
             error_info = err.get("error", {})
             code = error_info.get("code", "UNKNOWN")
             msg = error_info.get("message", result.stderr[:200] if result.stderr else "no stderr")
-        except:
+        except (json.JSONDecodeError, ValueError, KeyError):
             msg = result.stderr[:200] if result.stderr else result.stdout[:200]
         log(f"Wind CLI exit={result.returncode}: {msg}", "ERROR")
         return None
@@ -86,7 +70,7 @@ def call_wind_cli(server_type, tool_name, params, timeout=30):
     try:
         outer = json.loads(result.stdout)
     except json.JSONDecodeError:
-        log(f"Wind CLI returned invalid JSON", "ERROR")
+        log("Wind CLI returned invalid JSON", "ERROR")
         return None
 
     if outer.get("isError"):
@@ -313,46 +297,7 @@ def get_target_series(conn, series_filter=None):
     return cur.fetchall()
 
 
-def get_validation_dates(conn, series_id):
-    """获取数据库最后两个非零观测日期（从旧到新）。"""
-    rows = conn.execute(
-        "SELECT date, value FROM observations WHERE series_id = ? ORDER BY date DESC LIMIT 2",
-        (series_id,)
-    ).fetchall()
-    return list(reversed(rows))
-
-
-# ── validation ────────────────────────────────────────────────────────
-
-def values_match(db_val, fetched_val, config, category=None):
-    """检查两个值在容差范围内是否一致。支持 category 级别容差覆盖。"""
-    try:
-        db_val = float(db_val)
-        fetched_val = float(fetched_val)
-    except (ValueError, TypeError):
-        return db_val == fetched_val
-    if db_val == fetched_val:
-        return True
-
-    # Apply category-level tolerance overrides
-    overrides = config.get("category_overrides", {})
-    rel_tol = config["float_relative_tolerance"]
-    abs_tol = config["float_absolute_tolerance"]
-    if category and category in overrides:
-        override = overrides[category]
-        if "float_relative_tolerance" in override:
-            rel_tol = override["float_relative_tolerance"]
-        if "float_absolute_tolerance" in override:
-            abs_tol = override["float_absolute_tolerance"]
-
-    if abs(db_val) > 1e-8:
-        rel_diff = abs(fetched_val - db_val) / abs(db_val)
-        if rel_diff <= rel_tol:
-            return True
-    if abs(fetched_val - db_val) <= abs_tol:
-        return True
-    return False
-
+# ── validation (Wind-specific logic, kept here due to forward-fill handling) ─
 
 def validate_series(conn, series_id, fetched_points, validation_config, category=None):
     """比较拉取值与数据库 validation_dates 的值。"""
@@ -418,311 +363,316 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
     validation_cfg = mapping_cfg["validation"]
     mappings = mapping_cfg["mappings"]
 
-    conn = sqlite3.connect(db_path)
     today = date.today()
     begin_date = today - timedelta(days=fetch_cfg["lookback_calendar_days"])
 
-    # ---- identify targets ----
-    target_rows = get_target_series(conn, series_filter)
-    if not target_rows:
-        log("All Wind-mapped series are up to date. Nothing to fetch.", "OK")
-        conn.close()
-        return {"series_fetched": 0, "obs_inserted": 0, "failures": []}
+    with open_db(db_path) as conn:
 
-    # Build fetch list with mapping lookup
-    fetch_list = []
-    skipped_no_mapping = []
-    for sid, name, unit, last_date in target_rows:
-        m = mappings.get(sid)
-        if not m:
-            skipped_no_mapping.append(sid)
-            continue
-        fetch_list.append({
-            "series_id": sid,
-            "display_name": name,
-            "unit": unit,
-            "last_date": last_date,
-            "method": m["method"],
-            "windcode": m.get("windcode"),
-            "metricIdsStr": m.get("metricIdsStr"),
-            "indicator_filter": m.get("indicator_filter"),
-            "category": m.get("category", ""),
-            "notes": m.get("notes", "")
-        })
+        # ---- identify targets ----
+        target_rows = get_target_series(conn, series_filter)
+        if not target_rows:
+            log("All Wind-mapped series are up to date. Nothing to fetch.", "OK")
+            return {"series_fetched": 0, "obs_inserted": 0, "failures": []}
 
-    if skipped_no_mapping and verbose:
-        log(f"Skipped {len(skipped_no_mapping)} series without Wind mapping (handled by THS EDB)", "INFO")
+        # Build fetch list with mapping lookup
+        fetch_list = []
+        skipped_no_mapping = []
+        for sid, name, unit, last_date in target_rows:
+            m = mappings.get(sid)
+            if not m:
+                skipped_no_mapping.append(sid)
+                continue
+            fetch_list.append({
+                "series_id": sid,
+                "display_name": name,
+                "unit": unit,
+                "last_date": last_date,
+                "method": m["method"],
+                "windcode": m.get("windcode"),
+                "metricIdsStr": m.get("metricIdsStr"),
+                "indicator_filter": m.get("indicator_filter"),
+                "category": m.get("category", ""),
+                "notes": m.get("notes", "")
+            })
 
-    if max_series:
-        fetch_list = fetch_list[:max_series]
+        if skipped_no_mapping and verbose:
+            log(f"Skipped {len(skipped_no_mapping)} series without Wind mapping (handled by THS EDB)", "INFO")
 
-    kline_count = sum(1 for f in fetch_list if f["method"] == "kline")
-    econ_count = sum(1 for f in fetch_list if f["method"] == "economic")
-    log(f"Fetching {len(fetch_list)} series from Wind ({kline_count} K-line + {econ_count} economic)...")
-
-    # ---- fetch loop ----
-    results = {}
-    fetch_errors = []
-
-    for i, item in enumerate(fetch_list):
-        sid = item["series_id"]
-
-        if verbose:
-            if item["method"] == "kline":
-                log(f"[{i+1}/{len(fetch_list)}] {sid} ← K-line {item['windcode']}")
-            else:
-                log(f"[{i+1}/{len(fetch_list)}] {sid} ← economic '{item['metricIdsStr']}'")
-
-        # retry loop
-        data = None
-        for attempt in range(fetch_cfg["max_retries"] + 1):
-            if item["method"] == "kline":
-                data = fetch_kline(item["windcode"], begin_date, today)
-            else:
-                data = fetch_economic(
-                    item["metricIdsStr"], item["indicator_filter"],
-                    begin_date, today
-                )
-            if data is not None:
-                break
-            if attempt < fetch_cfg["max_retries"]:
-                time.sleep(3)
-
-        if data is None:
-            fetch_errors.append({"series_id": sid, "reason": "fetch_failed"})
-            log(f"{sid}: fetch failed", "ERROR")
-        elif not data:
-            fetch_errors.append({"series_id": sid, "reason": "empty_data"})
-            if verbose:
-                log(f"{sid}: no data returned", "WARN")
-        else:
-            results[sid] = data
-            if verbose:
-                log(f"{sid}: got {len(data)} points, "
-                    f"latest={data[-1][0]}={data[-1][1]}", "OK")
-
-        # delay between calls (Wind credits cost, be conservative)
-        if i < len(fetch_list) - 1:
-            time.sleep(fetch_cfg["delay_between_calls_seconds"])
-
-    log(f"Fetched: {len(results)} success, {len(fetch_errors)} errors")
-
-    # ---- validate ----
-    validated = []
-    partial = []
-    failed = []
-
-    for item in fetch_list:
-        sid = item["series_id"]
-        data = results.get(sid)
-        if data is None:
-            continue
-
-        category = item.get("category", "")
-        status, msg = validate_series(conn, sid, data, validation_cfg, category)
-        if verbose or status == "fail":
-            log(f"{sid}: validate={status} — {msg}",
-                "ERROR" if status == "fail" else ("WARN" if status == "partial" else "OK"))
-
-        if status == "ok":
-            validated.append(item)
-        elif status == "partial":
-            partial.append(item)
-        else:
-            failed.append({"series_id": sid, "reason": f"validation_failed: {msg}"})
-
-    log(f"Validated: {len(validated)} ok, {len(partial)} partial, {len(failed)} failed")
-
-    # ---- insert ----
-    imported_at = datetime.now().isoformat(timespec="seconds")
-    obs_inserted = 0
-    series_updated = 0
-
-    for item in validated + partial:
-        sid = item["series_id"]
-        data = results.get(sid)
-        if not data:
-            continue
-
-        last_date = item["last_date"]
-        new_points = [p for p in data if not last_date or p[0] > last_date]
-
-        if not new_points:
-            continue
-
-        if verbose:
-            log(f"{sid}: inserting {len(new_points)} new observations "
-                f"({new_points[0][0]} → {new_points[-1][0]})")
-
-        obs_inserted += len(new_points)
-        series_updated += 1
-
-        if not dry_run:
-            for date_str, value in new_points:
-                try:
-                    conn.execute(
-                        """INSERT INTO observations (series_id, date, value, as_of_date, imported_at)
-                           VALUES (?, ?, ?, ?, ?)
-                           ON CONFLICT(series_id, date) DO UPDATE SET
-                               value=excluded.value,
-                               as_of_date=excluded.as_of_date,
-                               imported_at=excluded.imported_at""",
-                        (sid, date_str, float(value), date_str, imported_at)
-                    )
-                except Exception as e:
-                    log(f"{sid} insert error at {date_str}: {e}", "ERROR")
-                    continue
-
-            conn.execute(
-                "UPDATE series SET update_method = 'wind_mcp', updated_at = ? WHERE series_id = ?",
-                (imported_at, sid)
-            )
-
-    if not dry_run and obs_inserted > 0:
-        conn.commit()
-        log(f"Committed {obs_inserted} new observations for {series_updated} series", "OK")
-    elif dry_run:
-        log(f"[DRY RUN] Would insert {obs_inserted} observations for {series_updated} series", "WARN")
-
-    # ---- valuation (separate phase: one Wind call → three series) ----
-    valuation_cfg = mapping_cfg.get("valuation", {}).get("indices", {})
-    val_fetched = 0
-    val_ok = 0
-    val_partial = 0
-    val_failed = 0
-    val_inserted = 0
-    val_errors = []
-
-    if valuation_cfg and not series_filter:
-        today_str = today.isoformat()
-        log(f"Fetching {len(valuation_cfg)} valuation indices from Wind...")
-        val_items = list(valuation_cfg.items())
         if max_series:
-            val_items = val_items[:max_series]
+            fetch_list = fetch_list[:max_series]
 
-        for i, (index_name, vcfg) in enumerate(val_items):
-            wind_query = vcfg["wind_query"]
-            pe_sid = vcfg["pe_series"]
-            pb_sid = vcfg["pb_series"]
-            dy_sid = vcfg["dy_series"]
+        kline_count = sum(1 for f in fetch_list if f["method"] == "kline")
+        econ_count = sum(1 for f in fetch_list if f["method"] == "economic")
+        log(f"Fetching {len(fetch_list)} series from Wind ({kline_count} K-line + {econ_count} economic)...")
+
+        # ---- fetch loop ----
+        results = {}
+        fetch_errors = []
+
+        for i, item in enumerate(fetch_list):
+            sid = item["series_id"]
 
             if verbose:
-                log(f"[Val {i+1}/{len(val_items)}] {index_name} ← '{wind_query}'")
+                if item["method"] == "kline":
+                    log(f"[{i+1}/{len(fetch_list)}] {sid} ← K-line {item['windcode']}")
+                else:
+                    log(f"[{i+1}/{len(fetch_list)}] {sid} ← economic '{item['metricIdsStr']}'")
 
             # retry loop
-            val_data = None
+            data = None
             for attempt in range(fetch_cfg["max_retries"] + 1):
-                val_data = fetch_valuation(wind_query)
-                if val_data is not None:
+                if item["method"] == "kline":
+                    data = fetch_kline(item["windcode"], begin_date, today)
+                else:
+                    data = fetch_economic(
+                        item["metricIdsStr"], item["indicator_filter"],
+                        begin_date, today
+                    )
+                if data is not None:
                     break
                 if attempt < fetch_cfg["max_retries"]:
                     time.sleep(3)
 
-            if val_data is None:
-                val_errors.append({"index": index_name, "reason": "fetch_failed"})
-                log(f"{index_name}: valuation fetch failed", "ERROR")
-                if i < len(val_items) - 1:
-                    time.sleep(fetch_cfg["delay_between_calls_seconds"])
-                continue
+            if data is None:
+                fetch_errors.append({"series_id": sid, "reason": "fetch_failed"})
+                log(f"{sid}: fetch failed", "ERROR")
+            elif not data:
+                fetch_errors.append({"series_id": sid, "reason": "empty_data"})
+                if verbose:
+                    log(f"{sid}: no data returned", "WARN")
+            else:
+                results[sid] = data
+                if verbose:
+                    log(f"{sid}: got {len(data)} points, "
+                        f"latest={data[-1][0]}={data[-1][1]}", "OK")
 
-            val_fetched += 1
-            if verbose:
-                pe_str = f"PE={val_data.get('pe', '?')}" if 'pe' in val_data else ""
-                pb_str = f"PB={val_data.get('pb', '?')}" if 'pb' in val_data else ""
-                dy_str = f"DY={val_data.get('dy', '?')}%" if 'dy' in val_data else ""
-                log(f"{index_name}: {pe_str} {pb_str} {dy_str}", "OK")
-
-            # Validate and insert each metric
-            for metric_key, sid in [("pe", pe_sid), ("pb", pb_sid), ("dy", dy_sid)]:
-                wind_val = val_data.get(metric_key)
-                if wind_val is None:
-                    continue
-
-                vdates = get_validation_dates(conn, sid)
-                # Filter zero values
-                vdates = [(vd, vv) for vd, vv in vdates if float(vv) != 0.0]
-
-                if vdates:
-                    db_date, db_val = vdates[-1]  # most recent
-                    # Pass category=None for valuation series (no category override needed)
-                    if values_match(db_val, wind_val, validation_cfg, category=None):
-                        val_ok += 1
-                        if verbose:
-                            log(f"  {sid}: DB={db_val} vs Wind={wind_val} ✓", "OK")
-                    else:
-                        val_partial += 1
-                        if verbose:
-                            rel = abs(wind_val - float(db_val)) / abs(float(db_val)) * 100 if abs(float(db_val)) > 0.001 else 0
-                            log(f"  {sid}: DB={db_val} vs Wind={wind_val} ({rel:.2f}%) ⚠", "WARN")
-                else:
-                    val_ok += 1  # no DB data yet, skip validation
-
-                # Insert new observation if today's date not in DB
-                existing = conn.execute(
-                    "SELECT COUNT(*) FROM observations WHERE series_id = ? AND date = ?",
-                    (sid, today_str)
-                ).fetchone()[0]
-
-                if existing == 0:
-                    if not dry_run:
-                        try:
-                            conn.execute(
-                                """INSERT INTO observations (series_id, date, value, as_of_date, imported_at)
-                                   VALUES (?, ?, ?, ?, ?)
-                                   ON CONFLICT(series_id, date) DO UPDATE SET
-                                       value=excluded.value, as_of_date=excluded.as_of_date,
-                                       imported_at=excluded.imported_at""",
-                                (sid, today_str, float(wind_val), today_str, imported_at)
-                            )
-                            conn.execute(
-                                "UPDATE series SET update_method = 'wind_mcp', updated_at = ? WHERE series_id = ?",
-                                (imported_at, sid)
-                            )
-                        except Exception as e:
-                            log(f"{sid} insert error: {e}", "ERROR")
-                            continue
-                    val_inserted += 1
-                    series_updated += 1
-                    if verbose:
-                        log(f"  {sid}: new obs {today_str}={wind_val}", "OK")
-
-            if i < len(val_items) - 1:
+            # delay between calls (Wind credits cost, be conservative)
+            if i < len(fetch_list) - 1:
                 time.sleep(fetch_cfg["delay_between_calls_seconds"])
 
-        if not dry_run and val_inserted > 0:
+        log(f"Fetched: {len(results)} success, {len(fetch_errors)} errors")
+
+        # ---- validate ----
+        validated = []
+        partial = []
+        failed = []
+
+        for item in fetch_list:
+            sid = item["series_id"]
+            data = results.get(sid)
+            if data is None:
+                continue
+
+            category = item.get("category", "")
+            status, msg = validate_series(conn, sid, data, validation_cfg, category)
+            if verbose or status == "fail":
+                log(f"{sid}: validate={status} — {msg}",
+                    "ERROR" if status == "fail" else ("WARN" if status == "partial" else "OK"))
+
+            if status == "ok":
+                validated.append(item)
+            elif status == "partial":
+                partial.append(item)
+            else:
+                failed.append({"series_id": sid, "reason": f"validation_failed: {msg}"})
+
+        log(f"Validated: {len(validated)} ok, {len(partial)} partial, {len(failed)} failed")
+
+        # ---- insert ----
+        imported_at = datetime.now().isoformat(timespec="seconds")
+        obs_inserted = 0
+        series_updated = 0
+
+        for item in validated + partial:
+            sid = item["series_id"]
+            data = results.get(sid)
+            if not data:
+                continue
+
+            last_date = item["last_date"]
+            new_points = [p for p in data if not last_date or p[0] > last_date]
+
+            if not new_points:
+                continue
+
+            if verbose:
+                log(f"{sid}: inserting {len(new_points)} new observations "
+                    f"({new_points[0][0]} → {new_points[-1][0]})")
+
+            if not dry_run:
+                consecutive_errors = 0
+                MAX_CONSECUTIVE_ERRORS = 5
+
+                for date_str, value in new_points:
+                    try:
+                        conn.execute(
+                            """INSERT INTO observations (series_id, date, value, as_of_date, imported_at)
+                               VALUES (?, ?, ?, ?, ?)
+                               ON CONFLICT(series_id, date) DO UPDATE SET
+                                   value=excluded.value,
+                                   as_of_date=excluded.as_of_date,
+                                   imported_at=excluded.imported_at""",
+                            (sid, date_str, float(value), date_str, imported_at)
+                        )
+                        consecutive_errors = 0
+                    except Exception as e:
+                        consecutive_errors += 1
+                        log(f"{sid} insert error at {date_str}: {e}", "ERROR")
+                        if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                            log(f"{sid}: {MAX_CONSECUTIVE_ERRORS} consecutive insert errors, skipping remaining", "ERROR")
+                            break
+                        continue
+                    obs_inserted += 1
+
+                conn.execute(
+                    "UPDATE series SET update_method = 'wind_mcp', updated_at = ? WHERE series_id = ?",
+                    (imported_at, sid)
+                )
+                series_updated += 1
+
+        if not dry_run and obs_inserted > 0:
             conn.commit()
-        val_metric_failures = val_fetched * 3 - val_ok - val_partial  # metrics without data
-        log(f"Valuation: {val_fetched}/{len(val_items)} indices fetched, "
-            f"{val_ok} ok + {val_partial} partial (metrics), "
-            f"{val_inserted} obs inserted")
+            log(f"Committed {obs_inserted} new observations for {series_updated} series", "OK")
+        elif dry_run:
+            log(f"[DRY RUN] Would insert {obs_inserted} observations for {series_updated} series", "WARN")
 
-    # ---- summary ----
-    all_errors = fetch_errors + failed + val_errors
-    trend_targeted = len(fetch_list)
-    val_targeted = len(valuation_cfg) * 3 if valuation_cfg else 0  # 3 series per index
-    summary = {
-        "timestamp": imported_at,
-        "dry_run": dry_run,
-        "trend_targeted": trend_targeted,
-        "trend_fetched": len(results),
-        "trend_ok": len(validated),
-        "trend_partial": len(partial),
-        "trend_failed": len(failed),
-        "val_targeted": val_targeted,
-        "val_fetched": val_fetched,
-        "val_ok": val_ok,
-        "val_partial": val_partial,
-        "val_failures": len(val_errors),
-        "obs_inserted": obs_inserted + val_inserted,
-        "failures": all_errors
-    }
+        # ---- valuation (separate phase: one Wind call → three series) ----
+        valuation_cfg = mapping_cfg.get("valuation", {}).get("indices", {})
+        val_fetched = 0
+        val_ok = 0
+        val_partial = 0
+        val_failed = 0
+        val_inserted = 0
+        val_errors = []
 
-    summary_path = ROOT / "data" / "wind_fetch_summary.json"
-    if not dry_run:
-        summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+        if valuation_cfg and not series_filter:
+            today_str = today.isoformat()
+            log(f"Fetching {len(valuation_cfg)} valuation indices from Wind...")
+            val_items = list(valuation_cfg.items())
+            if max_series:
+                val_items = val_items[:max_series]
 
-    conn.close()
-    return summary
+            for i, (index_name, vcfg) in enumerate(val_items):
+                wind_query = vcfg["wind_query"]
+                pe_sid = vcfg["pe_series"]
+                pb_sid = vcfg["pb_series"]
+                dy_sid = vcfg["dy_series"]
+
+                if verbose:
+                    log(f"[Val {i+1}/{len(val_items)}] {index_name} ← '{wind_query}'")
+
+                # retry loop
+                val_data = None
+                for attempt in range(fetch_cfg["max_retries"] + 1):
+                    val_data = fetch_valuation(wind_query)
+                    if val_data is not None:
+                        break
+                    if attempt < fetch_cfg["max_retries"]:
+                        time.sleep(3)
+
+                if val_data is None:
+                    val_errors.append({"index": index_name, "reason": "fetch_failed"})
+                    log(f"{index_name}: valuation fetch failed", "ERROR")
+                    if i < len(val_items) - 1:
+                        time.sleep(fetch_cfg["delay_between_calls_seconds"])
+                    continue
+
+                val_fetched += 1
+                if verbose:
+                    pe_str = f"PE={val_data.get('pe', '?')}" if 'pe' in val_data else ""
+                    pb_str = f"PB={val_data.get('pb', '?')}" if 'pb' in val_data else ""
+                    dy_str = f"DY={val_data.get('dy', '?')}%" if 'dy' in val_data else ""
+                    log(f"{index_name}: {pe_str} {pb_str} {dy_str}", "OK")
+
+                # Validate and insert each metric
+                for metric_key, sid in [("pe", pe_sid), ("pb", pb_sid), ("dy", dy_sid)]:
+                    wind_val = val_data.get(metric_key)
+                    if wind_val is None:
+                        continue
+
+                    vdates = get_validation_dates(conn, sid)
+                    # Filter zero values
+                    vdates = [(vd, vv) for vd, vv in vdates if float(vv) != 0.0]
+
+                    if vdates:
+                        db_date, db_val = vdates[-1]  # most recent
+                        if values_match(db_val, wind_val, validation_cfg):
+                            val_ok += 1
+                            if verbose:
+                                log(f"  {sid}: DB={db_val} vs Wind={wind_val} ✓", "OK")
+                        else:
+                            val_partial += 1
+                            if verbose:
+                                rel = abs(wind_val - float(db_val)) / abs(float(db_val)) * 100 if abs(float(db_val)) > 0.001 else 0
+                                log(f"  {sid}: DB={db_val} vs Wind={wind_val} ({rel:.2f}%) ⚠", "WARN")
+                    else:
+                        val_ok += 1  # no DB data yet, skip validation
+
+                    # Insert new observation if today's date not in DB
+                    existing = conn.execute(
+                        "SELECT COUNT(*) FROM observations WHERE series_id = ? AND date = ?",
+                        (sid, today_str)
+                    ).fetchone()[0]
+
+                    if existing == 0:
+                        if not dry_run:
+                            try:
+                                conn.execute(
+                                    """INSERT INTO observations (series_id, date, value, as_of_date, imported_at)
+                                       VALUES (?, ?, ?, ?, ?)
+                                       ON CONFLICT(series_id, date) DO UPDATE SET
+                                           value=excluded.value, as_of_date=excluded.as_of_date,
+                                           imported_at=excluded.imported_at""",
+                                    (sid, today_str, float(wind_val), today_str, imported_at)
+                                )
+                                conn.execute(
+                                    "UPDATE series SET update_method = 'wind_mcp', updated_at = ? WHERE series_id = ?",
+                                    (imported_at, sid)
+                                )
+                            except Exception as e:
+                                log(f"{sid} insert error: {e}", "ERROR")
+                                continue
+                        val_inserted += 1
+                        series_updated += 1
+                        if verbose:
+                            log(f"  {sid}: new obs {today_str}={wind_val}", "OK")
+
+                if i < len(val_items) - 1:
+                    time.sleep(fetch_cfg["delay_between_calls_seconds"])
+
+            if not dry_run and val_inserted > 0:
+                conn.commit()
+            val_metric_failures = val_fetched * 3 - val_ok - val_partial  # metrics without data
+            log(f"Valuation: {val_fetched}/{len(val_items)} indices fetched, "
+                f"{val_ok} ok + {val_partial} partial (metrics), "
+                f"{val_inserted} obs inserted")
+
+        # ---- summary ----
+        all_errors = fetch_errors + failed + val_errors
+        trend_targeted = len(fetch_list)
+        val_targeted = len(valuation_cfg) * 3 if valuation_cfg else 0  # 3 series per index
+        summary = {
+            "timestamp": imported_at,
+            "dry_run": dry_run,
+            "trend_targeted": trend_targeted,
+            "trend_fetched": len(results),
+            "trend_ok": len(validated),
+            "trend_partial": len(partial),
+            "trend_failed": len(failed),
+            "val_targeted": val_targeted,
+            "val_fetched": val_fetched,
+            "val_ok": val_ok,
+            "val_partial": val_partial,
+            "val_failures": len(val_errors),
+            "obs_inserted": obs_inserted + val_inserted,
+            "failures": all_errors
+        }
+
+        summary_path = ROOT / "data" / "wind_fetch_summary.json"
+        if not dry_run:
+            summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        return summary
 
 
 # ── CLI ────────────────────────────────────────────────────────────────
@@ -744,7 +694,7 @@ def main():
         log(f"Mapping config not found: {args.mapping}", "ERROR")
         sys.exit(1)
 
-    log(f"Martin Morning Brief — fetch_wind.py (Wind MCP)")
+    log("Martin Morning Brief — fetch_wind.py (Wind MCP)")
     log(f"DB: {args.db}")
     if args.dry_run:
         log("Mode: DRY RUN (no writes)", "WARN")
@@ -765,7 +715,7 @@ def main():
         sys.exit(2)
 
     print()
-    log(f"=== Wind Fetch Summary ===")
+    log("=== Wind Fetch Summary ===")
     log(f"Trend:   {summary['trend_targeted']} targeted, {summary['trend_fetched']} fetched, "
         f"{summary['trend_ok']} ok + {summary['trend_partial']} partial, {summary['trend_failed']} failed")
     if summary['val_targeted'] > 0:

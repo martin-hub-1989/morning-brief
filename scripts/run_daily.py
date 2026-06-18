@@ -20,13 +20,12 @@
 
 import argparse
 import os
-import sqlite3
 import subprocess
 import sys
 from pathlib import Path
 
+from lib import ROOT, DEFAULT_DB, open_db
 
-ROOT = Path(__file__).resolve().parents[1]
 PYTHON = sys.executable
 
 # Windows 默认 GBK 编码无法输出 ✓✗⚠ 等 Unicode 字符，强制 UTF-8
@@ -49,78 +48,56 @@ def main():
                         help="Skip only HTSC emotion fetch")
     args = parser.parse_args()
 
-    db = ROOT / "data" / "morning_brief.sqlite"
+    db = DEFAULT_DB
     if not db.exists():
         print("[run_daily] Database not found, importing from Excel seed...")
         run(["scripts/import_seed.py"])
 
-    _conn = sqlite3.connect(str(db))
-    _has_fx = _conn.execute(
-        "SELECT COUNT(*) FROM series WHERE series_id LIKE 'fx:%'"
-    ).fetchone()[0] > 0
-    _conn.close()
-    if not _has_fx:
-        print("[run_daily] FX data not found, importing from Excel seed...")
-        try:
-            run(["scripts/import_fx_data.py"])
-        except subprocess.CalledProcessError as e:
-            print(f"[run_daily] WARNING: import_fx_data.py failed with exit code {e.returncode}")
-            print("[run_daily] Continuing...")
+    # Check if FX data exists
+    if db.exists():
+        with open_db(db) as _conn:
+            _has_fx = _conn.execute(
+                "SELECT COUNT(*) FROM series WHERE series_id LIKE 'fx:%'"
+            ).fetchone()[0] > 0
+        if not _has_fx:
+            print("[run_daily] FX data not found, importing from Excel seed...")
+            try:
+                run(["scripts/import_fx_data.py"])
+            except subprocess.CalledProcessError as e:
+                print(f"[run_daily] WARNING: import_fx_data.py failed with exit code {e.returncode}")
+                print("[run_daily] Continuing...")
 
-    total_steps = 6
-    step = 0
-
-    print(f"[run_daily] Step {step+1}/{total_steps}: Generating update plan...")
-    step += 1
-    run(["scripts/update_data.py"])
+    # Build dynamic step list
+    steps = [("Generating update plan", ["scripts/update_data.py"])]
 
     if not args.skip_fetch and not args.skip_fetch_ths:
-        print(f"[run_daily] Step {step+1}/{total_steps}: Fetching from THS EDB...")
-        step += 1
-        try:
-            run(["scripts/fetch_data.py"])
-        except subprocess.CalledProcessError as e:
-            print(f"[run_daily] WARNING: fetch_data.py failed with exit code {e.returncode}")
-            print("[run_daily] Continuing...")
+        steps.append(("Fetching from THS EDB", ["scripts/fetch_data.py"]))
     else:
-        print(f"[run_daily] Step {step+1}/{total_steps}: THS EDB fetch skipped")
-        step += 1
+        steps.append(("THS EDB fetch (skipped)", None))
 
     if not args.skip_fetch and not args.skip_fetch_wind:
-        print(f"[run_daily] Step {step+1}/{total_steps}: Fetching from Wind MCP...")
-        step += 1
-        try:
-            run(["scripts/fetch_wind.py"])
-        except subprocess.CalledProcessError as e:
-            print(f"[run_daily] WARNING: fetch_wind.py failed with exit code {e.returncode}")
-            print("[run_daily] Continuing...")
+        steps.append(("Fetching from Wind MCP", ["scripts/fetch_wind.py"]))
     else:
-        print(f"[run_daily] Step {step+1}/{total_steps}: Wind MCP fetch skipped")
-        step += 1
+        steps.append(("Wind MCP fetch (skipped)", None))
 
     if not args.skip_fetch and not args.skip_fetch_emotion:
-        print(f"[run_daily] Step {step+1}/{total_steps}: Fetching market emotion from HTSC MCP...")
-        step += 1
-        try:
-            run(["scripts/fetch_emotion.py"])
-        except subprocess.CalledProcessError as e:
-            print(f"[run_daily] WARNING: fetch_emotion.py failed with exit code {e.returncode}")
-            print("[run_daily] Continuing...")
+        steps.append(("Fetching market emotion from HTSC MCP", ["scripts/fetch_emotion.py"]))
     else:
-        print(f"[run_daily] Step {step+1}/{total_steps}: HTSC MCP fetch skipped")
-        step += 1
+        steps.append(("HTSC MCP fetch (skipped)", None))
 
-    print(f"[run_daily] Step {step+1}/{total_steps}: Recomputing FX derived series...")
-    step += 1
-    try:
-        run(["scripts/recompute_fx_derived.py"])
-    except subprocess.CalledProcessError as e:
-        print(f"[run_daily] WARNING: recompute_fx_derived.py failed with exit code {e.returncode}")
-        print("[run_daily] Continuing...")
+    steps.append(("Recomputing FX derived series", ["scripts/recompute_fx_derived.py"]))
+    steps.append(("Generating interactive dashboard", ["scripts/generate_interactive_dashboard.py"]))
 
-    print(f"[run_daily] Step {step+1}/{total_steps}: Generating interactive dashboard...")
-    step += 1
-    run(["scripts/generate_interactive_dashboard.py"])
+    total_steps = len(steps)
+
+    for i, (label, cmd) in enumerate(steps):
+        print(f"[run_daily] Step {i+1}/{total_steps}: {label}")
+        if cmd is not None:
+            try:
+                run(cmd)
+            except subprocess.CalledProcessError as e:
+                print(f"[run_daily] WARNING: {cmd[0]} failed with exit code {e.returncode}")
+                print("[run_daily] Continuing...")
 
     dashboard = ROOT / "output" / "interactive_dashboard.html"
     print(f"[run_daily] Done! Dashboard: {dashboard}")

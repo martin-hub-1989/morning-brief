@@ -6,6 +6,7 @@ __pycache__/
 # Runtime artifacts
 data/fetch_summary.json
 data/update_plan.json
+data/wind_fetch_summary.json
 data/edb_index_cache.json
 
 # Database (large binary)

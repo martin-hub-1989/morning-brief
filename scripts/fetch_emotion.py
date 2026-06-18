@@ -12,7 +12,6 @@ import argparse
 import json
 import os
 import re
-import sqlite3
 import sys
 import time
 import urllib.error
@@ -20,31 +19,9 @@ import urllib.request
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-# Windows GBK 编码兼容：强制 stdout/stderr 使用 UTF-8
-if sys.platform == 'win32':
-    for _s in (sys.stdout, sys.stderr):
-        try:
-            _s.reconfigure(encoding='utf-8')
-        except Exception:
-            pass
+from lib import ROOT, DEFAULT_DB, MCP_CONFIG, log, load_json, open_db
 
-ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DB = ROOT / "data" / "morning_brief.sqlite"
-MCP_CONFIG = Path.home() / ".claude" / "mcp.json"
 HTSC_URL = "https://inst.htsc.com/mcp/v1/ris/htsc_research_mcp"
-
-
-# ── helpers ──────────────────────────────────────────────────────────
-
-def log(msg, level="INFO"):
-    prefix = {"INFO": "  ", "WARN": "  ⚠", "ERROR": "  ✗", "OK": "  ✓"}
-    print(f"{prefix.get(level, '  ')} {msg}",
-          file=sys.stderr if level == "ERROR" else sys.stdout)
-
-
-def load_json(path):
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
 
 
 # ── HTSC MCP HTTP ────────────────────────────────────────────────────
@@ -236,106 +213,105 @@ def get_last_date(conn, series_id):
 
 def fetch_and_store(db_path, dry_run=False, verbose=False):
     api_key = extract_htsc_key()
-    conn = sqlite3.connect(db_path)
     imported_at = datetime.now().isoformat(timespec="seconds")
-    ensure_series(conn, imported_at)
-
     total_inserted = 0
     today = date.today()
 
-    # ---- A股情绪指数 ----
-    log("Fetching A股情绪指数...")
-    a_last = get_last_date(conn, "htsc:A股情绪指数")
-    a_start = a_last or "2020-01-01"
-    md = call_htsc("get_market_emotion",
-                   {"market": "A", "start_date": a_start, "end_date": today.isoformat()},
-                   api_key)
-    if md:
-        data = parse_emotion_table(md)
-        new_pts = {d: v for d, v in data.items() if not a_last or d > a_last}
-        if verbose:
-            log(f"A股情绪: {len(data)} pts total, {len(new_pts)} new")
-        for d, v in sorted(new_pts.items()):
-            if not dry_run:
-                conn.execute(
-                    """INSERT OR REPLACE INTO observations (series_id, date, value, as_of_date, imported_at)
-                       VALUES (?, ?, ?, ?, ?)""",
-                    ("htsc:A股情绪指数", d, v, d, imported_at)
-                )
-            total_inserted += 1
-    else:
-        log("A股情绪指数 fetch failed", "ERROR")
+    with open_db(db_path) as conn:
+        ensure_series(conn, imported_at)
 
-    time.sleep(0.5)
-
-    # ---- 港股情绪指数 ----
-    log("Fetching 港股情绪指数...")
-    hk_last = get_last_date(conn, "htsc:港股情绪指数")
-    hk_start = hk_last or "2020-01-01"
-    md = call_htsc("get_market_emotion",
-                   {"market": "HK", "start_date": hk_start, "end_date": today.isoformat()},
-                   api_key)
-    if md:
-        data = parse_emotion_table(md)
-        new_pts = {d: v for d, v in data.items() if not hk_last or d > hk_last}
-        if verbose:
-            log(f"港股情绪: {len(data)} pts total, {len(new_pts)} new")
-        for d, v in sorted(new_pts.items()):
-            if not dry_run:
-                conn.execute(
-                    """INSERT OR REPLACE INTO observations (series_id, date, value, as_of_date, imported_at)
-                       VALUES (?, ?, ?, ?, ?)""",
-                    ("htsc:港股情绪指数", d, v, d, imported_at)
-                )
-            total_inserted += 1
-    else:
-        log("港股情绪指数 fetch failed", "ERROR")
-
-    time.sleep(0.5)
-
-    # ---- A股资金面 ----
-    log("Fetching A股资金面...")
-    # Use the oldest last_date across all capital flow series
-    cf_last_dates = []
-    for sid in CAPITAL_FLOW_MAP.values():
-        ld = get_last_date(conn, sid)
-        if ld:
-            cf_last_dates.append(ld)
-    cf_start = min(cf_last_dates) if cf_last_dates else "2020-01-01"
-
-    md = call_htsc("get_a_stock_capital_flow",
-                   {"start_date": cf_start, "end_date": today.isoformat()},
-                   api_key)
-    if md:
-        sections = parse_capital_flow_tables(md)
-        for section_name, points in sections.items():
-            sid = CAPITAL_FLOW_MAP.get(section_name)
-            if not sid:
-                if verbose:
-                    log(f"Unknown capital flow section: {section_name}", "WARN")
-                continue
-            last = get_last_date(conn, sid)
-            new_pts = [(d, v) for d, v in points if not last or d > last]
+        # ---- A股情绪指数 ----
+        log("Fetching A股情绪指数...")
+        a_last = get_last_date(conn, "htsc:A股情绪指数")
+        a_start = a_last or "2020-01-01"
+        md = call_htsc("get_market_emotion",
+                       {"market": "A", "start_date": a_start, "end_date": today.isoformat()},
+                       api_key)
+        if md:
+            data = parse_emotion_table(md)
+            new_pts = {d: v for d, v in data.items() if not a_last or d > a_last}
             if verbose:
-                log(f"  {section_name}: {len(points)} pts, {len(new_pts)} new")
-            for d, v in new_pts:
+                log(f"A股情绪: {len(data)} pts total, {len(new_pts)} new")
+            for d, v in sorted(new_pts.items()):
                 if not dry_run:
                     conn.execute(
                         """INSERT OR REPLACE INTO observations (series_id, date, value, as_of_date, imported_at)
                            VALUES (?, ?, ?, ?, ?)""",
-                        (sid, d, v, d, imported_at)
+                        ("htsc:A股情绪指数", d, v, d, imported_at)
                     )
                 total_inserted += 1
-    else:
-        log("A股资金面 fetch failed", "ERROR")
+        else:
+            log("A股情绪指数 fetch failed", "ERROR")
 
-    if not dry_run and total_inserted > 0:
-        conn.commit()
-        log(f"Committed {total_inserted} new observations", "OK")
-    elif dry_run:
-        log(f"[DRY RUN] Would insert {total_inserted} observations", "WARN")
+        time.sleep(0.5)
 
-    conn.close()
+        # ---- 港股情绪指数 ----
+        log("Fetching 港股情绪指数...")
+        hk_last = get_last_date(conn, "htsc:港股情绪指数")
+        hk_start = hk_last or "2020-01-01"
+        md = call_htsc("get_market_emotion",
+                       {"market": "HK", "start_date": hk_start, "end_date": today.isoformat()},
+                       api_key)
+        if md:
+            data = parse_emotion_table(md)
+            new_pts = {d: v for d, v in data.items() if not hk_last or d > hk_last}
+            if verbose:
+                log(f"港股情绪: {len(data)} pts total, {len(new_pts)} new")
+            for d, v in sorted(new_pts.items()):
+                if not dry_run:
+                    conn.execute(
+                        """INSERT OR REPLACE INTO observations (series_id, date, value, as_of_date, imported_at)
+                           VALUES (?, ?, ?, ?, ?)""",
+                        ("htsc:港股情绪指数", d, v, d, imported_at)
+                    )
+                total_inserted += 1
+        else:
+            log("港股情绪指数 fetch failed", "ERROR")
+
+        time.sleep(0.5)
+
+        # ---- A股资金面 ----
+        log("Fetching A股资金面...")
+        # Use the oldest last_date across all capital flow series
+        cf_last_dates = []
+        for sid in CAPITAL_FLOW_MAP.values():
+            ld = get_last_date(conn, sid)
+            if ld:
+                cf_last_dates.append(ld)
+        cf_start = min(cf_last_dates) if cf_last_dates else "2020-01-01"
+
+        md = call_htsc("get_a_stock_capital_flow",
+                       {"start_date": cf_start, "end_date": today.isoformat()},
+                       api_key)
+        if md:
+            sections = parse_capital_flow_tables(md)
+            for section_name, points in sections.items():
+                sid = CAPITAL_FLOW_MAP.get(section_name)
+                if not sid:
+                    if verbose:
+                        log(f"Unknown capital flow section: {section_name}", "WARN")
+                    continue
+                last = get_last_date(conn, sid)
+                new_pts = [(d, v) for d, v in points if not last or d > last]
+                if verbose:
+                    log(f"  {section_name}: {len(points)} pts, {len(new_pts)} new")
+                for d, v in new_pts:
+                    if not dry_run:
+                        conn.execute(
+                            """INSERT OR REPLACE INTO observations (series_id, date, value, as_of_date, imported_at)
+                               VALUES (?, ?, ?, ?, ?)""",
+                            (sid, d, v, d, imported_at)
+                        )
+                    total_inserted += 1
+        else:
+            log("A股资金面 fetch failed", "ERROR")
+
+        if not dry_run and total_inserted > 0:
+            conn.commit()
+            log(f"Committed {total_inserted} new observations", "OK")
+        elif dry_run:
+            log(f"[DRY RUN] Would insert {total_inserted} observations", "WARN")
+
     return total_inserted
 
 

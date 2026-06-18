@@ -10,29 +10,31 @@
 
 ```text
 seed/                                config/
-  ├── 20260616-Morning Brief Skill.xlsx     ├── edb_mapping.json
-  └── 中间价与套保成本.xlsx                  └── wind_mapping.json
-        │                                        │
-        ▼                                        ▼
+  └── seed.xlsx                            ├── edb_mapping.json
+        │                                  └── wind_mapping.json
+        ▼                                        │
   import_seed.py              fetch_data.py (THS EDB) + fetch_wind.py (Wind MCP)
   import_fx_data.py                 │
-        │                           ▼
-        ▼                      morning_brief.sqlite ──────────────┐
-  morning_brief.sqlite              │                              │
-        │                           ▼                              │
-        ▼                      recompute_fx_derived.py             │
-  update_data.py                (复算外汇衍生序列)                   │
-        │                           │                              │
-        ▼                           ▼                              │
-  update_plan.json              fetch_emotion.py                   │
-        │                      (华泰智研 MCP)                       │
-        ├───────────────────────────┬──────────────────────────────┘
-        ▼                           ▼
-  generate_interactive_dashboard.py
+  import_super_cycle.py             ▼
+        │                      morning_brief.sqlite ──────────────┐
+        ▼                              │                          │
+  morning_brief.sqlite                 ▼                          │
+        │                      recompute_fx_derived.py             │
+        ▼                       (复算外汇衍生序列)                   │
+  update_data.py                      │                          │
+        │                              ▼                          │
+        ▼                      fetch_emotion.py                   │
+  update_plan.json              (华泰智研 MCP)                    │
+        │                              │                          │
+        ├──────────────────────────────┴──────────────────────────┘
+        ▼
+  generate_interactive_dashboard.py ← templates/dashboard.html
         │
         ▼
   interactive_dashboard.html（单文件，零依赖）
 ```
+
+> 公共模块 `scripts/lib.py` 提供日志/DB连接/验证/路径常量，所有脚本通过 `from lib import ...` 引用。
 
 **一键运行**：`python3 scripts/run_daily.py`，依次执行：
 1. `update_data.py` → 生成更新计划
@@ -40,7 +42,9 @@ seed/                                config/
 3. `fetch_wind.py` → Wind MCP 拉取
 4. `recompute_fx_derived.py` → 复算外汇衍生序列
 5. `fetch_emotion.py` → 华泰智研 MCP 拉取
-6. `generate_interactive_dashboard.py` → 生成看板
+6. `generate_interactive_dashboard.py` → 生成看板（从 DB 读取超级周期数据）
+
+**首次运行额外步骤**：`import_seed.py` → `import_fx_data.py` → `import_super_cycle.py`（导入历史种子数据）。
 
 **数据源优先级**：THS EDB（免费，主力）→ Wind MCP（积分，补充外汇远期/掉期点+全收益指数+估值）→ Python 复算（衍生序列）→ 华泰智研 MCP（情绪/资金面）。
 
@@ -49,23 +53,26 @@ seed/                                config/
 | 路径 | 用途 |
 | ---- | ---- |
 | `SKILL.md` | **权威副本** Claude Code skill，修改后同步到 `~/.claude/skills/morning-brief/` |
-| `seed/20260616-Morning Brief Skill.xlsx` | 历史底稿种子文件，含走势图/PE TTM/PB LF/股息率四个工作表 |
-| `seed/中间价与套保成本.xlsx` | 外汇原始数据种子，含 Fixing + 0.Fwd Spread 两个工作表 |
+| `seed/seed.xlsx` | 合并种子文件（走势图/PE TTM/PB LF/股息率/Fixing/Fwd Spread/美元指数，7 个工作表） |
+| `templates/dashboard.html` | HTML 看板模板（~2400 行独立文件，IDE 语法高亮/格式化） |
 | `data/morning_brief.sqlite` | 本地时序数据库 |
 | `data/update_plan.json` | 增量更新计划，每个序列列出 `fetch_start_date`、`next_start_date`、`validation_dates` |
 | `data/fetch_summary.json` | 每次 fetch 运行的摘要（运行时产物） |
 | `config/edb_mapping.json` | series_id → EDB 查询词映射 + 批处理分组 + 验证容差 + skip 标记 |
-| `config/wind_mapping.json` | series_id → Wind MCP 调用参数映射（kline + economic + fundamentals） |
+| `config/wind_mapping.json` | series_id → Wind MCP 调用参数映射（kline + economic + fundamentals + category_overrides） |
 | `output/interactive_dashboard.html` | **唯一输出产物**：封面 + 9 个数据模块 + 专题图表 |
+| `scripts/lib.py` | **公共工具模块**（log / load_json / open_db / get_validation_dates / values_match / 路径常量 / Windows UTF-8 修复），所有脚本 import 引用 |
 | `scripts/import_seed.py` | 从 Excel 导入/重建 SQLite，支持 `--replace` |
-| `scripts/import_fx_data.py` | 从 FX Excel 导入外汇原始+衍生序列（一次性历史导入） |
+| `scripts/import_fx_data.py` | 从 Excel 导入外汇原始序列（一次性历史导入） |
+| `scripts/import_super_cycle.py` | 导入美元超级周期数据（3 原始月频 + 6 归一化周期序列，幂等） |
 | `scripts/update_data.py` | 扫描数据库生成更新计划 |
 | `scripts/fetch_data.py` | 从同花顺 EDB HTTP API 拉取数据，验证后 UPSERT 入库 |
 | `scripts/fetch_wind.py` | 从 Wind MCP CLI 拉取补充数据（外汇原始/全收益/估值） |
 | `scripts/recompute_fx_derived.py` | 从原始数据复算外汇衍生序列（幂等），支持 --dry-run / --category |
 | `scripts/fetch_emotion.py` | 从华泰智研 MCP HTTP API 拉取市场情绪和资金面数据（2 情绪 + 6 资金面）|
-| `scripts/generate_interactive_dashboard.py` | Python 查库 + 嵌入 JSON + 读取专题 Excel → 输出 HTML |
-| `scripts/run_daily.py` | 串联 update → fetch → fetch_wind → recompute → fetch_emotion → dashboard |
+| `scripts/generate_interactive_dashboard.py` | Python 查库 + 从 DB 读取超级周期数据 + 嵌入 JSON → 输出 HTML |
+| `scripts/run_daily.py` | 串联 import → update → fetch → recompute → dashboard（动态 step 计数） |
+| `tests/` | 单元测试（test_validation.py + test_recompute.py，14 项） |
 | `docs/plans/` | 历史设计文档存档 |
 
 ## 数据模型
@@ -104,6 +111,8 @@ seed/                                config/
 | `pb_lf:*` | PB LF | M | Wind MCP |
 | `dividend_yield:*` | 股息率 | M | Wind MCP |
 | `fx:*` | 外汇 | D | EDB / Wind MCP / Python 复算 |
+| `super_cycle:*` | 美元超级周期 | M | Python 复算（从 seed 导入后复算） |
+| `htsc:*` | 华泰智研 | D/W | HTSC MCP |
 
 ### update_plan.json 结构
 
@@ -205,7 +214,7 @@ seed/                                config/
 - `EMOTION_SERIES`：2 个情绪指数（A股情绪、港股情绪），来源华泰智研 MCP
 - `CAPITAL_SERIES`：6 个 A 股资金面序列（ETF/融资/公募/散户/减持/一级市场），来源华泰智研 MCP
 - 估值：动态从数据库查询 PE TTM / PB LF / 股息率三个维度都有的指数
-- 专题：从 Excel (`Super Dollar Scenario.xlsx`) 读取周期归一化数据
+- 专题：从 DB 读取超级周期归一化数据（`super_cycle:dxy_*` / `super_cycle:dae_*`）
 
 ### 核心渲染函数
 
@@ -217,7 +226,7 @@ seed/                                config/
 
 ### 数据嵌入方式
 
-`generate_interactive_dashboard.py` 定义 `HTML_TEMPLATE = r"""..."""` 原始字符串，内含 `__DATA__` 占位符。`render_dashboard()` 调用 `build_payload()` 查库构建 JSON，然后 `HTML_TEMPLATE.replace("__DATA__", json.dumps(payload))`。
+`generate_interactive_dashboard.py` 从 `templates/dashboard.html` 加载 HTML 模板（~2400 行独立文件），内含 `__DATA__` 占位符。`render_dashboard()` 调用 `build_payload()` 查库构建 JSON（含超级周期归一化数据），然后 `template.replace("__DATA__", json.dumps(payload))`。
 
 ## 常用开发命令
 
@@ -255,33 +264,36 @@ node --check /tmp/dash.js
 
 ## 依赖
 
-- Python 3，标准库 + `pandas` + `openpyxl`（`import_seed.py` / `import_fx_data.py` / 专题 Excel 读取）
-- `openpyxl` 为可选依赖——未安装时专题图表模块不加载数据
+- Python 3，标准库 + `pandas` + `openpyxl`（`import_seed.py` / `import_fx_data.py` / `import_super_cycle.py`）
+- 看板生成不依赖 `openpyxl`（超级周期数据已从 DB 读取）
 - Node.js（仅用于开发时 JS 语法检查，运行时不需）
 - 浏览器打开 `output/interactive_dashboard.html`（零前端依赖）
 - Google Fonts（IBM Plex Sans + Noto Sans SC，首次加载后浏览器缓存）
 - Wind MCP CLI（`~/.claude/skills/wind-mcp-skill/`，用于外汇远期/掉期点/全收益指数/估值数据）
 
-## 当前状态（2026-06-17）
+## 当前状态（2026-06-18）
 
 ### 已完成
 
-- [x] Excel 底稿导入 SQLite（6 个工作表，~130 个序列，~97,000+ 条观测）
-- [x] 日频数据最新至 2026-06-17，估值日频数据最新至 2026-06-16
+- [x] Excel 底稿导入 SQLite（7 个工作表，~152 个序列）
+- [x] 日频数据最新至 2026-06-18，估值日频数据最新至 2026-06-16
 - [x] 增量更新计划生成（含末端两点复核窗口）
 - [x] 交互看板 9 个数据模块 + 封面 + 专题图表全部可用
 - [x] 零值处理双轨规则（单指标跳过 / 双指标填补）
-- [x] 纳斯达克指数已从纳斯达克 100 修正为纳斯达克指数/纳斯达克总回报指数
-- [x] **同花顺 EDB 实时数据拉取接入**（`fetch_data.py`，2026-06-17）
-- [x] **Wind MCP 补充数据拉取**（`fetch_wind.py`，2026-06-17）
-- [x] **外汇衍生序列 Python 复算**（`recompute_fx_derived.py`，2026-06-17）
-- [x] **华泰智研 MCP 情绪/资金面数据拉取**（`fetch_emotion.py`，2026-06-17）
-- [x] **Claude Code skill**（`morning-brief`，一键执行 daily pipeline）
-- [x] **封面 + 品牌**（Multi Asset Morning Brief / Designed by MARTIN）
-- [x] **Impeccable 设计优化**（字体 IBM Plex Sans + Noto Sans SC、色彩系统重构、微交互、a11y）
-- [x] **专题图表模块**（美元超级周期，`renderCategoricalLine` 渲染器，从 Excel 自动读数据）
-- [x] **中间价模块**（中间价 vs 即期 + ±2% bands + 汇率变动拆解 20MA）
-- [x] **套保成本模块**（期限结构 + 3M 时序 + 1Y vs 利差；多取值方式/合约选择/平滑切换；全部年化）
+- [x] 同花顺 EDB 实时数据拉取（`fetch_data.py`）
+- [x] Wind MCP 补充数据拉取（`fetch_wind.py`）
+- [x] 外汇衍生序列 Python 复算（`recompute_fx_derived.py`）
+- [x] 华泰智研 MCP 情绪/资金面数据拉取（`fetch_emotion.py`）
+- [x] Claude Code skill（`morning-brief`，一键执行 daily pipeline）
+- [x] 封面 + 品牌（Multi Asset Morning Brief / Designed by MARTIN）
+- [x] Impeccable 设计优化（字体 IBM Plex Sans + Noto Sans SC、色彩系统重构、微交互、a11y）
+- [x] 专题图表模块（美元超级周期，`renderCategoricalLine` 渲染器，**从 DB 读取不再依赖 Excel**）
+- [x] 中间价模块（中间价 vs 即期 + ±2% bands + 汇率变动拆解 20MA）
+- [x] 套保成本模块（期限结构 + 3M 时序 + 1Y vs 利差；多取值方式/合约选择/平滑切换；全部年化）
+- [x] **代码优化**（提取 `lib.py` 公共模块、HTML 模板外置、DB context manager、异常处理规范化、env var 配置、单元测试 14 项）
+- [x] **Wind MCP FX 修复**（CNH DF + CNY swap 搜索词修复、category 级别容差覆盖）
+- [x] **种子文件合并**（2 文件 → seed.xlsx 单文件，移除衍生列）
+- [x] **美元超级周期 DB 化**（导入 seed + 存储在 DB + 看板从 DB 读取，不再依赖外部 Excel）
 
 ### 覆盖率
 
@@ -297,15 +309,15 @@ node --check /tmp/dash.js
 | 全收益/R 系列 | 12 | Wind | |
 | **外汇原始** | **13** | **EDB + Wind** | 中间价/即期/CNH远期/掉期点/债券收益率 |
 | **外汇衍生** | **24** | **Python 复算** | 汇率拆解(8) + 套保成本(8) + 年化(8) |
+| **美元超级周期** | **9** | **Python 复算** | DXY/Real/Nominal 月频(3) + 归一化周期(6) |
 | PE TTM | 16 | Wind | |
 | PB LF | 16 | Wind | |
 | 股息率 | 16 | Wind | |
-| **总覆盖** | **~130** | | |
+| **总覆盖** | **~152** | | |
 
 ### 待完成
 
 - [ ] **定时调度**：每天自动执行 `run_daily.py`（cron / Claude Code `/loop`）
-- [ ] **Wind FX 搜索词微调**：首次运行 `fetch_wind.py` 拉取 FX 序列时，可能需要根据 Wind 实际返回的指标名称调整 `indicator_filter`
 - [ ] **均线功能**：用户计划在单一指标走势图上叠加均线
 - [ ] **输出形式确认**：最终是 HTML 文件、邮件发送、还是托管仪表盘
 

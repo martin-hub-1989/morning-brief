@@ -25,21 +25,11 @@
 """
 
 import argparse
-import sqlite3
 import sys
 from datetime import datetime
 from pathlib import Path
 
-# Windows GBK 编码兼容：强制 stdout/stderr 使用 UTF-8
-if sys.platform == 'win32':
-    for _s in (sys.stdout, sys.stderr):
-        try:
-            _s.reconfigure(encoding='utf-8')
-        except Exception:
-            pass
-
-ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DB = ROOT / "data" / "morning_brief.sqlite"
+from lib import ROOT, DEFAULT_DB, log, open_db
 
 # ── 衍生序列定义 ────────────────────────────────────────────────────────
 #
@@ -78,12 +68,6 @@ DERIVED_SERIES = [
 
 # 年化因子：1M→12, 3M→4, 6M→2, 1Y→1
 ANNUAL_FACTORS = {"1m": 12, "3m": 4, "6m": 2, "1y": 1}
-
-
-def log(msg, level="INFO"):
-    prefix = {"INFO": "  ", "WARN": "  ⚠", "ERROR": "  ✗", "OK": "  ✓"}
-    print(f"{prefix.get(level, '  ')} {msg}",
-          file=sys.stderr if level == "ERROR" else sys.stdout)
 
 
 def load_series(conn, series_id):
@@ -326,42 +310,41 @@ def upsert_derived(conn, series_id, data, imported_at, dry_run=False):
 # ── main ───────────────────────────────────────────────────────────────
 
 def recompute_all(db_path, dry_run=False, verbose=False, category=None):
-    conn = sqlite3.connect(db_path)
     imported_at = datetime.now().isoformat(timespec="seconds")
 
-    # Ensure all derived series have rows in series table
-    for sid, display_name, unit, cat in DERIVED_SERIES:
-        if category and cat != category:
-            continue
-        ensure_series_row(conn, sid, display_name, unit, imported_at)
+    with open_db(db_path) as conn:
+        # Ensure all derived series have rows in series table
+        for sid, display_name, unit, cat in DERIVED_SERIES:
+            if category and cat != category:
+                continue
+            ensure_series_row(conn, sid, display_name, unit, imported_at)
 
-    total_inserted = 0
+        total_inserted = 0
 
-    if not category or category == "decomp":
-        if verbose:
-            log("Computing FX decomposition...")
-        count = compute_decomp(conn, imported_at, dry_run, verbose)
-        total_inserted += count
-        if verbose:
-            log(f"  Decomp: {count} new observations", "OK" if count > 0 else "WARN")
+        if not category or category == "decomp":
+            if verbose:
+                log("Computing FX decomposition...")
+            count = compute_decomp(conn, imported_at, dry_run, verbose)
+            total_inserted += count
+            if verbose:
+                log(f"  Decomp: {count} new observations", "OK" if count > 0 else "WARN")
 
-    if not category or category == "hedge":
-        if verbose:
-            log("Computing hedge costs & annualized...")
-        count = compute_hedge_costs(conn, imported_at, dry_run, verbose)
-        total_inserted += count
-        if verbose:
-            log(f"  Hedge costs: {count} new observations", "OK" if count > 0 else "WARN")
+        if not category or category == "hedge":
+            if verbose:
+                log("Computing hedge costs & annualized...")
+            count = compute_hedge_costs(conn, imported_at, dry_run, verbose)
+            total_inserted += count
+            if verbose:
+                log(f"  Hedge costs: {count} new observations", "OK" if count > 0 else "WARN")
 
-    if not dry_run and total_inserted > 0:
-        conn.commit()
-        log(f"Committed {total_inserted} new derived observations", "OK")
-    elif dry_run:
-        log(f"[DRY RUN] Would insert {total_inserted} derived observations", "WARN")
-    else:
-        log("No new derived observations to insert")
+        if not dry_run and total_inserted > 0:
+            conn.commit()
+            log(f"Committed {total_inserted} new derived observations", "OK")
+        elif dry_run:
+            log(f"[DRY RUN] Would insert {total_inserted} derived observations", "WARN")
+        else:
+            log("No new derived observations to insert")
 
-    conn.close()
     return total_inserted
 
 

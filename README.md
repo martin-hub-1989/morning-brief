@@ -23,15 +23,18 @@ python3 scripts/import_fx_data.py
 # 4. 复算外汇衍生序列（汇率拆解 + 套保成本 + 年化，24 个序列）
 python3 scripts/recompute_fx_derived.py
 
-# 5. 安装 Claude Code skill（可选）
+# 5. 导入美元超级周期数据（DXY 月频 + 归一化周期序列，9 个序列）
+python3 scripts/import_super_cycle.py
+
+# 6. 安装 Claude Code skill（可选）
 mkdir -p ~/.claude/skills/morning-brief
 cp SKILL.md ~/.claude/skills/morning-brief/SKILL.md   # macOS / Linux
 # Windows: copy SKILL.md %USERPROFILE%\.claude\skills\morning-brief\SKILL.md
 
-# 6. 生成看板（使用种子数据，不拉取新数据）
+# 7. 生成看板（使用种子数据，不拉取新数据）
 python3 scripts/run_daily.py --skip-fetch
 
-# 7. 打开看板
+# 8. 打开看板
 open output/interactive_dashboard.html                # macOS
 # start output\interactive_dashboard.html             # Windows
 # xdg-open output/interactive_dashboard.html          # Linux
@@ -56,24 +59,31 @@ open output/interactive_dashboard.html                # macOS
 ├── .gitignore
 ├── requirements.txt               ← Python 依赖
 ├── seed/                          ← 历史数据种子文件
-│   └── seed.xlsx                  ← 合并种子（走势/估值/外汇原始/债券，~6.5 MB）
+│   └── seed.xlsx                  ← 合并种子（走势/估值/外汇/债券/美元指数，7 个工作表）
+├── templates/                     ← HTML 模板
+│   └── dashboard.html             ← 看板 HTML/CSS/JS 模板（~2400 行独立文件）
 ├── config/                        ← 数据源查询映射
 │   ├── edb_mapping.json           ← series_id → EDB 查询词
 │   └── wind_mapping.json          ← series_id → Wind MCP 参数
 ├── data/                          ← 运行时数据（SQLite + JSON 计划）
-│   ├── morning_brief.sqlite       ← ~130 序列时序数据库
+│   ├── morning_brief.sqlite       ← ~150 序列时序数据库
 │   ├── update_plan.json           ← 增量更新计划
 │   └── fetch_summary.json         ← 最近拉取摘要
 ├── scripts/                       ← 所有 Python 脚本
+│   ├── lib.py                     ← 公共工具模块（日志/DB/验证/路径常量）
 │   ├── run_daily.py               ← 一键运行入口
 │   ├── import_seed.py             ← 从 Excel 导入/重建数据库
 │   ├── import_fx_data.py          ← 从 Excel 导入外汇序列
+│   ├── import_super_cycle.py      ← 导入美元超级周期数据（月频 + 归一化周期）
 │   ├── update_data.py             ← 生成增量更新计划
 │   ├── fetch_data.py              ← 同花顺 EDB 数据拉取
 │   ├── fetch_wind.py              ← Wind MCP 数据拉取
 │   ├── fetch_emotion.py           ← 华泰智研 MCP 情绪数据
 │   ├── recompute_fx_derived.py    ← 外汇衍生序列复算（幂等）
 │   └── generate_interactive_dashboard.py ← 生成 HTML 看板
+├── tests/                         ← 单元测试
+│   ├── test_validation.py         ← values_match 验证逻辑测试
+│   └── test_recompute.py          ← 外汇套保成本公式测试
 ├── docs/                          ← 开发文档
 │   ├── DEVELOPMENT.md
 │   └── plans/
@@ -114,6 +124,7 @@ python3 scripts/import_seed.py --replace
 | 2 | Wind MCP | ✅ 已接入 | 24 补充序列 + 14 FX 原始序列 + 51 估值序列 |
 | 3 | Python 复算 | ✅ 已接入 | 24 FX 衍生序列（汇率拆解 + 套保成本 + 年化） |
 | 4 | 华泰智研 MCP | ✅ 已接入 | 2 情绪指数 + 6 资金面序列 |
+| 5 | 美元超级周期 | ✅ 已接入 | 3 原始月频 + 6 归一化周期序列（DB 存储，不再依赖 Excel） |
 
 ## 交互式看板
 
@@ -126,7 +137,7 @@ python3 scripts/import_seed.py --replace
 ## 每日流水线
 
 ```text
-首次运行: import_seed.py → import_fx_data.py → update_data.py → ...
+首次运行: import_seed.py → import_fx_data.py → import_super_cycle.py → update_data.py → ...
 日常运行: update_data.py → fetch_data.py (EDB) → fetch_wind.py (Wind)
          → recompute_fx_derived.py → fetch_emotion.py (HTSC)
          → generate_interactive_dashboard.py
@@ -134,12 +145,13 @@ python3 scripts/import_seed.py --replace
 
 1. **import_seed.py** — 首次运行：从 Excel 种子文件导入趋势/估值/利率/汇率/商品
 2. **import_fx_data.py** — 首次运行：从 Excel 种子文件导入外汇中间价/即期/远期/掉期点
-3. **update_data.py** — 扫描数据库，生成增量更新计划
-4. **fetch_data.py** — 同花顺 EDB 拉取日频数据，验证后 UPSERT
-5. **fetch_wind.py** — Wind MCP 拉取外汇原始数据 + 全收益指数 + 估值
-6. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（幂等）
-7. **fetch_emotion.py** — 华泰智研 MCP 拉取市场情绪数据
-8. **generate_interactive_dashboard.py** — 生成单文件 HTML 看板
+3. **import_super_cycle.py** — 首次运行：导入美元超级周期数据（DXY 月频 + 归一化周期序列）
+4. **update_data.py** — 扫描数据库，生成增量更新计划
+5. **fetch_data.py** — 同花顺 EDB 拉取日频数据，验证后 UPSERT
+6. **fetch_wind.py** — Wind MCP 拉取外汇原始数据 + 全收益指数 + 估值
+7. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（幂等）
+8. **fetch_emotion.py** — 华泰智研 MCP 拉取市场情绪数据
+9. **generate_interactive_dashboard.py** — 生成单文件 HTML 看板
 
 ## 数据口径
 
@@ -177,8 +189,9 @@ python3 scripts/import_seed.py --replace
 | 估值序列 (PE/PB/DY) | 51 个 |
 | 外汇原始序列 | 13 个（中间价/即期/CNH远期/掉期点/债券收益率） |
 | 外汇衍生序列 | 24 个（汇率拆解 + 套保成本 + 年化） |
+| 美元超级周期 | 9 个（3 原始月频 + 6 归一化周期） |
 | **THS EDB 覆盖** | 36 个（32 趋势 + 4 FX） |
 | **Wind MCP 覆盖** | 38 个（25 趋势 + 13 FX） + 51 估值 |
-| **Python 复算** | 24 FX 衍生序列 |
-| **总覆盖** | **143 序列，100% 覆盖** |
-| 数据起点 | 趋势 1989-06-05，估值 1990-12-19，外汇 1981-01-02 |
+| **Python 复算** | 24 FX 衍生 + 6 超级周期归一化 |
+| **总覆盖** | **152 序列，100% 覆盖** |
+| 数据起点 | 趋势 1989-06-05，估值 1990-12-19，外汇 1981-01-02，美元指数 1971-01-31 |

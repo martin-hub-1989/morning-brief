@@ -42,14 +42,14 @@ python3 -c "import sqlite3, json, urllib.request; print('OK')"
 python3 scripts/run_daily.py
 ```
 
-这将依次运行六个脚本：
+这将依次运行脚本：
 
 1. **update_data.py** — 扫描数据库，生成增量更新计划 (`data/update_plan.json`)
 2. **fetch_data.py** — 从同花顺 EDB API 拉取日频数据，验证后写入 SQLite
 3. **fetch_wind.py** — 从 Wind MCP 拉取外汇原始数据（CNH远期/掉期点）+ 全收益指数 + 估值
 4. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（汇率拆解+套保成本+年化），幂等
 5. **fetch_emotion.py** — 从华泰智研 MCP 拉取市场情绪和资金面数据
-6. **generate_interactive_dashboard.py** — 生成 `output/interactive_dashboard.html`
+6. **generate_interactive_dashboard.py** — 从 DB & `templates/dashboard.html` 生成 `output/interactive_dashboard.html`
 
 如果 fetch 步骤部分序列验证失败，看板仍会用现有数据生成。
 
@@ -158,7 +158,7 @@ python3 scripts/fetch_data.py --series fx:usdcny-fixing --verbose
 python3 scripts/fetch_wind.py --series fx:usdcnh-spot --verbose
 ```
 
-## 当前状态（2026-06-17）
+## 当前状态（2026-06-18）
 
 | 指标 | 数值 |
 |------|------|
@@ -166,8 +166,9 @@ python3 scripts/fetch_wind.py --series fx:usdcnh-spot --verbose
 | 估值序列 (PE/PB/DY) | 51 个 |
 | 外汇原始序列 | 13 个 |
 | 外汇衍生序列 | 24 个（Python 复算） |
-| **总覆盖** | **~130 序列，100%** |
-| **数据流** | EDB(36) + Wind(38) → recompute(24) → emotion(8) → dashboard |
+| 美元超级周期 | 9 个（3 原始月频 + 6 归一化周期） |
+| **总覆盖** | **152 序列，100%** |
+| **数据流** | EDB(36) + Wind(38) + Python复算(30) → emotion(8) → dashboard |
 | 看板模块 | 封面 + 9 数据模块 + 专题图表 |
 
 ### 数据源分工

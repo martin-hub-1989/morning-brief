@@ -12,7 +12,6 @@
 import argparse
 import json
 import os
-import sqlite3
 import sys
 import time
 import urllib.error
@@ -20,31 +19,15 @@ import urllib.request
 from datetime import datetime, date, timedelta
 from pathlib import Path
 
-# Windows GBK 编码兼容：强制 stdout/stderr 使用 UTF-8
-if sys.platform == 'win32':
-    for _s in (sys.stdout, sys.stderr):
-        try:
-            _s.reconfigure(encoding='utf-8')
-        except Exception:
-            pass
+from lib import (
+    ROOT, DEFAULT_DB, MCP_CONFIG, log, load_json, open_db,
+    get_validation_dates, values_match,
+)
 
-ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DB = ROOT / "data" / "morning_brief.sqlite"
 DEFAULT_MAPPING = ROOT / "config" / "edb_mapping.json"
-MCP_CONFIG = Path.home() / ".claude" / "mcp.json"
 
 
-# ── helpers ──────────────────────────────────────────────────────────
-
-def log(msg, level="INFO"):
-    prefix = {"INFO": "  ", "WARN": "  ⚠", "ERROR": "  ✗", "OK": "  ✓"}
-    print(f"{prefix.get(level, '  ')} {msg}", file=sys.stderr if level == "ERROR" else sys.stdout)
-
-
-def load_json(path):
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
-
+# ── EDB API ──────────────────────────────────────────────────────────
 
 def extract_jwe_token():
     """从 ~/.claude/mcp.json 提取同花顺 EDB 的 JWE Bearer Token。"""
@@ -60,8 +43,6 @@ def extract_jwe_token():
         raise KeyError("Authorization header not found in hexin-ifind-ds-edb-mcp config")
     return token
 
-
-# ── EDB API ──────────────────────────────────────────────────────────
 
 def call_edb(token, query, base_url, timeout=30):
     """
@@ -99,7 +80,7 @@ def call_edb(token, query, base_url, timeout=30):
     try:
         outer = json.loads(raw)
     except json.JSONDecodeError:
-        log(f"Invalid JSON response", "ERROR")
+        log("Invalid JSON response", "ERROR")
         return None
 
     # 外层 JSON-RPC
@@ -188,36 +169,9 @@ def get_target_series(conn, series_filter=None):
     return cur.fetchall()
 
 
-def get_validation_dates(conn, series_id):
-    """获取数据库最后两个观测日期（从旧到新）。"""
-    rows = conn.execute(
-        "SELECT date, value FROM observations WHERE series_id = ? ORDER BY date DESC LIMIT 2",
-        (series_id,)
-    ).fetchall()
-    return list(reversed(rows))  # [(date, value), ...] oldest first
-
-
 # ── validation ────────────────────────────────────────────────────────
 
-def values_match(db_val, fetched_val, unit, config):
-    """检查两个值在容差范围内是否一致。"""
-    try:
-        db_val = float(db_val)
-        fetched_val = float(fetched_val)
-    except (ValueError, TypeError):
-        return db_val == fetched_val
-    if db_val == fetched_val:
-        return True
-    if abs(db_val) > 1e-8:
-        rel_diff = abs(fetched_val - db_val) / abs(db_val)
-        if rel_diff <= config["float_relative_tolerance"]:
-            return True
-    if abs(fetched_val - db_val) <= config["float_absolute_tolerance"]:
-        return True
-    return False
-
-
-def validate_series(conn, series_id, fetched_points, unit, validation_config):
+def validate_series(conn, series_id, fetched_points, validation_config):
     """
     比较拉取值与数据库 validation_dates 的值。
     返回 (status, message):
@@ -244,7 +198,7 @@ def validate_series(conn, series_id, fetched_points, unit, validation_config):
         if fv is None:
             mismatches.append(f"{vd}: not in fetched data")
             continue
-        if values_match(vv, fv, unit, validation_config):
+        if values_match(vv, fv, validation_config):
             matches += 1
         else:
             mismatches.append(f"{vd}: DB={vv} vs fetched={fv}")
@@ -269,202 +223,208 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
     token = extract_jwe_token()
     base_url = fetch_cfg["base_url"]
 
-    conn = sqlite3.connect(db_path)
+    with open_db(db_path) as conn:
 
-    # ---- identify targets ----
-    target_rows = get_target_series(conn, series_filter)
-    if not target_rows:
-        log("All series are up to date. Nothing to fetch.", "OK")
-        conn.close()
-        return {"series_fetched": 0, "obs_inserted": 0, "failures": []}
+        # ---- identify targets ----
+        target_rows = get_target_series(conn, series_filter)
+        if not target_rows:
+            log("All series are up to date. Nothing to fetch.", "OK")
+            return {"series_fetched": 0, "obs_inserted": 0, "failures": []}
 
-    log(f"Found {len(target_rows)} series needing update")
+        log(f"Found {len(target_rows)} series needing update")
 
-    # build fetch list with mapping lookup
-    fetch_list = []
-    skipped_no_mapping = []
-    skipped_by_reason = []
-    for sid, name, unit, last_date, source_code in target_rows:
-        m = mappings.get(sid)
-        if not m:
-            skipped_no_mapping.append(sid)
-            continue
-        if m.get("skip_reason"):
-            skipped_by_reason.append((sid, m["skip_reason"]))
-            continue
-        fetch_list.append({
-            "series_id": sid,
-            "display_name": name,
-            "unit": unit,
-            "last_date": last_date,
-            "edb_query": m["edb_query"],
-            "category": m.get("category", ""),
-            "notes": m.get("notes", ""),
-            "skip_validation": m.get("skip_validation", False)
-        })
+        # build fetch list with mapping lookup
+        fetch_list = []
+        skipped_no_mapping = []
+        skipped_by_reason = []
+        for sid, name, unit, last_date, source_code in target_rows:
+            m = mappings.get(sid)
+            if not m:
+                skipped_no_mapping.append(sid)
+                continue
+            if m.get("skip_reason"):
+                skipped_by_reason.append((sid, m["skip_reason"]))
+                continue
+            fetch_list.append({
+                "series_id": sid,
+                "display_name": name,
+                "unit": unit,
+                "last_date": last_date,
+                "edb_query": m["edb_query"],
+                "category": m.get("category", ""),
+                "notes": m.get("notes", ""),
+                "skip_validation": m.get("skip_validation", False)
+            })
 
-    if skipped_no_mapping:
-        log(f"Skipped {len(skipped_no_mapping)} series without EDB mapping: {skipped_no_mapping}", "WARN")
-    if skipped_by_reason:
-        for sid, reason in skipped_by_reason:
-            log(f"Skipped {sid}: {reason}", "WARN")
+        if skipped_no_mapping:
+            log(f"Skipped {len(skipped_no_mapping)} series without EDB mapping: {skipped_no_mapping}", "WARN")
+        if skipped_by_reason:
+            for sid, reason in skipped_by_reason:
+                log(f"Skipped {sid}: {reason}", "WARN")
 
-    if max_series:
-        fetch_list = fetch_list[:max_series]
-        log(f"Limited to first {max_series} series for testing")
+        if max_series:
+            fetch_list = fetch_list[:max_series]
+            log(f"Limited to first {max_series} series for testing")
 
-    log(f"Fetching {len(fetch_list)} series from EDB...")
+        log(f"Fetching {len(fetch_list)} series from EDB...")
 
-    # ---- fetch loop ----
-    results = {}  # series_id -> fetched data dict
-    fetch_errors = []
+        # ---- fetch loop ----
+        results = {}  # series_id -> fetched data dict
+        fetch_errors = []
 
-    for i, item in enumerate(fetch_list):
-        sid = item["series_id"]
-        query = item["edb_query"]
+        for i, item in enumerate(fetch_list):
+            sid = item["series_id"]
+            query = item["edb_query"]
 
-        # 动态拼接日期窗口，确保返回足够历史数据用于验证
-        full_query = f"{query} 最近60个交易日"
+            # 动态拼接日期窗口，确保返回足够历史数据用于验证
+            full_query = f"{query} 最近60个交易日"
 
-        if verbose:
-            log(f"[{i+1}/{len(fetch_list)}] {sid} ← '{full_query}'")
-
-        # retry loop
-        data = None
-        for attempt in range(fetch_cfg["max_retries"] + 1):
-            data = call_edb(token, full_query, base_url, fetch_cfg["request_timeout_seconds"])
-            if data is not None:
-                break
-            if attempt < fetch_cfg["max_retries"]:
-                backoff = fetch_cfg["retry_backoff_seconds"][attempt]
-                log(f"Retry {attempt+1}/{fetch_cfg['max_retries']} for {sid} in {backoff}s...", "WARN")
-                time.sleep(backoff)
-
-        if data is None:
-            fetch_errors.append({"series_id": sid, "reason": "fetch_failed"})
-            log(f"{sid}: fetch failed after retries", "ERROR")
-        elif not data["points"]:
-            fetch_errors.append({"series_id": sid, "reason": "empty_data"})
             if verbose:
-                log(f"{sid}: no data returned", "WARN")
-        else:
-            results[sid] = data
+                log(f"[{i+1}/{len(fetch_list)}] {sid} ← '{full_query}'")
+
+            # retry loop
+            data = None
+            for attempt in range(fetch_cfg["max_retries"] + 1):
+                data = call_edb(token, full_query, base_url, fetch_cfg["request_timeout_seconds"])
+                if data is not None:
+                    break
+                if attempt < fetch_cfg["max_retries"]:
+                    backoff = fetch_cfg["retry_backoff_seconds"][attempt]
+                    log(f"Retry {attempt+1}/{fetch_cfg['max_retries']} for {sid} in {backoff}s...", "WARN")
+                    time.sleep(backoff)
+
+            if data is None:
+                fetch_errors.append({"series_id": sid, "reason": "fetch_failed"})
+                log(f"{sid}: fetch failed after retries", "ERROR")
+            elif not data["points"]:
+                fetch_errors.append({"series_id": sid, "reason": "empty_data"})
+                if verbose:
+                    log(f"{sid}: no data returned", "WARN")
+            else:
+                results[sid] = data
+                if verbose:
+                    log(f"{sid}: got {len(data['points'])} points, "
+                        f"latest={data['points'][-1][0]}={data['points'][-1][1]}", "OK")
+                # cache index_id if available
+                if data.get("index_id") and verbose:
+                    log(f"  index_id={data['index_id']} indicator={data.get('indicator_name', '')}")
+
+            # small delay between calls
+            if i < len(fetch_list) - 1:
+                time.sleep(fetch_cfg["delay_between_calls_seconds"])
+
+        log(f"Fetched: {len(results)} success, {len(fetch_errors)} errors")
+
+        # ---- validate ----
+        validated = []
+        partial = []
+        failed = []
+
+        for item in fetch_list:
+            sid = item["series_id"]
+            data = results.get(sid)
+            if data is None:
+                continue  # already logged as fetch error
+
+            if item.get("skip_validation"):
+                validated.append(item)
+                if verbose:
+                    log(f"{sid}: validate=skipped (skip_validation set)", "OK")
+                continue
+
+            status, msg = validate_series(conn, sid, data["points"], validation_cfg)
+            if verbose or status == "fail":
+                log(f"{sid}: validate={status} — {msg}",
+                    "ERROR" if status == "fail" else ("WARN" if status == "partial" else "OK"))
+
+            if status == "ok":
+                validated.append(item)
+            elif status == "partial":
+                partial.append(item)
+            else:
+                failed.append({"series_id": sid, "reason": f"validation_failed: {msg}"})
+
+        log(f"Validated: {len(validated)} ok, {len(partial)} partial, {len(failed)} failed")
+
+        # ---- insert ----
+        imported_at = datetime.now().isoformat(timespec="seconds")
+        obs_inserted = 0
+        series_updated = 0
+
+        for item in validated + partial:
+            sid = item["series_id"]
+            data = results.get(sid)
+            if not data:
+                continue
+
+            last_date = item["last_date"]
+            new_points = [p for p in data["points"] if not last_date or p[0] > last_date]
+
+            if not new_points:
+                continue
+
             if verbose:
-                log(f"{sid}: got {len(data['points'])} points, "
-                    f"latest={data['points'][-1][0]}={data['points'][-1][1]}", "OK")
-            # cache index_id if available
-            if data.get("index_id") and verbose:
-                log(f"  index_id={data['index_id']} indicator={data.get('indicator_name', '')}")
+                log(f"{sid}: inserting {len(new_points)} new observations "
+                    f"({new_points[0][0]} → {new_points[-1][0]})")
 
-        # small delay between calls
-        if i < len(fetch_list) - 1:
-            time.sleep(fetch_cfg["delay_between_calls_seconds"])
+            if not dry_run:
+                consecutive_errors = 0
+                MAX_CONSECUTIVE_ERRORS = 5
 
-    log(f"Fetched: {len(results)} success, {len(fetch_errors)} errors")
+                for date_str, value in new_points:
+                    try:
+                        conn.execute(
+                            """INSERT INTO observations (series_id, date, value, as_of_date, imported_at)
+                               VALUES (?, ?, ?, ?, ?)
+                               ON CONFLICT(series_id, date) DO UPDATE SET
+                                   value=excluded.value,
+                                   as_of_date=excluded.as_of_date,
+                                   imported_at=excluded.imported_at""",
+                            (sid, date_str, float(value), date_str, imported_at)
+                        )
+                        consecutive_errors = 0
+                    except Exception as e:
+                        consecutive_errors += 1
+                        log(f"{sid} insert error at {date_str}: {e}", "ERROR")
+                        if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                            log(f"{sid}: {MAX_CONSECUTIVE_ERRORS} consecutive insert errors, skipping remaining", "ERROR")
+                            break
+                        continue
+                    obs_inserted += 1
 
-    # ---- validate ----
-    validated = []
-    partial = []
-    failed = []
+                # 更新 series 表的 update_method
+                conn.execute(
+                    "UPDATE series SET update_method = 'edb_mcp', updated_at = ? WHERE series_id = ?",
+                    (imported_at, sid)
+                )
+                series_updated += 1
 
-    for item in fetch_list:
-        sid = item["series_id"]
-        data = results.get(sid)
-        if data is None:
-            continue  # already logged as fetch error
+        if not dry_run and obs_inserted > 0:
+            conn.commit()
+            log(f"Committed {obs_inserted} new observations for {series_updated} series", "OK")
+        elif dry_run:
+            log(f"[DRY RUN] Would insert {obs_inserted} observations for {series_updated} series", "WARN")
 
-        if item.get("skip_validation"):
-            validated.append(item)
-            if verbose:
-                log(f"{sid}: validate=skipped (skip_validation set)", "OK")
-            continue
+        # ---- summary ----
+        all_errors = fetch_errors + failed
+        summary = {
+            "timestamp": imported_at,
+            "dry_run": dry_run,
+            "series_targeted": len(target_rows),
+            "series_fetched": len(results),
+            "series_validated": len(validated),
+            "series_partial": len(partial),
+            "series_failed": len(all_errors),
+            "obs_inserted": obs_inserted,
+            "failures": all_errors
+        }
 
-        status, msg = validate_series(conn, sid, data["points"], item["unit"], validation_cfg)
-        if verbose or status == "fail":
-            log(f"{sid}: validate={status} — {msg}",
-                "ERROR" if status == "fail" else ("WARN" if status == "partial" else "OK"))
-
-        if status == "ok":
-            validated.append(item)
-        elif status == "partial":
-            partial.append(item)
-        else:
-            failed.append({"series_id": sid, "reason": f"validation_failed: {msg}"})
-
-    log(f"Validated: {len(validated)} ok, {len(partial)} partial, {len(failed)} failed")
-
-    # ---- insert ----
-    imported_at = datetime.now().isoformat(timespec="seconds")
-    obs_inserted = 0
-    series_updated = 0
-
-    for item in validated + partial:
-        sid = item["series_id"]
-        data = results.get(sid)
-        if not data:
-            continue
-
-        last_date = item["last_date"]
-        new_points = [p for p in data["points"] if not last_date or p[0] > last_date]
-
-        if not new_points:
-            continue
-
-        if verbose:
-            log(f"{sid}: inserting {len(new_points)} new observations "
-                f"({new_points[0][0]} → {new_points[-1][0]})")
-
+        # write summary JSON
+        summary_path = ROOT / "data" / "fetch_summary.json"
         if not dry_run:
-            for date_str, value in new_points:
-                try:
-                    conn.execute(
-                        """INSERT INTO observations (series_id, date, value, as_of_date, imported_at)
-                           VALUES (?, ?, ?, ?, ?)
-                           ON CONFLICT(series_id, date) DO UPDATE SET
-                               value=excluded.value,
-                               as_of_date=excluded.as_of_date,
-                               imported_at=excluded.imported_at""",
-                        (sid, date_str, float(value), date_str, imported_at)
-                    )
-                except Exception as e:
-                    log(f"{sid} insert error at {date_str}: {e}", "ERROR")
-                    continue
-                obs_inserted += 1
+            summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
-            # 更新 series 表的 update_method
-            conn.execute(
-                "UPDATE series SET update_method = 'edb_mcp', updated_at = ? WHERE series_id = ?",
-                (imported_at, sid)
-            )
-            series_updated += 1
-
-    if not dry_run and obs_inserted > 0:
-        conn.commit()
-        log(f"Committed {obs_inserted} new observations for {series_updated} series", "OK")
-    elif dry_run:
-        log(f"[DRY RUN] Would insert {obs_inserted} observations for {series_updated} series", "WARN")
-
-    # ---- summary ----
-    all_errors = fetch_errors + failed
-    summary = {
-        "timestamp": imported_at,
-        "dry_run": dry_run,
-        "series_targeted": len(target_rows),
-        "series_fetched": len(results),
-        "series_validated": len(validated),
-        "series_partial": len(partial),
-        "series_failed": len(all_errors),
-        "obs_inserted": obs_inserted,
-        "failures": all_errors
-    }
-
-    # write summary JSON
-    summary_path = ROOT / "data" / "fetch_summary.json"
-    if not dry_run:
-        summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    conn.close()
-    return summary
+        return summary
 
 
 # ── CLI ────────────────────────────────────────────────────────────────
@@ -486,7 +446,7 @@ def main():
         log(f"Mapping config not found: {args.mapping}", "ERROR")
         sys.exit(1)
 
-    log(f"Martin Morning Brief — fetch_data.py")
+    log("Martin Morning Brief — fetch_data.py")
     log(f"DB: {args.db}")
     log(f"Mapping: {args.mapping}")
     if args.dry_run:
@@ -509,7 +469,7 @@ def main():
 
     # final report
     print()
-    log(f"=== Fetch Summary ===")
+    log("=== Fetch Summary ===")
     log(f"Targeted: {summary['series_targeted']} series")
     log(f"Fetched:  {summary['series_fetched']} series")
     log(f"Passed:   {summary['series_validated']} ok + {summary['series_partial']} partial")
