@@ -16,18 +16,15 @@ cd morning-brief
 # 2. 安装依赖（仅 pandas + openpyxl）
 pip install -r requirements.txt
 
-# 3. 从 seed.xlsx 导入全部历史数据（三个脚本，同一个 Excel 的不同 sheet）
-python3 scripts/import_seed.py --replace       # 走势图 / PE TTM / PB LF / 股息率
-python3 scripts/import_fx_data.py              # Fixing / Fwd Spread（外汇原始数据）
-python3 scripts/import_super_cycle.py          # 美元指数（DXY 月频 + 归一化周期）
+# 3. 从 seed.xlsx 导入全部历史数据（一条命令，自动处理所有 sheet）
+python3 scripts/import_seed.py --replace
 
 # 4. 复算外汇衍生序列（汇率拆解 + 套保成本 + 年化，24 个序列）
 python3 scripts/recompute_fx_derived.py
 
 # 5. 安装 Claude Code skill（可选）
 mkdir -p ~/.claude/skills/morning-brief
-cp SKILL.md ~/.claude/skills/morning-brief/SKILL.md   # macOS / Linux
-# Windows: copy SKILL.md %USERPROFILE%\.claude\skills\morning-brief\SKILL.md
+cp SKILL.md ~/.claude/skills/morning-brief/SKILL.md
 
 # 6. 生成看板（使用种子数据，不拉取新数据）
 python3 scripts/run_daily.py --skip-fetch
@@ -70,9 +67,7 @@ open output/interactive_dashboard.html                # macOS
 ├── scripts/                       ← 所有 Python 脚本
 │   ├── lib.py                     ← 公共工具模块（日志/DB/验证/路径常量）
 │   ├── run_daily.py               ← 一键运行入口
-│   ├── import_seed.py             ← 从 Excel 导入/重建数据库
-│   ├── import_fx_data.py          ← 从 Excel 导入外汇序列
-│   ├── import_super_cycle.py      ← 导入美元超级周期数据（月频 + 归一化周期）
+│   ├── import_seed.py             ← 从 seed.xlsx 一键导入全部数据（含外汇/超级周期）
 │   ├── update_data.py             ← 生成增量更新计划
 │   ├── fetch_data.py              ← 同花顺 EDB 数据拉取
 │   ├── fetch_wind.py              ← Wind MCP 数据拉取
@@ -135,21 +130,21 @@ python3 scripts/import_seed.py --replace
 ## 每日流水线
 
 ```text
-首次运行: import_seed.py → import_fx_data.py → import_super_cycle.py → update_data.py → ...
+首次运行: import_seed.py → recompute_fx_derived.py → update_data.py → ...
 日常运行: update_data.py → fetch_data.py (EDB) → fetch_wind.py (Wind)
          → recompute_fx_derived.py → fetch_emotion.py (HTSC)
          → generate_interactive_dashboard.py
 ```
 
-1. **import_seed.py** — 首次运行：从 Excel 种子文件导入趋势/估值/利率/汇率/商品
-2. **import_fx_data.py** — 首次运行：从 Excel 种子文件导入外汇中间价/即期/远期/掉期点
-3. **import_super_cycle.py** — 首次运行：导入美元超级周期数据（DXY 月频 + 归一化周期序列）
-4. **update_data.py** — 扫描数据库，生成增量更新计划
-5. **fetch_data.py** — 同花顺 EDB 拉取日频数据，验证后 UPSERT
-6. **fetch_wind.py** — Wind MCP 拉取外汇原始数据 + 全收益指数 + 估值
-7. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（幂等）
-8. **fetch_emotion.py** — 华泰智研 MCP 拉取市场情绪数据
-9. **generate_interactive_dashboard.py** — 生成单文件 HTML 看板
+> `import_seed.py` 一键处理 seed.xlsx 的全部 7 个 sheet（走势/估值/外汇/超级周期），无需多个脚本。
+
+1. **import_seed.py** — 首次运行：从 Excel 种子文件导入全部历史数据（走势/估值/外汇/超级周期）
+2. **update_data.py** — 扫描数据库，生成增量更新计划
+3. **fetch_data.py** — 同花顺 EDB 拉取日频数据，验证后 UPSERT
+4. **fetch_wind.py** — Wind MCP 拉取外汇原始数据 + 全收益指数 + 估值
+5. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（幂等）
+6. **fetch_emotion.py** — 华泰智研 MCP 拉取市场情绪数据
+7. **generate_interactive_dashboard.py** — 生成单文件 HTML 看板
 
 ## 数据口径
 

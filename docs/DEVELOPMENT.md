@@ -14,8 +14,7 @@ seed/                                config/
         │                                  └── wind_mapping.json
         ▼                                        │
   import_seed.py              fetch_data.py (THS EDB) + fetch_wind.py (Wind MCP)
-  import_fx_data.py                 │
-  import_super_cycle.py             ▼
+   (all-in-one)                      │
         │                      morning_brief.sqlite ──────────────┐
         ▼                              │                          │
   morning_brief.sqlite                 ▼                          │
@@ -44,7 +43,7 @@ seed/                                config/
 5. `fetch_emotion.py` → 华泰智研 MCP 拉取
 6. `generate_interactive_dashboard.py` → 生成看板（从 DB 读取超级周期数据）
 
-**首次运行额外步骤**：`import_seed.py` → `import_fx_data.py` → `import_super_cycle.py`（导入历史种子数据）。
+**首次运行**：`import_seed.py --replace`（一键导入 seed.xlsx 全部 7 个 sheet）。
 
 **数据源优先级**：THS EDB（免费，主力）→ Wind MCP（积分，补充外汇远期/掉期点+全收益指数+估值）→ Python 复算（衍生序列）→ 华泰智研 MCP（情绪/资金面）。
 
@@ -62,9 +61,7 @@ seed/                                config/
 | `config/wind_mapping.json` | series_id → Wind MCP 调用参数映射（kline + economic + fundamentals + category_overrides） |
 | `output/interactive_dashboard.html` | **唯一输出产物**：封面 + 9 个数据模块 + 专题图表 |
 | `scripts/lib.py` | **公共工具模块**（log / load_json / open_db / get_validation_dates / values_match / 路径常量 / Windows UTF-8 修复），所有脚本 import 引用 |
-| `scripts/import_seed.py` | 从 Excel 导入/重建 SQLite，支持 `--replace` |
-| `scripts/import_fx_data.py` | 从 Excel 导入外汇原始序列（一次性历史导入） |
-| `scripts/import_super_cycle.py` | 导入美元超级周期数据（3 原始月频 + 6 归一化周期序列，幂等） |
+| `scripts/import_seed.py` | **All-in-one** 从 seed.xlsx 导入全部数据（走势/估值/外汇/超级周期），支持 `--replace` / `--dry-run` / `--skip-fx` / `--skip-super-cycle` |
 | `scripts/update_data.py` | 扫描数据库生成更新计划 |
 | `scripts/fetch_data.py` | 从同花顺 EDB HTTP API 拉取数据，验证后 UPSERT 入库 |
 | `scripts/fetch_wind.py` | 从 Wind MCP CLI 拉取补充数据（外汇原始/全收益/估值） |

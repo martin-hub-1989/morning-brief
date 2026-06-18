@@ -51,20 +51,22 @@ def main():
     db = DEFAULT_DB
     if not db.exists():
         print("[run_daily] Database not found, importing from Excel seed...")
-        run(["scripts/import_seed.py"])
-
-    # Check if FX data exists
-    if db.exists():
+        run(["scripts/import_seed.py", "--replace"])
+    elif db.exists():
+        # Check if FX or super_cycle data is missing (e.g. from older DB version)
         with open_db(db) as _conn:
             _has_fx = _conn.execute(
                 "SELECT COUNT(*) FROM series WHERE series_id LIKE 'fx:%'"
             ).fetchone()[0] > 0
-        if not _has_fx:
-            print("[run_daily] FX data not found, importing from Excel seed...")
+            _has_sc = _conn.execute(
+                "SELECT COUNT(*) FROM series WHERE series_id LIKE 'super_cycle:%'"
+            ).fetchone()[0] > 0
+        if not _has_fx or not _has_sc:
+            print("[run_daily] Missing data detected, running import_seed.py (idempotent)...")
             try:
-                run(["scripts/import_fx_data.py"])
+                run(["scripts/import_seed.py"])
             except subprocess.CalledProcessError as e:
-                print(f"[run_daily] WARNING: import_fx_data.py failed with exit code {e.returncode}")
+                print(f"[run_daily] WARNING: import_seed.py failed with exit code {e.returncode}")
                 print("[run_daily] Continuing...")
 
     # Build dynamic step list

@@ -130,6 +130,12 @@ xdg-open output/interactive_dashboard.html
 python3 scripts/run_daily.py --skip-fetch
 ```
 
+### 重建数据库（从 seed.xlsx）
+
+```bash
+python3 scripts/import_seed.py --replace
+```
+
 ### 仅拉取数据（不生成看板）
 
 ```bash
@@ -188,7 +194,7 @@ python3 scripts/fetch_wind.py --series fx:usdcnh-spot --verbose
 | `fetch_data.py` 网络超时 | 同花顺 API 不可达 | 检查网络，确认 `api-mcp.51ifind.com:8643` 可达 |
 | `fetch_wind.py` FX 序列无数据 | Wind 搜索词不精确 | 调整 `config/wind_mapping.json` 中的 `indicator_filter` |
 | 大量验证失败（新序列） | 数据库数据源与 EDB 口径不一致 | 检查 `config/edb_mapping.json` 中的 EDB 查询是否准确 |
-| 数据库不存在 | 首次运行 | `run_daily.py` 会自动调用 `import_seed.py` + `import_fx_data.py` |
+| 数据库不存在 | 首次运行 | `run_daily.py` 会自动调用 `import_seed.py --replace`（all-in-one） |
 | 衍生序列缺失 | `recompute_fx_derived.py` 未运行 | 手动运行 `python3 scripts/recompute_fx_derived.py` |
 | Windows 编码报错（UnicodeEncodeError） | Windows 默认 GBK 编码无法处理 ✓✗⚠ 等字符 | 运行时加前缀 `PYTHONIOENCODING=utf-8`；或使用 Windows Terminal（默认 UTF-8） |
 | Windows 路径报错 | SKILL.md / README 中路径示例为 Unix 格式 | 参考 README 快速开始中的 Windows 对应命令 |
