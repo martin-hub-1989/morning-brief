@@ -16,25 +16,23 @@ cd morning-brief
 # 2. 安装依赖（仅 pandas + openpyxl）
 pip install -r requirements.txt
 
-# 3. 重建数据库（趋势/估值 + 外汇原始数据，单文件 ~6.5 MB）
-python3 scripts/import_seed.py --replace
-python3 scripts/import_fx_data.py
+# 3. 从 seed.xlsx 导入全部历史数据（三个脚本，同一个 Excel 的不同 sheet）
+python3 scripts/import_seed.py --replace       # 走势图 / PE TTM / PB LF / 股息率
+python3 scripts/import_fx_data.py              # Fixing / Fwd Spread（外汇原始数据）
+python3 scripts/import_super_cycle.py          # 美元指数（DXY 月频 + 归一化周期）
 
 # 4. 复算外汇衍生序列（汇率拆解 + 套保成本 + 年化，24 个序列）
 python3 scripts/recompute_fx_derived.py
 
-# 5. 导入美元超级周期数据（DXY 月频 + 归一化周期序列，9 个序列）
-python3 scripts/import_super_cycle.py
-
-# 6. 安装 Claude Code skill（可选）
+# 5. 安装 Claude Code skill（可选）
 mkdir -p ~/.claude/skills/morning-brief
 cp SKILL.md ~/.claude/skills/morning-brief/SKILL.md   # macOS / Linux
 # Windows: copy SKILL.md %USERPROFILE%\.claude\skills\morning-brief\SKILL.md
 
-# 7. 生成看板（使用种子数据，不拉取新数据）
+# 6. 生成看板（使用种子数据，不拉取新数据）
 python3 scripts/run_daily.py --skip-fetch
 
-# 8. 打开看板
+# 7. 打开看板
 open output/interactive_dashboard.html                # macOS
 # start output\interactive_dashboard.html             # Windows
 # xdg-open output/interactive_dashboard.html          # Linux
