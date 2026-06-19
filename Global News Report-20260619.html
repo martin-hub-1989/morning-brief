@@ -2,75 +2,98 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Global Top News — 2026-06-19</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-  * { margin:0; padding:0; box-sizing: border-box; }
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', 'PingFang SC', sans-serif;
-    background: #0d0d0d; color: #e0e0e0; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  :root {
+    --bg: #F9F6F0;
+    --panel: #FFFFFF;
+    --ink: #2C2416;
+    --muted: #8B8581;
+    --line: #E8E2D8;
+    --soft: #F5F1E9;
+    --blue: #5B7F8A;
+    --red: #C44B3B;
+    --green: #6B8B7A;
+    --gold: #B8974A;
+    --purple: #8B6B7E;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(44,36,22,0.05);
+    --shadow-md: 0 4px 16px rgba(44,36,22,0.07);
   }
-  .container { max-width: 760px; margin: 0 auto; padding: 32px 20px; }
-  .header { text-align: center; margin-bottom: 12px; padding-bottom: 20px; border-bottom: 2px solid #2a2a2a; }
-  .header .date { font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #868e96; margin-bottom: 8px; }
-  .header h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 0; }
-  .tab-bar { display: flex; gap: 4px; background: #1a1a1a; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); margin-bottom: 28px; padding: 4px; }
-  .tab-bar button { flex: 1; text-align: center; padding: 13px 10px; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; border-radius: 9px; border: none; cursor: pointer; font-family: inherit; white-space: nowrap; background: transparent; color: #868e96; transition: all 0.25s ease; outline: none; -webkit-tap-highlight-color: transparent; }
-  .tab-bar button:hover { opacity: 0.85; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "IBM Plex Sans", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.6;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em; font-weight: 400;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px 48px; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 20px; padding-bottom: 20px; }
+  .header .date { font-size: 12px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
+  .header-accent { width: 40px; height: 2px; background: var(--gold); margin: 12px auto 0; }
+
+  /* Tab bar — match dashboard .tabs */
+  .tab-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  .tab-bar button { border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius-sm); padding: 9px 18px; cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 500; font-family: inherit; transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s; letter-spacing: 0.02em; }
+  .tab-bar button:hover { background: var(--soft); color: var(--ink); border-color: var(--red); }
+  .tab-bar button.active { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: var(--shadow-sm); }
   .tab-bar button .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; margin-top: -2px; }
-  .tab-bar button .label { vertical-align: middle; }
-  .tab-bar button:not(.active)[data-tab="finance"]:hover { color: #ff9800; background: #2a1a00; }
-  .tab-bar button:not(.active)[data-tab="tech"]:hover { color: #2196f3; background: #001a2a; }
-  .tab-bar button:not(.active)[data-tab="politics"]:hover { color: #e91e63; background: #2a0010; }
-  .tab-bar button:not(.active)[data-tab="other"]:hover { color: #9c27b0; background: #1a0020; }
-  .tab-bar button.active { color: #fff; }
   .tab-bar button.active .dot { background: #fff !important; }
-  .tab-bar button.active[data-tab="finance"] { background: #ff9800; }
-  .tab-bar button.active[data-tab="tech"] { background: #2196f3; }
-  .tab-bar button.active[data-tab="politics"] { background: #e91e63; }
-  .tab-bar button.active[data-tab="other"] { background: #9c27b0; }
-  button[data-tab="finance"] .dot { background: #ff9800; }
-  button[data-tab="tech"] .dot { background: #2196f3; }
-  button[data-tab="politics"] .dot { background: #e91e63; }
-  button[data-tab="other"] .dot { background: #9c27b0; }
+  .tab-bar button[data-tab="finance"] .dot { background: var(--blue); }
+  .tab-bar button[data-tab="tech"] .dot { background: var(--purple); }
+  .tab-bar button[data-tab="politics"] .dot { background: var(--red); }
+  .tab-bar button[data-tab="other"] .dot { background: var(--gold); }
+
   .panel { display: none; }
   .panel.active { display: block; }
-  .section-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
-  .section-bar.finance { background: #2a1a00; color: #ff9800; }
-  .section-bar.tech { background: #001a2a; color: #2196f3; }
-  .section-bar.politics { background: #2a0010; color: #e91e63; }
-  .section-bar.other { background: #1a0020; color: #9c27b0; }
-  .market-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; background: #1a1a1a; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-  .market-table th { background: #111; color: #aaa; font-size: 12px; font-weight: 600; padding: 10px 16px; text-align: left; white-space: nowrap; }
-  .market-table td { padding: 9px 16px; font-size: 13px; border-bottom: 1px solid #2a2a2a; }
+
+  /* Section bar */
+  .section-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 10px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; letter-spacing: 0.05em; color: var(--ink); }
+  .section-bar::before { content: ""; display: block; width: 3px; height: 16px; border-radius: 2px; }
+  .section-bar.finance::before { background: var(--blue); }
+  .section-bar.tech::before { background: var(--purple); }
+  .section-bar.politics::before { background: var(--red); }
+  .section-bar.other::before { background: var(--gold); }
+
+  /* Market table — match dashboard table style */
+  .market-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .market-table th { background: var(--soft); color: var(--muted); font-size: 11px; font-weight: 500; padding: 10px 16px; text-align: left; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid var(--line); }
+  .market-table td { padding: 9px 16px; font-size: 13px; border-bottom: 1px solid var(--line); color: var(--ink); }
   .market-table tr:last-child td { border-bottom: none; }
-  .market-table td.name { font-weight: 600; color: #fff; }
-  .market-table td.num { font-family: 'Inter', monospace; font-weight: 500; text-align: right; }
-  .market-table td.num.up { color: #d32f2f; }
-  .market-table td.num.down { color: #2e7d32; }
-  .sparkline-cell { width: 130px; text-align: center; }
-  .card { background: #1a1a1a; border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border-left: 4px solid #333; transition: box-shadow 0.2s, transform 0.2s; }
-  .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-  .card.finance { border-left-color: #ff9800; }
-  .card.tech { border-left-color: #2196f3; }
-  .card.politics { border-left-color: #e91e63; }
-  .card.other { border-left-color: #9c27b0; }
-  .card .tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #666; margin-bottom: 6px; }
-  .card h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; line-height: 1.4; }
-  .card p { font-size: 14px; color: #999; line-height: 1.6; }
-  .cn-trans { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #333; font-size: 13px; color: #777; line-height: 1.7; }
-  .cn-trans strong { display: block; font-weight: 600; color: #999; margin-bottom: 4px; }
-  .card .source { display: inline-block; margin-top: 10px; font-size: 11px; color: #555; font-style: italic; }
-  .card .source a { color: #666; text-decoration: none; border-bottom: 1px dashed #444; transition: color 0.2s, border-color 0.2s; }
-  .card .source a:hover { color: #fff; border-bottom-color: #fff; }
-  .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #2a2a2a; font-size: 12px; color: #555; line-height: 1.8; }
-  .footer a { color: #666; text-decoration: none; border-bottom: 1px dashed #444; }
-  @media (max-width: 640px) {
-    .tab-bar { flex-wrap: wrap; }
-    .tab-bar button { min-width: calc(50% - 4px); font-size: 11px; padding: 10px 6px; }
+  .market-table td.name { font-weight: 600; }
+  .market-table td.num { font-family: "IBM Plex Sans", monospace; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+  .market-table td.num.up { color: var(--red); }
+  .market-table td.num.down { color: var(--green); }
+  .sparkline-cell { width: 140px; text-align: center; }
+
+  /* News card — match dashboard .panel */
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 20px 24px; margin-bottom: 12px; box-shadow: var(--shadow-sm); transition: box-shadow 0.15s; }
+  .card:hover { box-shadow: var(--shadow-md); }
+  .card .tag { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .card h3 { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 8px; line-height: 1.4; letter-spacing: -0.01em; }
+  .card p { font-size: 14px; color: #5A5348; line-height: 1.65; }
+  .cn-trans { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .cn-trans strong { display: block; font-weight: 600; color: #5A5348; margin-bottom: 4px; }
+  .card .source { display: inline-block; margin-top: 12px; font-size: 11px; color: var(--muted); font-style: italic; }
+  .card .source a { color: var(--muted); text-decoration: none; border-bottom: 1px dashed var(--line); transition: color 0.15s, border-color 0.15s; }
+  .card .source a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+  /* Footer */
+  .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); line-height: 1.8; }
+  .footer a { color: var(--muted); text-decoration: none; border-bottom: 1px dashed var(--line); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container { padding: 16px 12px 32px; }
+    .tab-bar button { font-size: 11px; padding: 7px 12px; }
     .market-table th, .market-table td { padding: 7px 10px; font-size: 12px; }
-    .sparkline-cell { width: 80px !important; }
+    .sparkline-cell { width: 90px !important; }
     .card { padding: 16px; }
     .card h3 { font-size: 15px; }
   }
@@ -81,19 +104,20 @@
   <div class="header">
     <div class="date">Thursday, June 18, 2026</div>
     <h1>Global Top News</h1>
+    <div class="header-accent"></div>
   </div>
   <nav class="tab-bar" id="tabBar">
     <button class="active" data-tab="finance" onclick="switchTab('finance')">
-      <span class="dot"></span><span class="label">Financial</span>
+      <span class="dot"></span>Financial
     </button>
     <button data-tab="tech" onclick="switchTab('tech')">
-      <span class="dot"></span><span class="label">Technology</span>
+      <span class="dot"></span>Technology
     </button>
     <button data-tab="politics" onclick="switchTab('politics')">
-      <span class="dot"></span><span class="label">Political</span>
+      <span class="dot"></span>Political
     </button>
     <button data-tab="other" onclick="switchTab('other')">
-      <span class="dot"></span><span class="label">Highlights</span>
+      <span class="dot"></span>Highlights
     </button>
   </nav>
 
@@ -105,40 +129,40 @@
       <tbody>
         <tr>
           <td class="name">Dow Jones</td><td class="num">51,564.70</td><td class="num up">+0.14%</td><td class="num up">+7.4%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gDow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gDow)" points="0,25 15,23 30,21 45,18 60,14 75,11 90,9 105,8 120,7 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,25 15,23 30,21 45,18 60,14 75,11 90,9 105,8 120,7"/></svg></td>
+          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gDow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gDow)" points="0,25 15,23 30,21 45,18 60,14 75,11 90,9 105,8 120,7 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,25 15,23 30,21 45,18 60,14 75,11 90,9 105,8 120,7"/></svg></td>
         </tr>
         <tr>
           <td class="name">S&P 500</td><td class="num">7,500.58</td><td class="num up">+1.08%</td><td class="num up">+17.2%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gSp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gSp)" points="0,26 15,24 30,22 45,18 60,13 75,9 90,7 105,5 120,4 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,26 15,24 30,22 45,18 60,13 75,9 90,7 105,5 120,4"/></svg></td>
+          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gSp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gSp)" points="0,26 15,24 30,22 45,18 60,13 75,9 90,7 105,5 120,4 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,26 15,24 30,22 45,18 60,13 75,9 90,7 105,5 120,4"/></svg></td>
         </tr>
         <tr>
           <td class="name">Nasdaq</td><td class="num">26,517.93</td><td class="num up">+1.91%</td><td class="num up">+20.5%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gNas" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gNas)" points="0,27 15,25 30,23 45,17 60,12 75,7 90,5 105,4 120,3 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,27 15,25 30,23 45,17 60,12 75,7 90,5 105,4 120,3"/></svg></td>
+          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gNas" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gNas)" points="0,27 15,25 30,23 45,17 60,12 75,7 90,5 105,4 120,3 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,27 15,25 30,23 45,17 60,12 75,7 90,5 105,4 120,3"/></svg></td>
         </tr>
         <tr>
-          <td class="name">Gold</td><td class="num">$4,245.90</td><td class="num down">-3.10%</td><td class="num up">+12.8%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gGold)" points="0,24 15,22 30,18 45,14 60,8 75,5 90,8 105,14 120,20 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,24 15,22 30,18 45,14 60,8 75,5 90,8 105,14 120,20"/></svg></td>
+          <td class="name">Gold</td><td class="num">$4,245.90</td><td class="num down">−3.10%</td><td class="num up">+12.8%</td>
+          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gGold)" points="0,24 15,22 30,18 45,14 60,8 75,5 90,8 105,14 120,20 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,24 15,22 30,18 45,14 60,8 75,5 90,8 105,14 120,20"/></svg></td>
         </tr>
         <tr>
-          <td class="name">WTI Crude</td><td class="num">$76.60</td><td class="num down">-0.21%</td><td class="num up">+6.3%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gWti" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gWti)" points="0,22 15,18 30,14 45,8 60,12 75,16 90,15 105,13 120,16 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,22 15,18 30,14 45,8 60,12 75,16 90,15 105,13 120,16"/></svg></td>
+          <td class="name">WTI Crude</td><td class="num">$76.60</td><td class="num down">−0.21%</td><td class="num up">+6.3%</td>
+          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gWti" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gWti)" points="0,22 15,18 30,14 45,8 60,12 75,16 90,15 105,13 120,16 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,22 15,18 30,14 45,8 60,12 75,16 90,15 105,13 120,16"/></svg></td>
         </tr>
         <tr>
           <td class="name">DXY</td><td class="num">100.83</td><td class="num up">+0.45%</td><td class="num up">+5.9%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gDxy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gDxy)" points="0,20 15,18 30,16 45,14 60,12 75,10 90,11 105,10 120,8 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,20 15,18 30,16 45,14 60,12 75,10 90,11 105,10 120,8"/></svg></td>
+          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gDxy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gDxy)" points="0,20 15,18 30,16 45,14 60,12 75,10 90,11 105,10 120,8 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,20 15,18 30,16 45,14 60,12 75,10 90,11 105,10 120,8"/></svg></td>
         </tr>
         <tr>
           <td class="name">US 10Y</td><td class="num">4.44%</td><td class="num up">+3bp</td><td class="num up">+55bp</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="g10y" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#g10y)" points="0,18 15,16 30,15 45,13 60,12 75,11 90,10 105,9 120,10 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,18 15,16 30,15 45,13 60,12 75,11 90,10 105,9 120,10"/></svg></td>
+          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="g10y" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#g10y)" points="0,18 15,16 30,15 45,13 60,12 75,11 90,10 105,9 120,10 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,18 15,16 30,15 45,13 60,12 75,11 90,10 105,9 120,10"/></svg></td>
         </tr>
         <tr>
-          <td class="name">USD/CNH</td><td class="num">6.7783</td><td class="num down">-0.03%</td><td class="num down">-3.2%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gCny" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2e7d32" stop-opacity="0.25"/><stop offset="100%" stop-color="#2e7d32" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gCny)" points="0,8 15,10 30,12 45,14 60,16 75,18 90,19 105,20 120,22 120,30 0,30"/><polyline fill="none" stroke="#2e7d32" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,8 15,10 30,12 45,14 60,16 75,18 90,19 105,20 120,22"/></svg></td>
+          <td class="name">USD/CNH</td><td class="num">6.7783</td><td class="num down">−0.03%</td><td class="num down">−3.2%</td>
+          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gCny" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6B8B7A" stop-opacity="0.2"/><stop offset="100%" stop-color="#6B8B7A" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gCny)" points="0,8 15,10 30,12 45,14 60,16 75,18 90,19 105,20 120,22 120,30 0,30"/><polyline fill="none" stroke="#6B8B7A" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,8 15,10 30,12 45,14 60,16 75,18 90,19 105,20 120,22"/></svg></td>
         </tr>
       </tbody>
     </table>
 
-    <div class="card finance">
+    <div class="card">
       <div class="tag">HORMUZ PEACE</div>
       <h3>US-Iran Interim Deal Reopens Strait of Hormuz; Oil, Stocks React</h3>
       <p>An interim peace deal between the US and Iran took effect Thursday, ending the Middle East conflict and allowing oil tankers to transit the Strait of Hormuz again. Brent settled at $79.85/bbl while WTI edged lower to $76.60. US stocks surged led by semiconductors, with the S&P 500 closing at a fresh record. Analysts cautioned the deal's durability remains uncertain — talks in Switzerland were later cancelled and US VP JD Vance warned Israel against further Hezbollah attacks.</p>
@@ -148,7 +172,7 @@
       <div class="source">Source: <a href="https://www.reuters.com" target="_blank">Reuters</a> · <a href="https://www.bloomberg.com" target="_blank">Bloomberg</a></div>
     </div>
 
-    <div class="card finance">
+    <div class="card">
       <div class="tag">FED WATCH</div>
       <h3>New Fed Chair Kevin Warsh Holds Rates, Signals Hawkish Tilt in Debut</h3>
       <p>In his first FOMC meeting as Fed Chair, Kevin Warsh held rates steady at 3.50%–3.75% but signalled a hawkish pivot, vowing to restore price stability. Markets now price ~68% odds of a rate hike by September. The dollar index surged to a 13-month high of 100.83, while gold tumbled 3.1% to $4,245.90/oz. The 2-year Treasury yield rose to ~4.15% and the 10-year to ~4.44%.</p>
@@ -158,7 +182,7 @@
       <div class="source">Source: <a href="https://www.cnbc.com" target="_blank">CNBC</a> · <a href="https://www.wsj.com" target="_blank">WSJ</a></div>
     </div>
 
-    <div class="card finance">
+    <div class="card">
       <div class="tag">CHIP RALLY</div>
       <h3>Philadelphia Semiconductor Index Surges 6.4% to Record; Intel Jumps 10.6%</h3>
       <p>The SOX semiconductor index soared 6.42% to an all-time high as chip stocks led the market rally. Intel surged 10.64% after President Trump announced Apple would partner with Intel to design and manufacture chips in the US. Nvidia (+2.95%), Micron, Broadcom, and TSMC (+6.86%) were among top S&P 500 gainers. The move reflects growing optimism about domestic AI chip production capacity.</p>
@@ -175,37 +199,37 @@
     <table class="market-table">
       <thead><tr><th>Stock</th><th>Close</th><th>Day Chg</th><th>YTD</th><th>YTD Trend</th></tr></thead>
       <tbody>
-        <tr><td class="name">Apple</td><td class="num">$298.01</td><td class="num up">+0.70%</td><td class="num up">+18.2%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gAapl" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gAapl)" points="0,21 15,19 30,17 45,14 60,11 75,9 90,8 105,7 120,6 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,21 15,19 30,17 45,14 60,11 75,9 90,8 105,7 120,6"/></svg></td></tr>
-        <tr><td class="name">Microsoft</td><td class="num">$379.40</td><td class="num up">+0.13%</td><td class="num up">+8.6%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gMsft" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gMsft)" points="0,22 15,20 30,19 45,18 60,16 75,15 90,14 105,13 120,14 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,22 15,20 30,19 45,18 60,16 75,15 90,14 105,13 120,14"/></svg></td></tr>
-        <tr><td class="name">Nvidia</td><td class="num">$210.69</td><td class="num up">+2.95%</td><td class="num up">+36.5%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gNvda" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gNvda)" points="0,24 15,22 30,18 45,14 60,10 75,7 90,5 105,4 120,3 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,24 15,22 30,18 45,14 60,10 75,7 90,5 105,4 120,3"/></svg></td></tr>
-        <tr><td class="name">Amazon</td><td class="num">$244.39</td><td class="num up">+2.90%</td><td class="num up">+18.8%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gAmzn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gAmzn)" points="0,22 15,20 30,17 45,14 60,11 75,8 90,6 105,5 120,4 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,22 15,20 30,17 45,14 60,11 75,8 90,6 105,5 120,4"/></svg></td></tr>
-        <tr><td class="name">Meta</td><td class="num">$577.22</td><td class="num up">+1.70%</td><td class="num up">+14.1%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gMeta" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gMeta)" points="0,20 15,18 30,17 45,15 60,13 75,11 90,10 105,9 120,8 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,20 15,18 30,17 45,15 60,13 75,11 90,10 105,9 120,8"/></svg></td></tr>
-        <tr><td class="name">Alphabet</td><td class="num">$368.03</td><td class="num up">+1.17%</td><td class="num up">+11.5%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gGoog" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gGoog)" points="0,21 15,19 30,18 45,16 60,14 75,12 90,11 105,10 120,9 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,21 15,19 30,18 45,16 60,14 75,12 90,11 105,10 120,9"/></svg></td></tr>
-        <tr><td class="name">Tesla</td><td class="num">$400.49</td><td class="num up">+1.04%</td><td class="num up">+5.8%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gTsla" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/><stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gTsla)" points="0,18 15,16 30,14 45,12 60,10 75,9 90,12 105,11 120,10 120,30 0,30"/><polyline fill="none" stroke="#d32f2f" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,18 15,16 30,14 45,12 60,10 75,9 90,12 105,11 120,10"/></svg></td></tr>
+        <tr><td class="name">Apple</td><td class="num">$298.01</td><td class="num up">+0.70%</td><td class="num up">+18.2%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gAapl" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gAapl)" points="0,21 15,19 30,17 45,14 60,11 75,9 90,8 105,7 120,6 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,21 15,19 30,17 45,14 60,11 75,9 90,8 105,7 120,6"/></svg></td></tr>
+        <tr><td class="name">Microsoft</td><td class="num">$379.40</td><td class="num up">+0.13%</td><td class="num up">+8.6%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gMsft" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gMsft)" points="0,22 15,20 30,19 45,18 60,16 75,15 90,14 105,13 120,14 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,22 15,20 30,19 45,18 60,16 75,15 90,14 105,13 120,14"/></svg></td></tr>
+        <tr><td class="name">Nvidia</td><td class="num">$210.69</td><td class="num up">+2.95%</td><td class="num up">+36.5%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gNvda" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gNvda)" points="0,24 15,22 30,18 45,14 60,10 75,7 90,5 105,4 120,3 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,24 15,22 30,18 45,14 60,10 75,7 90,5 105,4 120,3"/></svg></td></tr>
+        <tr><td class="name">Amazon</td><td class="num">$244.39</td><td class="num up">+2.90%</td><td class="num up">+18.8%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gAmzn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gAmzn)" points="0,22 15,20 30,17 45,14 60,11 75,8 90,6 105,5 120,4 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,22 15,20 30,17 45,14 60,11 75,8 90,6 105,5 120,4"/></svg></td></tr>
+        <tr><td class="name">Meta</td><td class="num">$577.22</td><td class="num up">+1.70%</td><td class="num up">+14.1%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gMeta" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gMeta)" points="0,20 15,18 30,17 45,15 60,13 75,11 90,10 105,9 120,8 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,20 15,18 30,17 45,15 60,13 75,11 90,10 105,9 120,8"/></svg></td></tr>
+        <tr><td class="name">Alphabet</td><td class="num">$368.03</td><td class="num up">+1.17%</td><td class="num up">+11.5%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gGoog" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gGoog)" points="0,21 15,19 30,18 45,16 60,14 75,12 90,11 105,10 120,9 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,21 15,19 30,18 45,16 60,14 75,12 90,11 105,10 120,9"/></svg></td></tr>
+        <tr><td class="name">Tesla</td><td class="num">$400.49</td><td class="num up">+1.04%</td><td class="num up">+5.8%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gTsla" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gTsla)" points="0,18 15,16 30,14 45,12 60,10 75,9 90,12 105,11 120,10 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,18 15,16 30,14 45,12 60,10 75,9 90,12 105,11 120,10"/></svg></td></tr>
       </tbody>
     </table>
 
-    <div class="card tech">
+    <div class="card">
       <div class="tag">AI CHIPS</div>
       <h3>Google Orders Millions of AI Chips from Intel as TSMC Strains to Meet Demand</h3>
-      <p>Google is ordering millions of custom AI chips (TPUs) from Intel's foundry as TSMC faces capacity constraints through 2028. The deal marks a significant shift in the AI chip supply chain and validates Intel's foundry strategy. Amazon separately announced it will begin selling its Trainium AI chips externally, directly challenging Nvidia's dominance in the AI accelerator market.</p>
+      <p>Google is ordering millions of custom AI chips (TPUs) from Intel's foundry as TSMC faces capacity constraints through 2028. The deal marks a significant shift in the AI chip supply chain and validates Intel's foundry strategy. Amazon separately announced it will begin selling its Trainium AI chips externally, directly challenging Nvidia's dominance.</p>
       <div class="cn-trans">
-        <strong>Google向英特尔订购数百万AI芯片，台积电产能吃紧</strong><br>由于台积电产能紧张延续至2028年，Google转向英特尔代工厂订购数百万定制AI芯片（TPU）。该交易标志着AI芯片供应链的重大转变。亚马逊同时宣布将对外销售Trainium AI芯片，直接挑战英伟达在AI加速器市场的主导地位。
+        <strong>Google向英特尔订购数百万AI芯片，台积电产能吃紧</strong><br>由于台积电产能紧张延续至2028年，Google转向英特尔代工厂订购数百万定制AI芯片。该交易标志着AI芯片供应链的重大转变。亚马逊同时宣布将对外销售Trainium AI芯片，直接挑战英伟达在AI加速器市场的主导地位。
       </div>
       <div class="source">Source: <a href="https://qz.com" target="_blank">Quartz</a> · <a href="https://www.reuters.com" target="_blank">Reuters</a></div>
     </div>
 
-    <div class="card tech">
+    <div class="card">
       <div class="tag">APPLE-INTEL</div>
       <h3>Trump Announces Apple-Intel Partnership for US Chip Manufacturing</h3>
-      <p>President Trump announced that Apple will work with Intel to design and manufacture advanced chips in the United States, sending Intel shares up 10.6%. The partnership represents a major win for Intel's nascent foundry business and aligns with the administration's push for domestic semiconductor production. Apple CEO Tim Cook signalled potential price increases to offset rising component costs from the US manufacturing shift.</p>
+      <p>President Trump announced that Apple will work with Intel to design and manufacture advanced chips in the United States, sending Intel shares up 10.6%. The partnership represents a major win for Intel's nascent foundry business and aligns with the administration's push for domestic semiconductor production. Apple CEO Tim Cook signalled potential price increases to offset rising component costs.</p>
       <div class="cn-trans">
         <strong>特朗普宣布苹果与英特尔合作在美制造芯片</strong><br>特朗普总统宣布苹果将与英特尔合作在美国设计和制造先进芯片，英特尔股价飙升10.6%。该合作是英特尔代工业务的重大胜利，与政府推动本土半导体生产的政策一致。苹果CEO库克暗示可能因美国制造成本上升而提价。
       </div>
       <div class="source">Source: <a href="https://www.cnbc.com" target="_blank">CNBC</a> · <a href="https://www.wsj.com" target="_blank">WSJ</a></div>
     </div>
 
-    <div class="card tech">
+    <div class="card">
       <div class="tag">MEMORY DEAL</div>
       <h3>Nvidia and SK Hynix Sign Multiyear Deal to Develop Next-Gen AI Memory Chips</h3>
       <p>Nvidia and SK hynix announced a multiyear partnership to co-develop next-generation HBM (High Bandwidth Memory) chips for AI factories. The deal underscores the growing importance of advanced memory in AI computing as GPU performance increasingly depends on memory bandwidth. Samsung foundry also reported gaining major traction amid the AI chip supply bottleneck.</p>
@@ -220,7 +244,7 @@
   <div class="panel" id="panel-politics">
     <div class="section-bar politics">Politics &amp; Geopolitics</div>
 
-    <div class="card politics">
+    <div class="card">
       <div class="tag">MIDDLE EAST</div>
       <h3>US and Iran Sign Interim Peace Deal, Ending Hormuz Standoff</h3>
       <p>The United States and Iran signed an interim peace agreement Thursday, formally ending the months-long Middle East conflict. The US has lifted its naval blockade of the Strait of Hormuz, allowing oil tanker traffic to resume. However, the deal faces immediate tests: US VP JD Vance warned Israel against further military action against Hezbollah, and follow-up talks in Switzerland were abruptly cancelled. Skepticism remains high about the deal's long-term durability.</p>
@@ -230,8 +254,8 @@
       <div class="source">Source: <a href="https://www.reuters.com" target="_blank">Reuters</a> · <a href="https://apnews.com" target="_blank">AP News</a></div>
     </div>
 
-    <div class="card politics">
-      <div class="tag">BOE & SNB</div>
+    <div class="card">
+      <div class="tag">BOE &amp; SNB</div>
       <h3>Bank of England and Swiss National Bank Hold Rates Steady</h3>
       <p>The Bank of England held interest rates at 3.75% in a 7-2 vote, signalling caution on the Hormuz reopening's impact on inflation. The Swiss National Bank also held at 0%, stating willingness to intervene on franc strength. Both banks are watching the US-Iran peace deal's effect on energy prices and global inflation closely.</p>
       <div class="cn-trans">
@@ -240,7 +264,7 @@
       <div class="source">Source: <a href="https://www.bloomberg.com" target="_blank">Bloomberg</a> · <a href="https://www.wsj.com" target="_blank">WSJ</a></div>
     </div>
 
-    <div class="card politics">
+    <div class="card">
       <div class="tag">TRADE</div>
       <h3>US-China Trade Tensions Flare as Semiconductor Export Controls Tighten</h3>
       <p>The Biden administration's latest round of semiconductor export controls targeting China's AI capabilities continues to generate friction. Beijing has warned of "necessary countermeasures" as the US restricts sales of advanced chipmaking equipment to Chinese firms. The tensions come as global chip supply chains are already strained by TSMC capacity constraints and booming AI demand.</p>
@@ -255,7 +279,7 @@
   <div class="panel" id="panel-other">
     <div class="section-bar other">Other Highlights</div>
 
-    <div class="card other">
+    <div class="card">
       <div class="tag">RECORDS</div>
       <h3>Japan Nikkei, South Korea Kospi Hit Record Highs in Stellar Weekly Rally</h3>
       <p>Japan's Nikkei 225 index rose for a fifth straight session to record highs, posting a weekly gain of ~8.5%. South Korea's Kospi surged ~15% for the week, briefly crossing the 9,000-point mark before retreating on Friday profit-taking. The rallies were fueled by the US-Iran peace deal, AI chip optimism, and continued yen weakness boosting Japanese exporters.</p>
@@ -265,7 +289,7 @@
       <div class="source">Source: <a href="https://www.bloomberg.com" target="_blank">Bloomberg</a> · <a href="https://finance.yahoo.com" target="_blank">Yahoo Finance</a></div>
     </div>
 
-    <div class="card other">
+    <div class="card">
       <div class="tag">SPORTS</div>
       <h3>FIFA World Cup 2026: Knockout Stage Matchups Set as Group Play Concludes</h3>
       <p>The 2026 FIFA World Cup group stage has concluded with several surprise eliminations. Knockout stage brackets are now set with traditional powers Brazil, France, and Argentina advancing alongside emerging contenders. The tournament, hosted across the US, Canada, and Mexico, has drawn record global viewership numbers.</p>
@@ -275,7 +299,7 @@
       <div class="source">Source: <a href="https://www.bbc.com" target="_blank">BBC</a> · <a href="https://apnews.com" target="_blank">AP News</a></div>
     </div>
 
-    <div class="card other">
+    <div class="card">
       <div class="tag">CRYPTO</div>
       <h3>Bitcoin Holds Above $95,000 as Institutional Adoption Accelerates</h3>
       <p>Bitcoin continued trading above $95,000, supported by accelerating institutional adoption and new ETF inflows. Major Wall Street firms have expanded their crypto trading desks, while several sovereign wealth funds disclosed BTC allocations. Ethereum traded near $5,800 as the ecosystem's total value locked reached new highs.</p>
