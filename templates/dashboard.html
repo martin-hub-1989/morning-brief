@@ -989,7 +989,7 @@ function startForPeriod(period, endDate) {
   if (period === "MARTIN") return "1989-06-05";
   if (period === "CNY2015") return "2015-08-11";
   if (period === "CNY2005") return "2005-07-21";
-  if (period === "924") return "2024-09-23";
+  if (period === "924") return "2024-09-24";
   return "1900-01-01";
 }
 function pointsInRange(sid, start, end, opts = {}) {
@@ -1559,7 +1559,7 @@ function renderReturns() {
   // Chart 1: 股票与商品 — 始终累计涨跌幅；区间 > 1Y 时右侧显示年化值
   const mainStart = document.getElementById("return-start").value;
   const mainEnd = document.getElementById("return-end").value;
-  const isLongMain = returnPeriod.match(/^\d+Y$/) && Number(returnPeriod.match(/^(\d+)Y$/)[1]) > 1;
+  const isLongMain = (toDate(mainEnd) - toDate(mainStart)) / 365.25 / 86400000 > 1.05;
   const mainRegions = ["A股", "港股", "美股", "商品"];
   const mainValues = DATA.return_options
     .filter(opt => mainRegions.includes(opt.region))
@@ -1599,7 +1599,7 @@ function renderReturns() {
   // Chart 2: 中信风格 + 万得全A (独立区间) — 同上逻辑
   const styleStart = document.getElementById("style-start").value;
   const styleEnd = document.getElementById("style-end").value;
-  const isLongStyle = stylePeriod.match(/^\d+Y$/) && Number(stylePeriod.match(/^(\d+)Y$/)[1]) > 1;
+  const isLongStyle = (toDate(styleEnd) - toDate(styleStart)) / 365.25 / 86400000 > 1.05;
   const styleValues = DATA.return_options
     .filter(opt => opt.region === "A股风格")
     .map(opt => {
@@ -1653,7 +1653,7 @@ function initRates() {
 function renderRates() {
   const start = document.getElementById("rate-start").value;
   const end = document.getElementById("rate-end").value;
-  const isLong = ratePeriod.match(/^\d+Y$/) && Number(ratePeriod.match(/^(\d+)Y$/)[1]) > 1;
+  const isLong = (toDate(end) - toDate(start)) / 365.25 / 86400000 > 1.05;
   const values = DATA.rate_options.map(opt => {
     const result = bpChange(opt.series_id, start, end);
     // 数据不足跳过
@@ -1709,7 +1709,7 @@ function initFx() {
 function renderFx() {
   const start = document.getElementById("fx-start").value;
   const end = document.getElementById("fx-end").value;
-  const isLong = fxPeriod.match(/^\d+Y$/) && Number(fxPeriod.match(/^(\d+)Y$/)[1]) > 1;
+  const isLong = (toDate(end) - toDate(start)) / 365.25 / 86400000 > 1.05;
   const values = DATA.fx_options.map(opt => {
     const result = pctChange(opt.series_id, start, end);
     if (result && result.startDate > start) return null;
