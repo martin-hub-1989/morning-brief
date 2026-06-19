@@ -2682,9 +2682,13 @@ function viewGroup(viewName) {
 }
 
 function switchToView(viewName) {
+  // Hide cover once user navigates to a module
+  const cover = document.getElementById("cover");
+  if (cover) cover.style.display = "none";
+
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
   const view = document.getElementById(`view-${viewName}`);
-  if (view) view.classList.add("active");
+  if (view) { view.classList.add("active"); view.scrollIntoView({behavior:"smooth",block:"start"}); }
 
   // Resolve group: prefer current group if it contains this view
   let group = _currentGroup;
