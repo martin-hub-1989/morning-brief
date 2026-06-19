@@ -352,9 +352,9 @@ def _import_fx_sheets(conn, xlsx_path, imported_at, dry_run=False, verbose=False
 # ── Phase 3: Super Cycle sheet (美元指数) ───────────────────────────────
 
 CYCLE_BASE_DATES = {
-    "1985": "1985-02-28",
-    "2002": "2002-01-31",
-    "2025": "2025-09-30",
+    "1985": "1985-03-31",
+    "2002": "2002-02-28",
+    "2025": "2025-01-31",
 }
 
 SUPER_CYCLE_RAW = [
@@ -474,13 +474,18 @@ def _compute_normalized(conn, imported_at, dry_run=False, verbose=False):
 
     total = 0
     for cycle_label, base_date in CYCLE_BASE_DATES.items():
+        # 历史周期固定 19 点 (T+0~T+18)，当前周期无限制
+        max_points = None if cycle_label == "2025" else 19
+
         base_dxy = dxy_data.get(base_date)
         if base_dxy and base_dxy != 0:
             dxy_norm = {}
             for d, v in sorted(dxy_data.items()):
                 if d >= base_date:
                     dxy_norm[d] = round(v / base_dxy * 100, 6)
-            dxy_norm = dict(sorted(dxy_norm.items())[:18])
+            dxy_norm = dict(sorted(dxy_norm.items()))
+            if max_points:
+                dxy_norm = dict(list(dxy_norm.items())[:max_points])
 
             sid = f"super_cycle:dxy_{cycle_label}"
             existing = set(
@@ -506,7 +511,9 @@ def _compute_normalized(conn, imported_at, dry_run=False, verbose=False):
             for d, v in sorted(real_data.items()):
                 if d >= base_date:
                     dae_norm[d] = round(v / base_real * 100, 6)
-            dae_norm = dict(sorted(dae_norm.items())[:18])
+            dae_norm = dict(sorted(dae_norm.items()))
+            if max_points:
+                dae_norm = dict(list(dae_norm.items())[:max_points])
 
             sid = f"super_cycle:dae_{cycle_label}"
             existing = set(
