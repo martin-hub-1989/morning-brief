@@ -586,7 +586,6 @@
         <iframe id="world-iframe" src="global-news-report.html"
                 style="width:100%; min-height:85vh; border:none; border-radius:0 0 var(--radius-md) var(--radius-md); display:block;"
                 title="看世界 - Global News Report"
-                scrolling="no"
                 onload="(function(){try{this.style.height=this.contentWindow.document.body.scrollHeight+'px';}catch(e){}})(this)"
                 onerror="document.getElementById('world-placeholder').style.display=''">
         </iframe>
@@ -938,7 +937,7 @@ const SPREAD_PERIODS = [["15Y", "过去 15Y"], ["10Y", "过去 10Y"], ["5Y", "5Y
 const SPREAD_SERIES = ["trend:中-10债", "trend:美-10债", "trend:中-2债", "trend:美-2债", "trend:USDCNY"];
 const EMOTION_SERIES = ["htsc:A股情绪指数", "htsc:港股情绪指数"];
 
-const RETURN_PERIODS = [["15Y", "过去 15Y"], ["10Y", "过去 10Y"], ["5Y", "过去 5Y"], ["3Y", "过去 3Y"], ["1Y", "过去一年"], ["YTD", "YTD"], ["QTD", "QTD"], ["CUSTOM", "自定义"]];
+const RETURN_PERIODS = [["15Y", "过去 15Y"], ["10Y", "过去 10Y"], ["5Y", "过去 5Y"], ["3Y", "过去 3Y"], ["1Y", "过去一年"], ["YTD", "YTD"], ["QTD", "QTD"], ["924", "Since 924"], ["CUSTOM", "自定义"]];
 const RATE_FX_PERIODS = [["10Y", "过去 10Y"], ["5Y", "过去 5Y"], ["3Y", "过去 3Y"], ["1Y", "过去一年"], ["YTD", "YTD"], ["QTD", "QTD"], ["CUSTOM", "自定义"]];
 const EMOTION_PERIODS = [["FULL", "全历史"], ["10Y", "过去 10Y"], ["5Y", "过去 5Y"], ["3Y", "过去 3Y"], ["1Y", "过去 1Y"], ["YTD", "YTD"]];
 const VALUATION_WINDOWS = [["3", "3年"], ["5", "5年"], ["10", "10年"], ["15", "15年"], ["FULL", "全样本"]];
@@ -989,6 +988,7 @@ function startForPeriod(period, endDate) {
   if (period === "MARTIN") return "1989-06-05";
   if (period === "CNY2015") return "2015-08-11";
   if (period === "CNY2005") return "2005-07-21";
+  if (period === "924") return "2024-09-23";
   return "1900-01-01";
 }
 function pointsInRange(sid, start, end, opts = {}) {
