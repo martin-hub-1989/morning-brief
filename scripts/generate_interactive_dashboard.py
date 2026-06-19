@@ -8,6 +8,7 @@ from pathlib import Path
 from lib import ROOT, DEFAULT_DB, open_db
 
 DEFAULT_OUTPUT = ROOT / "output" / "interactive_dashboard.html"
+DOCS_OUTPUT = ROOT / "docs" / "index.html"
 TEMPLATE_PATH = ROOT / "templates" / "dashboard.html"
 
 TREND_SERIES = [
@@ -282,6 +283,12 @@ def render_dashboard(db_path, output_path):
     html = HTML_TEMPLATE.replace("__DATA__", json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")
+
+    # Also copy to docs/ for GitHub Pages deployment
+    docs_path = DOCS_OUTPUT
+    docs_path.parent.mkdir(parents=True, exist_ok=True)
+    docs_path.write_text(html, encoding="utf-8")
+
     return output_path
 
 

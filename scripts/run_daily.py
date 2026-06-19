@@ -2,20 +2,20 @@
 """Martin Morning Brief 每日一键运行入口。
 
 依次执行:
-  1. import_seed.py          — 数据库不存在时从 Excel 导入
-  2. import_fx_data.py       — FX 数据不存在时从 Excel 导入
-  3. update_data.py          — 生成增量更新计划
-  4. fetch_data.py           — 从同花顺 EDB 拉取最新数据
-  5. fetch_wind.py           — 从 Wind MCP 拉取补充数据
-  6. recompute_fx_derived.py — 从原始数据复算外汇衍生序列
-  7. fetch_emotion.py        — 从华泰智研 MCP 拉取市场情绪数据
-  8. generate_interactive_dashboard.py — 生成交互式 HTML 看板
+  1. import_seed.py           — 数据库不存在时从 Excel 导入（all-in-one）
+  2. update_data.py           — 生成增量更新计划
+  3. fetch_data.py            — 从同花顺 EDB 拉取最新数据
+  4. fetch_wind.py            — 从 Wind MCP 拉取补充数据
+  5. fetch_emotion.py         — 从华泰智研 MCP 拉取市场情绪数据
+  6. recompute_fx_derived.py  — 从原始数据复算外汇衍生序列
+  7. generate_interactive_dashboard.py — 生成 HTML 看板 + docs/index.html (GitHub Pages)
 
 用法:
   python3 scripts/run_daily.py                    # 完整流水线
   python3 scripts/run_daily.py --skip-fetch       # 跳过所有数据拉取，仅生成看板
   python3 scripts/run_daily.py --skip-fetch-ths   # 仅跳过同花顺 EDB
   python3 scripts/run_daily.py --skip-fetch-wind  # 仅跳过 Wind MCP
+  python3 scripts/run_daily.py --skip-fetch-emotion  # 仅跳过华泰智研 MCP
 """
 
 import argparse
@@ -102,7 +102,9 @@ def main():
                 print("[run_daily] Continuing...")
 
     dashboard = ROOT / "output" / "interactive_dashboard.html"
+    docs_dashboard = ROOT / "docs" / "index.html"
     print(f"[run_daily] Done! Dashboard: {dashboard}")
+    print(f"[run_daily] GitHub Pages: {docs_dashboard}")
 
 
 if __name__ == "__main__":
