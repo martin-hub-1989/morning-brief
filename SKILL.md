@@ -7,6 +7,8 @@ description: 运行 Daily Morning Brief 每日流水线 — 从同花顺 EDB + W
 
 本地金融市场早报和交互看板工具。一键执行每日数据更新流程。
 
+> 🌐 **在线看板**：[martin-hub-1989.github.io/morning-brief](https://martin-hub-1989.github.io/morning-brief/) — GitHub Pages 自动部署
+
 ## 触发条件
 
 用户提到以下任一关键词时激活：早报、morning brief、更新看板、run daily、fetch data、generate dashboard、晨报、run_daily。
@@ -49,7 +51,7 @@ python3 scripts/run_daily.py
 3. **fetch_wind.py** — 从 Wind MCP 拉取外汇原始数据（CNH远期/掉期点）+ 全收益指数 + 估值
 4. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（汇率拆解+套保成本+年化），幂等
 5. **fetch_emotion.py** — 从华泰智研 MCP 拉取市场情绪和资金面数据
-6. **generate_interactive_dashboard.py** — 从 DB & `templates/dashboard.html` 生成 `output/interactive_dashboard.html`
+6. **generate_interactive_dashboard.py** — 从 DB & `templates/dashboard.html` 生成 `output/interactive_dashboard.html` + `docs/index.html`（GitHub Pages）
 
 如果 fetch 步骤部分序列验证失败，看板仍会用现有数据生成。
 

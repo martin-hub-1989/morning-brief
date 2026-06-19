@@ -2,6 +2,8 @@
 
 本地金融市场早报工具。历史 Excel 数据已导入 SQLite，基于同花顺 EDB API + Wind MCP 每日自动拉取最新数据，生成离线 HTML 交互看板。
 
+> 🌐 **在线看板**：[martin-hub-1989.github.io/morning-brief](https://martin-hub-1989.github.io/morning-brief/)
+>
 > 开发接手请阅读 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)，包含完整架构、数据流、关键决策和代码位置。
 >
 > Claude Code 中使用 `morning-brief` skill 一键执行每日更新。
