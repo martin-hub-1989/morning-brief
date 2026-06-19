@@ -361,6 +361,7 @@
     .axis-line { stroke: #D4CCC0; stroke-width: 1; }
     .axis-text { fill: #8B8581; font-size: 11px; font-family: "IBM Plex Sans", "Noto Sans SC", sans-serif; }
     .legend-text { fill: #2C2416; font-size: 12px; font-weight: 500; }
+    .annualized-text { fill: #8B8581; font-size: 11px; font-weight: 500; }
     .chart-hit {
       fill: transparent;
       stroke: transparent;
@@ -1329,10 +1330,14 @@ function exportChartData(container) {
       rows.push([date, ...vals.map(v => (typeof v === "number") ? v : "")]);
     });
   } else if (cd.type === "bar") {
-    headers = ["名称", "涨跌幅", "分组"];
+    const hasAnn = (cd.values || []).some(v => v.annualized != null);
+    headers = hasAnn ? ["名称", "涨跌幅", "年化", "分组"] : ["名称", "涨跌幅", "分组"];
     rows = [headers];
     (cd.values || []).forEach(v => {
-      rows.push([v.display_name || "", v.value != null ? v.value : "", v.group || ""]);
+      const base = [v.display_name || "", v.value != null ? v.value : ""];
+      if (hasAnn) base.push(v.annualized != null ? v.annualized : "");
+      base.push(v.group || "");
+      rows.push(base);
     });
   } else if (cd.type === "categorical") {
     headers = ["标签", ...cd.series.map(s => s.name)];
@@ -1498,16 +1503,25 @@ function activateSegment(id, value) {
   [...document.getElementById(id).querySelectorAll("button")].forEach(b => b.classList.toggle("active", b.dataset.value === value));
 }
 function renderBarChart(containerId, values, cfg) {
+  const hasAnnualized = cfg.showAnnualized && values.some(v => v.annualized != null);
   const maxAbs = Math.max(...values.map(v => Math.abs(v.value)), cfg.minAbs || 0.01);
-  const width = 980, barH = 26, gap = 10, left = cfg.left || 185, right = 90, top = 48, bottom = 34;
+  const barH = 26, gap = 10, left = cfg.left || 185, right = 90, top = 48, bottom = 34;
+  // Extend width when annualized column is shown
+  const annColW = hasAnnualized ? 90 : 0;
+  const width = 980 + annColW;
   const height = top + bottom + values.length * (barH + gap);
-  const zeroX = left + (width - left - right) / 2;
-  const scaleX = (width - left - right) / 2 / maxAbs;
+  const chartW = width - left - right; // bar area width (unchanged)
+  const zeroX = left + chartW / 2;
+  const scaleX = chartW / 2 / maxAbs;
   const legendItems = cfg.legend || [];
   const legend = legendItems.map((item, idx) => {
     const x = left + idx * 120;
     return `<rect x="${x}" y="14" width="12" height="12" fill="${item.color}"/><text x="${x + 18}" y="25" class="legend-text">${item.label}</text>`;
   }).join("");
+  // Annualized column header
+  const annHeader = hasAnnualized
+    ? `<text x="${width - 15}" y="25" text-anchor="end" class="legend-text" font-weight="700">年化</text>`
+    : "";
   const ticks = [-maxAbs, -maxAbs / 2, 0, maxAbs / 2, maxAbs];
   const axisTicks = ticks.map(t => {
     const x = zeroX + t * scaleX;
@@ -1521,38 +1535,49 @@ function renderBarChart(containerId, values, cfg) {
     const outsideX = v.value >= 0 ? x + w + 8 : x - 8;
     const outsideAnchor = v.value >= 0 ? "start" : "end";
     const nearLeftAxis = outsideX < left + 8;
-    const nearRightEdge = outsideX > width - right - 8;
+    const nearRightEdge = outsideX > width - right - annColW - 8;
     const labelX = nearLeftAxis ? x + w + 8 : nearRightEdge ? x - 8 : outsideX;
     const anchor = nearLeftAxis ? "start" : nearRightEdge ? "end" : outsideAnchor;
-    const fill = nearLeftAxis || nearRightEdge ? "" : "";
+    // Annualized label on the far right
+    const annLabel = hasAnnualized && v.annualized != null
+      ? `<text x="${width - 15}" y="${y + 18}" text-anchor="end" class="annualized-text">${cfg.annFormat ? cfg.annFormat(v.annualized) : cfg.format(v.annualized)}</text>`
+      : "";
     return `<text x="${left - 18}" y="${y + 18}" text-anchor="end" class="axis-text">${v.display_name}</text>
       <rect x="${x}" y="${y}" width="${Math.max(w, 1)}" height="${barH}" fill="${v.color}"/>
-      <text x="${labelX}" y="${y + 18}" text-anchor="${anchor}" class="legend-text"${fill}>${cfg.format(v.value)}</text>`;
+      <text x="${labelX}" y="${y + 18}" text-anchor="${anchor}" class="legend-text">${cfg.format(v.value)}</text>${annLabel}`;
   }).join("");
   document.getElementById(containerId).style.minHeight = "";
   document.getElementById(containerId).innerHTML = `<svg class="chart" viewBox="0 0 ${width} ${height}" style="height:${height}px;min-width:${width}px" role="img" aria-label="${cfg.title}">
     ${legend}
+    ${annHeader}
     ${axisTicks}
     <line x1="${zeroX}" y1="${top - 8}" x2="${zeroX}" y2="${height - bottom + 8}" class="axis-line"/>
     ${bars}
   </svg>`;
 }
 function renderReturns() {
-  // Chart 1: 股票与商品
+  // Chart 1: 股票与商品 — 始终累计涨跌幅；区间 > 1Y 时右侧显示年化值
   const mainStart = document.getElementById("return-start").value;
   const mainEnd = document.getElementById("return-end").value;
-  const isAnnualMain = returnPeriod.match(/^\d+Y$/) && Number(returnPeriod.match(/^(\d+)Y$/)[1]) > 1;
+  const isLongMain = returnPeriod.match(/^\d+Y$/) && Number(returnPeriod.match(/^(\d+)Y$/)[1]) > 1;
   const mainRegions = ["A股", "港股", "美股", "商品"];
   const mainValues = DATA.return_options
     .filter(opt => mainRegions.includes(opt.region))
     .map(opt => {
-      const result = isAnnualMain ? pctChangeCAGR(opt.series_id, mainStart, mainEnd) : pctChange(opt.series_id, mainStart, mainEnd);
-      return result ? { ...opt, ...result, color: COLORS[opt.region] } : null;
+      const result = pctChange(opt.series_id, mainStart, mainEnd);
+      if (!result) return null;
+      let annualized = null;
+      if (isLongMain) {
+        const years = (toDate(result.endDate) - toDate(result.startDate)) / 365.25 / 86400000;
+        if (years > 1.05) annualized = Math.pow(1 + result.value, 1 / years) - 1;
+      }
+      return { ...opt, ...result, annualized, color: COLORS[opt.region] };
     }).filter(Boolean).sort((a, b) => b.value - a.value);
-  const mainLabel = isAnnualMain ? "复合年化收益率" : "涨跌幅";
   renderBarChart("return-chart", mainValues, {
-    title: `股票与商品${mainLabel}`,
+    title: "股票与商品涨跌幅",
     format: formatPct,
+    showAnnualized: isLongMain,
+    annFormat: formatPct,
     legend: [
       { label: "A股", color: COLORS.A股 },
       { label: "港股", color: COLORS.港股 },
@@ -1560,31 +1585,52 @@ function renderReturns() {
       { label: "商品", color: COLORS.商品 }
     ]
   });
-  addChartExport("return-chart", { type: "bar", title: `股票与商品${mainLabel}`, values: mainValues });
-  const mainRows = mainValues.map(v => [v.display_name, v.region, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)]);
-  document.getElementById("return-table").innerHTML = tableHtml(["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", mainLabel], mainRows);
+  addChartExport("return-chart", { type: "bar", title: "股票与商品涨跌幅", values: mainValues });
+  const mainCols = isLongMain
+    ? ["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅", "年化涨跌幅"]
+    : ["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅"];
+  const mainRows = mainValues.map(v => {
+    const row = [v.display_name, v.region, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)];
+    if (isLongMain) row.push(v.annualized != null ? formatPct(v.annualized) : "—");
+    return row;
+  });
+  document.getElementById("return-table").innerHTML = tableHtml(mainCols, mainRows);
 
-  // Chart 2: 中信风格 + 万得全A (独立区间)
+  // Chart 2: 中信风格 + 万得全A (独立区间) — 同上逻辑
   const styleStart = document.getElementById("style-start").value;
   const styleEnd = document.getElementById("style-end").value;
-  const isAnnualStyle = stylePeriod.match(/^\d+Y$/) && Number(stylePeriod.match(/^(\d+)Y$/)[1]) > 1;
+  const isLongStyle = stylePeriod.match(/^\d+Y$/) && Number(stylePeriod.match(/^(\d+)Y$/)[1]) > 1;
   const styleValues = DATA.return_options
     .filter(opt => opt.region === "A股风格")
     .map(opt => {
-      const result = isAnnualStyle ? pctChangeCAGR(opt.series_id, styleStart, styleEnd) : pctChange(opt.series_id, styleStart, styleEnd);
-      return result ? { ...opt, ...result, color: COLORS[opt.region] } : null;
+      const result = pctChange(opt.series_id, styleStart, styleEnd);
+      if (!result) return null;
+      let annualized = null;
+      if (isLongStyle) {
+        const years = (toDate(result.endDate) - toDate(result.startDate)) / 365.25 / 86400000;
+        if (years > 1.05) annualized = Math.pow(1 + result.value, 1 / years) - 1;
+      }
+      return { ...opt, ...result, annualized, color: COLORS[opt.region] };
     }).filter(Boolean).sort((a, b) => b.value - a.value);
-  const styleLabel = isAnnualStyle ? "复合年化收益率" : "涨跌幅";
   renderBarChart("return-chart-style", styleValues, {
-    title: `中信风格与万得全A${styleLabel}`,
+    title: "中信风格与万得全A涨跌幅",
     format: formatPct,
+    showAnnualized: isLongStyle,
+    annFormat: formatPct,
     legend: [
       { label: "中信风格/万得全A", color: COLORS.A股风格 }
     ]
   });
-  addChartExport("return-chart-style", { type: "bar", title: `中信风格与万得全A${styleLabel}`, values: styleValues });
-  const styleRows = styleValues.map(v => [v.display_name, "A股风格", v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)]);
-  document.getElementById("return-table-style").innerHTML = tableHtml(["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", styleLabel], styleRows);
+  addChartExport("return-chart-style", { type: "bar", title: "中信风格与万得全A涨跌幅", values: styleValues });
+  const styleCols = isLongStyle
+    ? ["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅", "年化涨跌幅"]
+    : ["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅"];
+  const styleRows = styleValues.map(v => {
+    const row = [v.display_name, "A股风格", v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)];
+    if (isLongStyle) row.push(v.annualized != null ? formatPct(v.annualized) : "—");
+    return row;
+  });
+  document.getElementById("return-table-style").innerHTML = tableHtml(styleCols, styleRows);
 }
 
 function initRates() {
@@ -1612,12 +1658,19 @@ function renderRates() {
     const result = bpChange(opt.series_id, start, end);
     // 数据不足跳过
     if (result && result.startDate > start) return null;
-    return result ? { ...opt, ...result, color: result.value >= 0 ? COLORS.red : COLORS.green } : null;
+    if (!result) return null;
+    let annualized = null;
+    if (isLong) {
+      const years = (toDate(result.endDate) - toDate(result.startDate)) / 365.25 / 86400000;
+      if (years > 1.05) annualized = result.value / years;
+    }
+    return { ...opt, ...result, annualized, color: result.value >= 0 ? COLORS.red : COLORS.green };
   }).filter(Boolean).sort((a, b) => b.value - a.value);
-  const label = isLong ? "累计bp变化" : "bp变化";
   renderBarChart("rate-chart", values, {
     title: "利率涨跌柱状图",
     format: formatBp,
+    showAnnualized: isLong,
+    annFormat: v => formatBp(v) + "/年",
     minAbs: 10,
     legend: [
       { label: "利率上行", color: COLORS.red },
@@ -1625,8 +1678,15 @@ function renderRates() {
     ]
   });
   addChartExport("rate-chart", { type: "bar", title: "利率涨跌", values: values });
-  const rows = values.map(v => [v.display_name, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatBp(v.value)]);
-  document.getElementById("rate-table").innerHTML = tableHtml(["利率", "起始读数日", "结束读数日", "起始值", "结束值", label], rows);
+  const cols = isLong
+    ? ["利率", "起始读数日", "结束读数日", "起始值", "结束值", "bp变化", "年化bp"]
+    : ["利率", "起始读数日", "结束读数日", "起始值", "结束值", "bp变化"];
+  const rows = values.map(v => {
+    const row = [v.display_name, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatBp(v.value)];
+    if (isLong) row.push(v.annualized != null ? formatBp(v.annualized) : "—");
+    return row;
+  });
+  document.getElementById("rate-table").innerHTML = tableHtml(cols, rows);
 }
 
 function initFx() {
@@ -1653,12 +1713,19 @@ function renderFx() {
   const values = DATA.fx_options.map(opt => {
     const result = pctChange(opt.series_id, start, end);
     if (result && result.startDate > start) return null;
-    return result ? { ...opt, ...result, color: COLORS[opt.group] } : null;
+    if (!result) return null;
+    let annualized = null;
+    if (isLong) {
+      const years = (toDate(result.endDate) - toDate(result.startDate)) / 365.25 / 86400000;
+      if (years > 1.05) annualized = Math.pow(1 + result.value, 1 / years) - 1;
+    }
+    return { ...opt, ...result, annualized, color: COLORS[opt.group] };
   }).filter(Boolean).sort((a, b) => b.value - a.value);
-  const label = isLong ? "累计涨跌幅" : "涨跌幅";
   renderBarChart("fx-chart", values, {
     title: "汇率涨跌柱状图",
     format: formatPct,
+    showAnnualized: isLong,
+    annFormat: formatPct,
     legend: [
       { label: "兑人民币", color: COLORS.兑人民币 },
       { label: "美元交叉", color: COLORS.美元交叉 },
@@ -1666,8 +1733,15 @@ function renderFx() {
     ]
   });
   addChartExport("fx-chart", { type: "bar", title: "汇率涨跌", values: values });
-  const rows = values.map(v => [v.display_name, v.group, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)]);
-  document.getElementById("fx-table").innerHTML = tableHtml(["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", label], rows);
+  const cols = isLong
+    ? ["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅", "年化涨跌幅"]
+    : ["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅"];
+  const rows = values.map(v => {
+    const row = [v.display_name, v.group, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)];
+    if (isLong) row.push(v.annualized != null ? formatPct(v.annualized) : "—");
+    return row;
+  });
+  document.getElementById("fx-table").innerHTML = tableHtml(cols, rows);
 }
 
 function spreadPoints(cnSid, usSid, start, end) {
