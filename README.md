@@ -120,14 +120,36 @@ python3 scripts/import_seed.py --replace
 | 3 | Python 复算 | ✅ 已接入 | 24 FX 衍生序列（汇率拆解 + 套保成本 + 年化） |
 | 4 | 华泰智研 MCP | ✅ 已接入 | 2 情绪指数 + 6 资金面序列 |
 | 5 | 美元超级周期 | ✅ 已接入 | 3 原始月频 + 6 归一化周期序列（DB 存储，不再依赖 Excel） |
+| 6 | global-news-report | 🔧 可选 | 看世界模块（需单独安装 skill） |
+
+### 看世界模块
+
+看世界模块依赖 [global-news-report](https://github.com/xk2133/global-news-report) skill：
+
+```bash
+# 1. 安装 skill
+mkdir -p ~/.claude/skills/global-news-report
+cd /tmp && git clone https://github.com/xk2133/global-news-report.git
+cp /tmp/global-news-report/SKILL.md ~/.claude/skills/global-news-report/SKILL.md
+
+# 2. 在 Claude Code 中运行
+@global-news-report
+
+# 3. 将生成的 Global News Report-YYYYMMDD.html 放到项目根目录，然后重新生成看板
+python3 scripts/run_daily.py --skip-fetch
+```
+
+如果未安装或未生成报告，看世界模块会显示占位提示。
 
 ## 交互式看板
 
 打开 `output/interactive_dashboard.html`：
 
 - **封面**：Multi Asset Morning Brief，导航卡片直达各模块
-- **9 个数据模块**：走势看板、股票涨跌、利率涨跌、汇率涨跌、中美利差、中间价、套保成本、估值看板、市场情绪
+- **看世界**：全球宏观要闻、市场数据一览（iframe 嵌入 global-news-report skill 输出）
+- **10 个数据模块**：走势看板、股票涨跌、利率涨跌、汇率涨跌、中美利差、中间价、套保成本、估值看板、市场情绪
 - **专题图表**：美元超级周期（DXY + D/AE 对比）
+- **图表导出**：每个图表左上角悬停显示 📷 导出图片（PNG）和 📥 下载数据（Excel）按钮
 
 ## 每日流水线
 

@@ -177,7 +177,8 @@ python3 scripts/fetch_wind.py --series fx:usdcnh-spot --verbose
 | 美元超级周期 | 9 个（3 原始月频 + 6 归一化周期） |
 | **总覆盖** | **152 序列，100%** |
 | **数据流** | EDB(36) + Wind(38) + Python复算(30) → emotion(8) → dashboard |
-| 看板模块 | 封面 + 9 数据模块 + 专题图表 |
+| 看板模块 | 封面 + 看世界 + 10 数据模块 + 专题图表 |
+| 图表功能 | 📷 导出PNG图片 + 📥 下载Excel数据（每个图表左上角悬停按钮） |
 
 ### 数据源分工
 

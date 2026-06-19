@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 import argparse
+import glob
 import json
 import math
+import os
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -289,7 +292,34 @@ def render_dashboard(db_path, output_path):
     docs_path.parent.mkdir(parents=True, exist_ok=True)
     docs_path.write_text(html, encoding="utf-8")
 
+    # Copy latest Global News Report for 看世界 module
+    _copy_global_news_report()
+
     return output_path
+
+
+def _copy_global_news_report():
+    """Find the latest Global News Report HTML and copy it to output/ and docs/."""
+    candidates = []
+    for pattern in [
+        str(ROOT / "Global News Report-*.html"),
+        str(ROOT / "output" / "Global News Report-*.html"),
+        str(Path.home() / ".claude" / "output" / "Global News Report-*.html"),
+        str(Path.home() / "Desktop" / "Global News Report-*.html"),
+    ]:
+        candidates.extend(glob.glob(pattern))
+
+    if candidates:
+        latest = max(candidates, key=os.path.getmtime)
+        for dest in [
+            ROOT / "output" / "global-news-report.html",
+            ROOT / "docs" / "global-news-report.html",
+        ]:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(latest, dest)
+        print(f"[dashboard] 看世界 report: {os.path.basename(latest)} → output/global-news-report.html")
+    else:
+        print("[dashboard] 看世界 report not found — run @global-news-report skill first")
 
 
 def main():

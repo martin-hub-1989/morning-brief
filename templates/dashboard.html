@@ -343,6 +343,7 @@
     .chart-area {
       padding: 14px 18px 6px;
       overflow-x: auto;
+      position: relative;
     }
     svg.chart {
       width: 100%;
@@ -425,6 +426,7 @@
     .topic-chart-area {
       padding: 14px 18px 6px;
       overflow-x: auto;
+      position: relative;
     }
     .topic-chart-area svg {
       width: 100%;
@@ -452,6 +454,48 @@
       border-radius: 2px;
       flex-shrink: 0;
     }
+
+    /* ── Export buttons ─────────────────────────── */
+    .chart-export-btns {
+      position: absolute;
+      top: 6px;
+      left: 10px;
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 4;
+    }
+    .chart-area:hover .chart-export-btns,
+    .topic-chart-area:hover .chart-export-btns {
+      opacity: 1;
+    }
+    .chart-export-btn {
+      height: 26px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .chart-export-btn:hover {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+    .chart-export-btn:active {
+      background: var(--blue);
+      border-color: var(--blue);
+    }
   </style>
 </head>
 <body>
@@ -461,6 +505,7 @@
   </header>
   <main>
     <nav class="tabs primary-tabs" id="primary-tabs" aria-label="Primary sections">
+      <button class="tab" data-group="world">看世界</button>
       <button class="tab" data-group="trend">走势看板</button>
       <button class="tab" data-group="review">涨跌复盘</button>
       <button class="tab" data-group="equity">权益看板</button>
@@ -477,6 +522,10 @@
           <p class="cover-subtitle">Daily Dashboard</p>
           <p class="cover-date" id="cover-date"></p>
           <div class="cover-cards">
+            <div class="cover-card" data-view="world">
+              <span class="cover-card-title">看世界</span>
+              <span class="cover-card-desc">Global Top News</span>
+            </div>
             <div class="cover-card" data-view="trend">
               <span class="cover-card-title">走势看板</span>
               <span class="cover-card-desc">Multi-Asset Trends</span>
@@ -518,6 +567,28 @@
               <span class="cover-card-desc">Topics</span>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-world">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>看世界</h2>
+          <p>全球宏观要闻、市场数据、科技动态一览。数据来源：global-news-report skill（Wind MCP + Web Search）。</p>
+        </div>
+        <iframe id="world-iframe" src="global-news-report.html"
+                style="width:100%; height:85vh; border:none; border-radius:0 0 var(--radius-md) var(--radius-md); display:block;"
+                title="看世界 - Global News Report"
+                onerror="document.getElementById('world-placeholder').style.display=''">
+        </iframe>
+        <div id="world-placeholder" class="empty" style="padding:60px 20px; text-align:center;">
+          <p style="font-size:16px; color:var(--muted);">全球新闻报告尚未生成</p>
+          <p style="font-size:13px; color:var(--muted); margin-top:8px;">
+            请先运行 <code>@global-news-report</code> skill 生成今日报告，然后将生成的
+            <code>Global News Report-YYYYMMDD.html</code> 复制为
+            <code>output/global-news-report.html</code> 后重新生成看板。
+          </p>
         </div>
       </div>
     </section>
@@ -1137,6 +1208,178 @@ function tableHtml(headers, rows) {
   return `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
 }
 
+// ── Chart export helpers ─────────────────────────────────────────
+
+function addChartExport(containerId, chartData) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container._chartData = chartData;
+  // Remove old buttons if re-rendering
+  const old = container.querySelector(".chart-export-btns");
+  if (old) old.remove();
+  const btns = document.createElement("div");
+  btns.className = "chart-export-btns";
+  btns.innerHTML = `<button class="chart-export-btn" data-action="image" title="导出为 PNG 图片">📷 导出图片</button>
+<button class="chart-export-btn" data-action="data" title="下载 Excel 数据">📥 下载数据</button>`;
+  btns.querySelector("[data-action=image]").addEventListener("click", (e) => {
+    e.stopPropagation();
+    exportChartImage(container);
+  });
+  btns.querySelector("[data-action=data]").addEventListener("click", (e) => {
+    e.stopPropagation();
+    exportChartData(container);
+  });
+  container.appendChild(btns);
+}
+
+function exportChartImage(container) {
+  const svg = container.querySelector("svg");
+  if (!svg) { alert("该图表无可导出图像"); return; }
+  // Clone SVG and inline CSS styles for faithful PNG rendering
+  const clone = inlineStyles(svg);
+  const svgData = new XMLSerializer().serializeToString(clone);
+  const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = function () {
+    const scale = 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth * scale;
+    canvas.height = img.naturalHeight * scale;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+
+    // Download
+    canvas.toBlob(function (blob) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = (container._chartData && container._chartData.title || "chart") + ".png";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }, "image/png");
+
+    // Copy to clipboard
+    try {
+      canvas.toBlob(function (blob) {
+        if (blob && navigator.clipboard && typeof ClipboardItem !== "undefined") {
+          navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
+            .then(() => { /* copied */ })
+            .catch(() => { /* silent fail */ });
+        }
+      }, "image/png");
+    } catch (_) { /* clipboard API not available */ }
+  };
+  img.src = url;
+}
+
+function inlineStyles(svg) {
+  // Clone the SVG and apply computed CSS styles as inline attributes
+  const clone = svg.cloneNode(true);
+  const sourceElements = svg.querySelectorAll("*");
+  const targetElements = clone.querySelectorAll("*");
+  const cssProps = ["fill", "stroke", "stroke-width", "font-size", "font-family", "font-weight", "opacity", "stroke-dasharray"];
+  // Apply styles from each element
+  for (let i = 0; i < sourceElements.length; i++) {
+    const src = sourceElements[i];
+    const tgt = targetElements[i];
+    if (!src || !tgt) continue;
+    const cs = getComputedStyle(src);
+    for (const prop of cssProps) {
+      const val = cs.getPropertyValue(prop);
+      if (val && val !== "normal" && val !== "auto") {
+        tgt.setAttribute(prop, val);
+      }
+    }
+  }
+  // Copy viewBox if present
+  if (svg.getAttribute("viewBox")) clone.setAttribute("viewBox", svg.getAttribute("viewBox"));
+  clone.setAttribute("width", svg.getAttribute("width") || String(svg.clientWidth || 980));
+  clone.setAttribute("height", svg.getAttribute("height") || String(svg.clientHeight || 420));
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  return clone;
+}
+
+function exportChartData(container) {
+  const cd = container._chartData;
+  if (!cd) { alert("该图表无可导出数据"); return; }
+  let rows, headers;
+  if (cd.type === "line") {
+    // Build date → series values map
+    headers = ["日期", ...cd.series.map(s => s.name)];
+    const dateMap = new Map();
+    cd.series.forEach((s, si) => {
+      (s.points || []).forEach(p => {
+        if (!dateMap.has(p[0])) dateMap.set(p[0], new Array(cd.series.length).fill(""));
+        dateMap.get(p[0])[si] = p[1];
+      });
+    });
+    rows = [headers];
+    [...dateMap.entries()].sort((a, b) => a[0].localeCompare(b[0])).forEach(([date, vals]) => {
+      rows.push([date, ...vals.map(v => (typeof v === "number") ? v : "")]);
+    });
+  } else if (cd.type === "bar") {
+    headers = ["名称", "涨跌幅", "分组"];
+    rows = [headers];
+    (cd.values || []).forEach(v => {
+      rows.push([v.display_name || "", v.value != null ? v.value : "", v.group || ""]);
+    });
+  } else if (cd.type === "categorical") {
+    headers = ["标签", ...cd.series.map(s => s.name)];
+    rows = [headers];
+    (cd.tLabels || []).forEach((label, i) => {
+      const row = [label];
+      cd.series.forEach(s => { row.push(s.data && s.data[i] != null ? s.data[i] : ""); });
+      rows.push(row);
+    });
+  } else if (cd.type === "term") {
+    headers = ["期限", ...cd.series.map(s => s.name)];
+    rows = [headers];
+    (cd.tenors || []).forEach((tenor, i) => {
+      const row = [tenor];
+      cd.series.forEach(s => { row.push(s.data && s.data[i] != null ? s.data[i] : ""); });
+      rows.push(row);
+    });
+  } else {
+    alert("不支持的图表类型");
+    return;
+  }
+  downloadExcel(rows, (cd.title || "chart") + ".xls");
+}
+
+function downloadExcel(rows, filename) {
+  // Generate Excel XML Spreadsheet 2003 (single XML, .xls extension)
+  const escapeXml = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const xmlRows = rows.map(row =>
+    "<Row>" + row.map(cell => {
+      const val = escapeXml(cell);
+      const isNum = typeof cell === "number" || (typeof cell === "string" && cell !== "" && !isNaN(Number(cell)) && isFinite(Number(cell)));
+      if (isNum && typeof cell !== "number") {
+        return `<Cell><Data ss:Type="Number">${Number(cell)}</Data></Cell>`;
+      }
+      return `<Cell><Data ss:Type="${isNum ? 'Number' : 'String'}">${val}</Data></Cell>`;
+    }).join("") + "</Row>"
+  ).join("\n");
+  const xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Worksheet ss:Name="Data">
+  <Table>${xmlRows}</Table>
+ </Worksheet>
+</Workbook>`;
+  const blob = new Blob([xml], { type: "application/vnd.ms-excel;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── End chart export helpers ──────────────────────────────────────
+
 let trendPeriod = "1Y";
 let returnPeriod = "1Y";
 let stylePeriod = "1Y";
@@ -1187,6 +1430,13 @@ function renderTrend() {
     series: [
       { name: META[s1].display_name, points: p1, color: COLORS.blue, axis: "left" },
       ...(p2.length ? [{ name: META[s2].display_name, points: p2, color: COLORS.red, axis: "right" }] : [])
+    ]
+  });
+  addChartExport("trend-chart", {
+    type: "line", title: "走势看板",
+    series: [
+      { name: META[s1].display_name, points: p1 },
+      ...(p2.length ? [{ name: META[s2].display_name, points: p2 }] : [])
     ]
   });
   const rows = [s1, ...(p2.length ? [s2] : [])].map(sid => {
@@ -1302,6 +1552,7 @@ function renderReturns() {
       { label: "商品", color: COLORS.商品 }
     ]
   });
+  addChartExport("return-chart", { type: "bar", title: `股票与商品${mainLabel}`, values: mainValues });
   const mainRows = mainValues.map(v => [v.display_name, v.region, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)]);
   document.getElementById("return-table").innerHTML = tableHtml(["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", mainLabel], mainRows);
 
@@ -1323,6 +1574,7 @@ function renderReturns() {
       { label: "中信风格/万得全A", color: COLORS.A股风格 }
     ]
   });
+  addChartExport("return-chart-style", { type: "bar", title: `中信风格与万得全A${styleLabel}`, values: styleValues });
   const styleRows = styleValues.map(v => [v.display_name, "A股风格", v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)]);
   document.getElementById("return-table-style").innerHTML = tableHtml(["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", styleLabel], styleRows);
 }
@@ -1364,6 +1616,7 @@ function renderRates() {
       { label: "利率下行", color: COLORS.green }
     ]
   });
+  addChartExport("rate-chart", { type: "bar", title: "利率涨跌", values: values });
   const rows = values.map(v => [v.display_name, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatBp(v.value)]);
   document.getElementById("rate-table").innerHTML = tableHtml(["利率", "起始读数日", "结束读数日", "起始值", "结束值", label], rows);
 }
@@ -1404,6 +1657,7 @@ function renderFx() {
       { label: "指数", color: COLORS.指数 }
     ]
   });
+  addChartExport("fx-chart", { type: "bar", title: "汇率涨跌", values: values });
   const rows = values.map(v => [v.display_name, v.group, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)]);
   document.getElementById("fx-table").innerHTML = tableHtml(["标的", "类别", "起始读数日", "结束读数日", "起始值", "结束值", label], rows);
 }
@@ -1439,6 +1693,8 @@ function renderSpread() {
       { name: "USDCNY", points: fx, color: COLORS.red, axis: "right" }
     ]
   });
+  addChartExport("spread-chart-10y", { type: "line", title: "美中10Y利差与USDCNY",
+    series: [{ name: "美中10Y利差", points: p10 }, { name: "USDCNY", points: fx }] });
   renderSvgLine("spread-chart-2y", {
     title: "美中2Y利差与USDCNY",
     leftAxis: axisFromValues(p2.map(p => p[1])),
@@ -1450,6 +1706,8 @@ function renderSpread() {
       { name: "USDCNY", points: fx, color: COLORS.red, axis: "right" }
     ]
   });
+  addChartExport("spread-chart-2y", { type: "line", title: "美中2Y利差与USDCNY",
+    series: [{ name: "美中2Y利差", points: p2 }, { name: "USDCNY", points: fx }] });
   const rows = [
     ["美中10Y利差", p10[0]?.[0] || "n/a", p10[p10.length - 1]?.[0] || "n/a", p10.length, p10.length ? formatBp(p10[p10.length - 1][1]) : "n/a"],
     ["美中2Y利差", p2[0]?.[0] || "n/a", p2[p2.length - 1]?.[0] || "n/a", p2.length, p2.length ? formatBp(p2[p2.length - 1][1]) : "n/a"],
@@ -1543,6 +1801,13 @@ function renderValuation() {
       { name: "-2σ", points: displayRefs.down2, color: "#A0988E", dash: "3 7", markers: false }
     ]
   });
+  addChartExport("valuation-chart", { type: "line", title: `${name} ${metric}`,
+    series: [
+      { name: `${name} ${metric}`, points: displayPts },
+      { name: `${windowLabel}均值`, points: displayRefs.means },
+      { name: "+1σ", points: displayRefs.up1 }, { name: "-1σ", points: displayRefs.down1 },
+      { name: "+2σ", points: displayRefs.up2 }, { name: "-2σ", points: displayRefs.down2 }
+    ]});
   const latest = pts[pts.length - 1];
   const selectedStats = valuationWindow === "FULL" ? latestWindowStats(pts, 1000) : latestWindowStats(pts, Number(valuationWindow));
   const zRows = [5, 10, 15].map(years => {
@@ -1587,6 +1852,8 @@ function renderEmotion() {
       { name: "港股情绪", points: hkEmo, color: "#C47B5A", axis: "left" }
     ]
   });
+  addChartExport("emotion-chart", { type: "line", title: "市场情绪指数",
+    series: [{ name: "A股情绪", points: aEmo }, { name: "港股情绪", points: hkEmo }] });
   const rows = [
     ["A股情绪指数", aEmo[0]?.[0] || "n/a", aEmo[aEmo.length - 1]?.[0] || "n/a", aEmo.length,
      aEmo.length ? formatValue(aEmo[aEmo.length - 1][1], "percent") : "n/a"],
@@ -1609,6 +1876,8 @@ function renderEmotion() {
         { name: "万得全A", points: wzqa, color: "#C47B5A", axis: "right" }
       ]
     });
+    addChartExport("emotion-chart-a", { type: "line", title: "A股情绪与万得全A",
+      series: [{ name: "A股情绪", points: aEmo }, { name: "万得全A", points: wzqa }] });
     const rowsA = [
       ["A股情绪指数", aEmo[0]?.[0] || "n/a", aEmo[aEmo.length - 1]?.[0] || "n/a", aEmo.length,
        aEmo.length ? formatValue(aEmo[aEmo.length - 1][1], "percent") : "n/a"],
@@ -1635,6 +1904,8 @@ function renderEmotion() {
         { name: "恒生指数", points: hsi, color: COLORS.green, axis: "right" }
       ]
     });
+    addChartExport("emotion-chart-hk", { type: "line", title: "港股情绪与恒生指数",
+      series: [{ name: "港股情绪", points: hkEmo }, { name: "恒生指数", points: hsi }] });
     const rowsHK = [
       ["港股情绪指数", hkEmo[0]?.[0] || "n/a", hkEmo[hkEmo.length - 1]?.[0] || "n/a", hkEmo.length,
        hkEmo.length ? formatValue(hkEmo[hkEmo.length - 1][1], "percent") : "n/a"],
@@ -1785,6 +2056,8 @@ function renderTopics() {
     ]
   };
   renderCategoricalLine("topic-chart-dxy", dxyCfg);
+  addChartExport("topic-chart-dxy", { type: "categorical", title: "DXY Super Cycle", tLabels: t_labels,
+    series: [{ name: "DXY 1985", data: dxy["1985"] }, { name: "DXY 2002", data: dxy["2002"] }, { name: "DXY 2025", data: dxy["2025"] }] });
   document.getElementById("topic-dxy-legend").innerHTML = dxyCfg.series.map(s =>
     `<span><span class="topic-legend-swatch" style="background:${s.color}"></span>${s.name}</span>`
   ).join("");
@@ -1801,6 +2074,8 @@ function renderTopics() {
     ]
   };
   renderCategoricalLine("topic-chart-dae", daeCfg);
+  addChartExport("topic-chart-dae", { type: "categorical", title: "D/AE Super Cycle", tLabels: t_labels,
+    series: [{ name: "D/AE 1985", data: dae["1985"] }, { name: "D/AE 2002", data: dae["2002"] }, { name: "D/AE 2025", data: dae["2025"] }] });
   document.getElementById("topic-dae-legend").innerHTML = daeCfg.series.map(s =>
     `<span><span class="topic-legend-swatch" style="background:${s.color}"></span>${s.name}</span>`
   ).join("");
@@ -1878,6 +2153,9 @@ function renderFxFixing() {
     leftAxis: axisFromValues([...fixing.map(p=>p[1]), ...spot.map(p=>p[1]), ...band98.map(p=>p[1]), ...band102.map(p=>p[1])]),
     leftFormat: v => v.toFixed(3),
   });
+  addChartExport("fixing-chart-1", { type: "line", title: "中间价 vs 即期汇率",
+    series: [{ name: "中间价", points: fixing }, { name: "即期汇率", points: spot },
+      { name: "中间价×98%", points: band98 }, { name: "中间价×102%", points: band102 }] });
 
   document.getElementById("fixing-table-1").innerHTML = tableHtml(
     ["日期", "中间价", "即期汇率", "偏离(%)", "±2%下轨", "±2%上轨"],
@@ -1904,6 +2182,8 @@ function renderFxFixing() {
       leftAxis: axisFromValues([...night20.map(p=>p[1]), ...day20.map(p=>p[1])]),
       leftFormat: v => v.toFixed(0) + " pips",
     });
+    addChartExport("fixing-chart-2", { type: "line", title: "即期汇率变动拆解(20日滚动)",
+      series: [{ name: "夜盘中间价调整(20MA)", points: night20 }, { name: "日盘交易变动(20MA)", points: day20 }] });
 
     document.getElementById("fixing-table-2").innerHTML = tableHtml(
       ["日期", "夜盘调整(pips)", "日盘变动(pips)", "合计(pips)"],
@@ -2217,6 +2497,16 @@ function renderFxCost() {
     modesData.push({ key: mode, label: COST_MODE_LABELS[mode] || mode, tenors });
   }
   renderTermStructure("cost-chart-1", modesData, costContract);
+  addChartExport("cost-chart-1", (function() {
+    // Build term-structure shape from modesData
+    const tenors = (modesData[0] && modesData[0].tenors || []).map(t => t.label);
+    const series = [];
+    for (const md of modesData) {
+      series.push({ name: `CNY ${md.label}`, data: md.tenors.map(t => t.cnyAnn) });
+      series.push({ name: `CNH ${md.label}`, data: md.tenors.map(t => t.cnhAnn) });
+    }
+    return { type: "term", title: `套保成本曲线(${costContract})`, tenors: tenors, series: series };
+  })());
 
   // Table for term structure — one row per mode+tenor combo
   const tsHeader = ["取值方式","期限","CNY年化套保","CNH年化套保"];
@@ -2258,6 +2548,8 @@ function renderFxCost() {
         leftAxis: axisFromValues(all3mVals),
         leftFormat: v => (v*100).toFixed(2) + "%",
       });
+      addChartExport("cost-chart-2", { type: "line", title: "3M套保成本时序",
+        series: s3mSeries.map(s => ({ name: s.name, points: s.points })) });
     }
     document.getElementById("cost-table-2").innerHTML = "";
   }
@@ -2303,6 +2595,8 @@ function renderFxCost() {
         rightAxis: axisFromValues(spread.map(p => p[1])),
         rightFormat: v => v.toFixed(2) + "pp",
       });
+      addChartExport("cost-chart-3", { type: "line", title: "1Y套保成本 vs 中美利差",
+        series: s1ySeries.map(s => ({ name: s.name, points: s.points })) });
     }
     document.getElementById("cost-table-3").innerHTML = "";
   }
@@ -2317,6 +2611,7 @@ function renderFxCost() {
 let _currentGroup = null;
 
 const TAB_GROUPS = {
+  world:  { label: "看世界", children: [] },
   trend:  { label: "走势看板", children: [] },
   review: { label: "涨跌复盘", children: ["returns","rates","fx"] },
   equity: { label: "权益看板", children: ["returns","valuation","emotion"] },
@@ -2324,7 +2619,7 @@ const TAB_GROUPS = {
 };
 
 const VIEW_LABELS = {
-  trend: "走势看板", returns: "股票涨跌", rates: "利率涨跌",
+  world: "看世界", trend: "走势看板", returns: "股票涨跌", rates: "利率涨跌",
   fx: "汇率涨跌", spread: "中美利差", valuation: "估值看板",
   emotion: "市场情绪", topics: "专题图表", fixing: "中间价", cost: "套保成本",
 };
@@ -2405,6 +2700,12 @@ function init() {
   document.getElementById("freshness").textContent = `生成时间 ${DATA.generated_at}`;
   document.getElementById("cover-date").textContent = DATA.generated_at;
   document.getElementById("sources").innerHTML = `数据源：本地 SQLite 数据库。绘图与计算口径：历史取数为 0 的记录视为缺失值，并用上一期有效读数填补；开头连续为 0 且没有上一期有效读数的记录跳过。`;
+
+  // Check if global-news-report.html is available
+  fetch("global-news-report.html", { method: "HEAD" })
+    .then(r => { if (r.ok) document.getElementById("world-placeholder").style.display = "none"; })
+    .catch(() => {});
+
   initTabs();
   initTrend();
   initReturns();
