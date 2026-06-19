@@ -118,6 +118,8 @@
       border-radius: var(--radius-md);
       padding: 18px 16px 16px;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
       transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
       text-align: center;
       box-shadow: var(--shadow-sm);
@@ -187,6 +189,8 @@
       border-radius: var(--radius-sm);
       padding: 8px 14px;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
       color: var(--muted);
       font-size: 13px;
       font-weight: 500;
@@ -292,6 +296,8 @@
       border-radius: var(--radius-sm);
       padding: 0 12px;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
       font-size: 12px;
       font-weight: 500;
       font-family: inherit;
@@ -578,8 +584,10 @@
           <p>全球宏观要闻、市场数据、科技动态一览。数据来源：global-news-report skill（Wind MCP + Web Search）。本模块内容由 Nina 贡献。</p>
         </div>
         <iframe id="world-iframe" src="global-news-report.html"
-                style="width:100%; height:85vh; border:none; border-radius:0 0 var(--radius-md) var(--radius-md); display:block;"
+                style="width:100%; min-height:85vh; border:none; border-radius:0 0 var(--radius-md) var(--radius-md); display:block;"
                 title="看世界 - Global News Report"
+                scrolling="no"
+                onload="(function(){try{this.style.height=this.contentWindow.document.body.scrollHeight+'px';}catch(e){}})(this)"
                 onerror="document.getElementById('world-placeholder').style.display=''">
         </iframe>
         <div id="world-placeholder" class="empty" style="padding:60px 20px; text-align:center;">
