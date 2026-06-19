@@ -299,7 +299,7 @@ def render_dashboard(db_path, output_path):
 
 
 def _copy_global_news_report():
-    """Find the latest Global News Report HTML and copy it to output/ and docs/."""
+    """Find the latest Global News Report HTML, widen its layout, and copy to output/ and docs/."""
     candidates = []
     for pattern in [
         str(ROOT / "Global News Report-*.html"),
@@ -311,13 +311,18 @@ def _copy_global_news_report():
 
     if candidates:
         latest = max(candidates, key=os.path.getmtime)
+        # Read and widen the layout for the dashboard iframe
+        content = Path(latest).read_text(encoding="utf-8")
+        # Widen the container for better iframe display
+        import re
+        content = re.sub(r'max-width:\s*\d+px', 'max-width: 100%', content, count=1)
         for dest in [
             ROOT / "output" / "global-news-report.html",
             ROOT / "docs" / "global-news-report.html",
         ]:
             dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(latest, dest)
-        print(f"[dashboard] 看世界 report: {os.path.basename(latest)} → output/global-news-report.html")
+            dest.write_text(content, encoding="utf-8")
+        print(f"[dashboard] 看世界 report: {os.path.basename(latest)} → output/global-news-report.html (layout widened)")
     else:
         print("[dashboard] 看世界 report not found — run @global-news-report skill first")
 

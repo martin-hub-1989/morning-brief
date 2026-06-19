@@ -138,7 +138,7 @@ xdg-open output/interactive_dashboard.html
 | 6 | 汇率涨跌 | 外汇看板 | 柱状图+表格正常，分组颜色正确 |
 | 7 | 中美利差 | 外汇看板 | 10Y/2Y 两张图+表格正常 |
 | 8 | 估值看板 | 权益看板 | 图表+均值/σ参考线+Z分数表正常 |
-| 9 | 市场情绪 | 权益看板 | 情绪指数图+A股/港股对比图+表格正常 |
+| 9 | 市场情绪 | 权益看板 | 情绪指数图+A股/港股对比图+表格正常。**若 HTSC 数据未拉取，模块显示友好提示而非空白** |
 | 10 | 中间价 | 外汇看板 | 中间价vs即期图+汇率拆解图+表格正常 |
 | 11 | 套保成本 | 外汇看板 | 期限结构图+3M时序图+1Y利差对比图+表格正常 |
 | 12 | 专题图表 | 外汇看板 | DXY超级周期图+D/AE超级周期图+表格正常 |
@@ -155,6 +155,7 @@ xdg-open output/interactive_dashboard.html
 - 超级周期图表空白 → 检查 `import_seed.py` 是否正确导入 `CYCLE_BASE_DATES`
 - 看世界 iframe 占位 → 运行 `@global-news-report` skill 生成报告后重新生成看板
 - 中间价/套保成本无数据 → 检查 `recompute_fx_derived.py` 是否成功运行
+- **⚠️ 级联故障（关键）**：如果多个连续模块同时空白（尤其是外汇看板的后三个模块：中间价/套保成本/专题图表），很可能是某个**前面的模块**抛出了未捕获的 JS 错误导致 `init()` 中断。最常引发此问题的模块是**市场情绪**（`renderEmotion`），当 HTSC 情绪数据缺失时 `latestDate()` 返回 `null`，传入 `startForPeriod()` → `toDate(null)` 生成无效 Date → `toISO()` 调用 `toISOString()` 抛出 `RangeError: Invalid time value`。排查方法：检查浏览器控制台是否有 JS 错误，检查 `htsc:*` 系列数据是否存在。
 
 ## 补充命令
 
@@ -210,7 +211,7 @@ python3 scripts/fetch_wind.py --series fx:usdcnh-spot --verbose
 | **总覆盖** | **152 序列，100%** |
 | **数据流** | EDB(36) + Wind(38) + Python复算(30) → emotion(8) → dashboard |
 | 看板模块 | 封面 + 看世界 + 10 数据模块 + 专题图表 |
-| 图表功能 | 📷 导出PNG图片 + 📥 下载Excel数据（每个图表左上角悬停按钮） |
+| 图表功能 | 导出PNG图片 + 下载Excel数据（每个图表左上角悬停按钮） |
 
 ### 数据源分工
 
