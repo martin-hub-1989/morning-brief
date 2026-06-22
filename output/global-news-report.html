@@ -2,98 +2,75 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Global Top News — 2026-06-19</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Top News — 2026-06-22</title>
 <style>
-  :root {
-    --bg: #F9F6F0;
-    --panel: #FFFFFF;
-    --ink: #2C2416;
-    --muted: #8B8581;
-    --line: #E8E2D8;
-    --soft: #F5F1E9;
-    --blue: #5B7F8A;
-    --red: #C44B3B;
-    --green: #6B8B7A;
-    --gold: #B8974A;
-    --purple: #8B6B7E;
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 14px;
-    --shadow-sm: 0 1px 3px rgba(44,36,22,0.05);
-    --shadow-md: 0 4px 16px rgba(44,36,22,0.07);
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin:0; padding:0; box-sizing: border-box; }
   body {
-    font-family: "IBM Plex Sans", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg); color: var(--ink); line-height: 1.6;
-    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.01em; font-weight: 400;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: #f8f9fa; color: #1a1a2e; line-height: 1.6; -webkit-font-smoothing: antialiased;
   }
-  .container { max-width: 100%; margin: 0 auto; padding: 24px 20px 48px; }
-
-  /* Header */
-  .header { text-align: center; margin-bottom: 20px; padding-bottom: 20px; }
-  .header .date { font-size: 12px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  .header h1 { font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
-  .header-accent { width: 40px; height: 2px; background: var(--gold); margin: 12px auto 0; }
-
-  /* Tab bar — match dashboard .tabs */
-  .tab-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
-  .tab-bar button { border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius-sm); padding: 9px 18px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; color: var(--muted); font-size: 13px; font-weight: 500; font-family: inherit; transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s; letter-spacing: 0.02em; }
-  .tab-bar button:hover { background: var(--soft); color: var(--ink); border-color: var(--red); }
-  .tab-bar button.active { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: var(--shadow-sm); }
+  .container { max-width: 100%; margin: 0 auto; padding: 32px 20px; }
+  .header { text-align: center; margin-bottom: 12px; padding-bottom: 20px; border-bottom: 2px solid #e9ecef; }
+  .header .date { font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #868e96; margin-bottom: 8px; }
+  .header h1 { font-size: 28px; font-weight: 800; color: #1a1a2e; margin-bottom: 0; }
+  .tab-bar { display: flex; gap: 4px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 28px; padding: 4px; }
+  .tab-bar button { flex: 1; text-align: center; padding: 13px 10px; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; border-radius: 9px; border: none; cursor: pointer; font-family: inherit; white-space: nowrap; background: transparent; color: #868e96; transition: all 0.25s ease; outline: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .tab-bar button:hover { opacity: 0.85; }
   .tab-bar button .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; margin-top: -2px; }
+  .tab-bar button .label { vertical-align: middle; }
+  .tab-bar button:not(.active)[data-tab="finance"]:hover { color: #e65100; background: #fff3e0; }
+  .tab-bar button:not(.active)[data-tab="tech"]:hover { color: #1565c0; background: #e3f2fd; }
+  .tab-bar button:not(.active)[data-tab="politics"]:hover { color: #c62828; background: #fce4ec; }
+  .tab-bar button:not(.active)[data-tab="other"]:hover { color: #7b1fa2; background: #f3e5f5; }
+  .tab-bar button.active { color: #fff; }
   .tab-bar button.active .dot { background: #fff !important; }
-  .tab-bar button[data-tab="finance"] .dot { background: var(--blue); }
-  .tab-bar button[data-tab="tech"] .dot { background: var(--purple); }
-  .tab-bar button[data-tab="politics"] .dot { background: var(--red); }
-  .tab-bar button[data-tab="other"] .dot { background: var(--gold); }
-
+  .tab-bar button.active[data-tab="finance"] { background: #ff9800; }
+  .tab-bar button.active[data-tab="tech"] { background: #2196f3; }
+  .tab-bar button.active[data-tab="politics"] { background: #e91e63; }
+  .tab-bar button.active[data-tab="other"] { background: #9c27b0; }
+  button[data-tab="finance"] .dot { background: #ff9800; }
+  button[data-tab="tech"] .dot { background: #2196f3; }
+  button[data-tab="politics"] .dot { background: #e91e63; }
+  button[data-tab="other"] .dot { background: #9c27b0; }
   .panel { display: none; }
   .panel.active { display: block; }
-
-  /* Section bar */
-  .section-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 10px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; letter-spacing: 0.05em; color: var(--ink); }
-  .section-bar::before { content: ""; display: block; width: 3px; height: 16px; border-radius: 2px; }
-  .section-bar.finance::before { background: var(--blue); }
-  .section-bar.tech::before { background: var(--purple); }
-  .section-bar.politics::before { background: var(--red); }
-  .section-bar.other::before { background: var(--gold); }
-
-  /* Market table — match dashboard table style */
-  .market-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); }
-  .market-table th { background: var(--soft); color: var(--muted); font-size: 11px; font-weight: 500; padding: 10px 16px; text-align: left; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid var(--line); }
-  .market-table td { padding: 9px 16px; font-size: 13px; border-bottom: 1px solid var(--line); color: var(--ink); }
+  .section-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+  .section-bar.finance { background: #fff3e0; color: #e65100; }
+  .section-bar.tech { background: #e3f2fd; color: #1565c0; }
+  .section-bar.politics { background: #fce4ec; color: #c62828; }
+  .section-bar.other { background: #f3e5f5; color: #7b1fa2; }
+  .market-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .market-table th { background: #1a1a2e; color: #fff; font-size: 12px; font-weight: 600; padding: 10px 16px; text-align: left; white-space: nowrap; }
+  .market-table td { padding: 9px 16px; font-size: 13px; border-bottom: 1px solid #f1f3f5; }
   .market-table tr:last-child td { border-bottom: none; }
-  .market-table td.name { font-weight: 600; }
-  .market-table td.num { font-family: "IBM Plex Sans", monospace; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
-  .market-table td.num.up { color: var(--red); }
-  .market-table td.num.down { color: var(--green); }
-  .sparkline-cell { width: 140px; text-align: center; }
-
-  /* News card — match dashboard .panel */
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 20px 24px; margin-bottom: 12px; box-shadow: var(--shadow-sm); transition: box-shadow 0.15s; }
-  .card:hover { box-shadow: var(--shadow-md); }
-  .card .tag { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  .card h3 { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 8px; line-height: 1.4; letter-spacing: -0.01em; }
-  .card p { font-size: 14px; color: #5A5348; line-height: 1.65; }
-  .cn-trans { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); line-height: 1.7; }
-  .cn-trans strong { display: block; font-weight: 600; color: #5A5348; margin-bottom: 4px; }
-  .card .source { display: inline-block; margin-top: 12px; font-size: 11px; color: var(--muted); font-style: italic; }
-  .card .source a { color: var(--muted); text-decoration: none; border-bottom: 1px dashed var(--line); transition: color 0.15s, border-color 0.15s; }
-  .card .source a:hover { color: var(--ink); border-bottom-color: var(--ink); }
-
-  /* Footer */
-  .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); line-height: 1.8; }
-  .footer a { color: var(--muted); text-decoration: none; border-bottom: 1px dashed var(--line); }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .container { padding: 16px 12px 32px; }
-    .tab-bar button { font-size: 11px; padding: 7px 12px; }
+  .market-table td.name { font-weight: 600; color: #1a1a2e; }
+  .market-table td.num { font-family: 'Inter', monospace; font-weight: 500; text-align: right; }
+  .market-table td.num.up { color: #d32f2f; }
+  .market-table td.num.down { color: #2e7d32; }
+  .sparkline-cell { width: 130px; text-align: center; }
+  .card { background: #fff; border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 4px solid #dee2e6; transition: box-shadow 0.2s, transform 0.2s; }
+  .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .card.finance { border-left-color: #ff9800; }
+  .card.tech { border-left-color: #2196f3; }
+  .card.politics { border-left-color: #e91e63; }
+  .card.other { border-left-color: #9c27b0; }
+  .card .tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #adb5bd; margin-bottom: 6px; }
+  .card h3 { font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; line-height: 1.4; }
+  .card p { font-size: 14px; color: #495057; line-height: 1.6; }
+  .cn-trans { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #dee2e6; font-size: 13px; color: #6c757d; line-height: 1.7; }
+  .cn-trans strong { display: block; font-weight: 600; color: #495057; margin-bottom: 4px; }
+  .card .source { display: inline-block; margin-top: 10px; font-size: 11px; color: #adb5bd; font-style: italic; }
+  .card .source a { color: #868e96; text-decoration: none; border-bottom: 1px dashed #ced4da; transition: color 0.2s, border-color 0.2s; }
+  .card .source a:hover { color: #1a1a2e; border-bottom-color: #1a1a2e; }
+  .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e9ecef; font-size: 12px; color: #adb5bd; line-height: 1.8; }
+  .footer a { color: #868e96; text-decoration: none; border-bottom: 1px dashed #ced4da; }
+  @media (max-width: 640px) {
+    .tab-bar { flex-wrap: wrap; }
+    .tab-bar button { min-width: calc(50% - 4px); font-size: 11px; padding: 10px 6px; }
     .market-table th, .market-table td { padding: 7px 10px; font-size: 12px; }
-    .sparkline-cell { width: 90px !important; }
+    .sparkline-cell { width: 80px !important; }
     .card { padding: 16px; }
     .card h3 { font-size: 15px; }
   }
@@ -102,22 +79,21 @@
 <body>
 <div class="container">
   <div class="header">
-    <div class="date">Thursday, June 18, 2026</div>
+    <div class="date">Monday, June 22, 2026</div>
     <h1>Global Top News</h1>
-    <div class="header-accent"></div>
   </div>
   <nav class="tab-bar" id="tabBar">
     <button class="active" data-tab="finance" onclick="switchTab('finance')">
-      <span class="dot"></span>Financial
+      <span class="dot"></span><span class="label">Financial</span>
     </button>
     <button data-tab="tech" onclick="switchTab('tech')">
-      <span class="dot"></span>Technology
+      <span class="dot"></span><span class="label">Technology</span>
     </button>
     <button data-tab="politics" onclick="switchTab('politics')">
-      <span class="dot"></span>Political
+      <span class="dot"></span><span class="label">Political</span>
     </button>
     <button data-tab="other" onclick="switchTab('other')">
-      <span class="dot"></span>Highlights
+      <span class="dot"></span><span class="label">Highlights</span>
     </button>
   </nav>
 
@@ -127,70 +103,161 @@
     <table class="market-table">
       <thead><tr><th>Index</th><th>Close</th><th>Day Chg</th><th>YTD</th><th>YTD Trend</th></tr></thead>
       <tbody>
-        <tr>
-          <td class="name">Dow Jones</td><td class="num">51,564.70</td><td class="num up">+0.14%</td><td class="num up">+6.6%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gDow" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gDow)" points="0,25 15,23 30,21 45,18 60,14 75,11 90,9 105,8 120,7 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,25 15,23 30,21 45,18 60,14 75,11 90,9 105,8 120,7"/></svg></td>
-        </tr>
-        <tr>
-          <td class="name">S&P 500</td><td class="num">7,500.58</td><td class="num up">+1.08%</td><td class="num up">+9.6%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gSp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gSp)" points="0,26 15,24 30,22 45,18 60,13 75,9 90,7 105,5 120,4 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,26 15,24 30,22 45,18 60,13 75,9 90,7 105,5 120,4"/></svg></td>
-        </tr>
-        <tr>
-          <td class="name">Nasdaq</td><td class="num">26,517.93</td><td class="num up">+1.91%</td><td class="num up">+14.1%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gNas" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gNas)" points="0,27 15,25 30,23 45,17 60,12 75,7 90,5 105,4 120,3 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,27 15,25 30,23 45,17 60,12 75,7 90,5 105,4 120,3"/></svg></td>
-        </tr>
-        <tr>
-          <td class="name">Gold</td><td class="num">$4,245.90</td><td class="num down">−3.10%</td><td class="num down">−1.7%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gGold)" points="0,24 15,22 30,18 45,14 60,8 75,5 90,8 105,14 120,20 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,24 15,22 30,18 45,14 60,8 75,5 90,8 105,14 120,20"/></svg></td>
-        </tr>
-        <tr>
-          <td class="name">WTI Crude</td><td class="num">$76.60</td><td class="num down">−0.21%</td><td class="num up">+25.8%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gWti" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gWti)" points="0,22 15,18 30,14 45,8 60,12 75,16 90,15 105,13 120,16 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,22 15,18 30,14 45,8 60,12 75,16 90,15 105,13 120,16"/></svg></td>
-        </tr>
-        <tr>
-          <td class="name">DXY</td><td class="num">100.83</td><td class="num up">+0.45%</td><td class="num up">+2.6%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gDxy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gDxy)" points="0,20 15,18 30,16 45,14 60,12 75,10 90,11 105,10 120,8 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,20 15,18 30,16 45,14 60,12 75,10 90,11 105,10 120,8"/></svg></td>
-        </tr>
-        <tr>
-          <td class="name">US 10Y</td><td class="num">4.44%</td><td class="num up">+3bp</td><td class="num up">+25bp</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="g10y" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#g10y)" points="0,18 15,16 30,15 45,13 60,12 75,11 90,10 105,9 120,10 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,18 15,16 30,15 45,13 60,12 75,11 90,10 105,9 120,10"/></svg></td>
-        </tr>
-        <tr>
-          <td class="name">USD/CNH</td><td class="num">6.7783</td><td class="num down">−0.03%</td><td class="num down">−3.0%</td>
-          <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gCny" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6B8B7A" stop-opacity="0.2"/><stop offset="100%" stop-color="#6B8B7A" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gCny)" points="0,8 15,10 30,12 45,14 60,16 75,18 90,19 105,20 120,22 120,30 0,30"/><polyline fill="none" stroke="#6B8B7A" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,8 15,10 30,12 45,14 60,16 75,18 90,19 105,20 120,22"/></svg></td>
-        </tr>
+<tr>
+  <td class="name">Dow Jones</td>
+  <td class="num">51,564.70</td>
+  <td class="num down">-0.73%</td>
+  <td class="num up">+7.74%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gf0" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gf0)" points="0.0,17.9 1.0,15.8 2.1,14.1 3.1,14.0 4.2,14.5 5.2,13.1 6.3,13.7 7.3,13.6 8.3,14.3 9.4,13.1 10.4,12.9 11.5,15.8 12.5,15.4 13.6,13.1 14.6,13.9 15.7,13.3 16.7,14.3 17.7,14.1 18.8,15.2 19.8,15.7 20.9,15.0 21.9,14.4 23.0,13.4 24.0,14.4 25.0,13.7 26.1,10.8 27.1,9.8 28.2,10.5 29.2,12.3 30.3,13.5 31.3,13.2 32.3,12.1 33.4,13.1 34.4,13.2 35.5,14.8 36.5,14.7 37.6,13.0 38.6,12.9 39.7,14.9 40.7,16.0 41.7,18.7 42.8,16.1 43.8,18.9 44.9,21.0 45.9,22.4 47.0,19.4 48.0,20.3 49.0,22.2 50.1,22.8 51.1,22.0 52.2,21.1 53.2,23.9 54.3,25.6 55.3,26.9 56.3,25.3 57.4,25.4 58.4,23.9 59.5,24.9 60.5,28.0 61.6,28.0 62.6,26.5 63.7,23.2 64.7,25.0 65.7,23.3 66.8,23.8 67.8,21.1 68.9,18.5 69.9,17.9 71.0,19.2 72.0,16.7 73.0,16.4 74.1,16.2 75.1,14.5 76.2,12.9 77.2,13.6 78.3,12.8 79.3,14.3 80.3,13.5 81.4,13.7 82.4,13.5 83.5,14.8 84.5,14.6 85.6,12.0 86.6,14.1 87.7,13.7 88.7,12.2 89.7,12.0 90.8,12.0 91.8,12.1 92.9,12.7 93.9,12.2 95.0,10.7 96.0,12.0 97.0,12.5 98.1,12.9 99.1,12.9 100.2,11.3 101.2,8.6 102.3,8.9 103.3,8.4 104.3,9.0 105.4,7.7 106.4,7.4 107.5,7.2 108.5,7.7 109.6,6.6 110.6,7.4 111.7,7.5 112.7,9.4 113.7,10.5 114.8,10.3 115.8,7.2 116.9,5.3 117.9,4.0 119.0,5.2 120.0,4.6 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,17.9 1.0,15.8 2.1,14.1 3.1,14.0 4.2,14.5 5.2,13.1 6.3,13.7 7.3,13.6 8.3,14.3 9.4,13.1 10.4,12.9 11.5,15.8 12.5,15.4 13.6,13.1 14.6,13.9 15.7,13.3 16.7,14.3 17.7,14.1 18.8,15.2 19.8,15.7 20.9,15.0 21.9,14.4 23.0,13.4 24.0,14.4 25.0,13.7 26.1,10.8 27.1,9.8 28.2,10.5 29.2,12.3 30.3,13.5 31.3,13.2 32.3,12.1 33.4,13.1 34.4,13.2 35.5,14.8 36.5,14.7 37.6,13.0 38.6,12.9 39.7,14.9 40.7,16.0 41.7,18.7 42.8,16.1 43.8,18.9 44.9,21.0 45.9,22.4 47.0,19.4 48.0,20.3 49.0,22.2 50.1,22.8 51.1,22.0 52.2,21.1 53.2,23.9 54.3,25.6 55.3,26.9 56.3,25.3 57.4,25.4 58.4,23.9 59.5,24.9 60.5,28.0 61.6,28.0 62.6,26.5 63.7,23.2 64.7,25.0 65.7,23.3 66.8,23.8 67.8,21.1 68.9,18.5 69.9,17.9 71.0,19.2 72.0,16.7 73.0,16.4 74.1,16.2 75.1,14.5 76.2,12.9 77.2,13.6 78.3,12.8 79.3,14.3 80.3,13.5 81.4,13.7 82.4,13.5 83.5,14.8 84.5,14.6 85.6,12.0 86.6,14.1 87.7,13.7 88.7,12.2 89.7,12.0 90.8,12.0 91.8,12.1 92.9,12.7 93.9,12.2 95.0,10.7 96.0,12.0 97.0,12.5 98.1,12.9 99.1,12.9 100.2,11.3 101.2,8.6 102.3,8.9 103.3,8.4 104.3,9.0 105.4,7.7 106.4,7.4 107.5,7.2 108.5,7.7 109.6,6.6 110.6,7.4 111.7,7.5 112.7,9.4 113.7,10.5 114.8,10.3 115.8,7.2 116.9,5.3 117.9,4.0 119.0,5.2 120.0,4.6"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">S&P 500</td>
+  <td class="num">7,500.58</td>
+  <td class="num down">-0.07%</td>
+  <td class="num up">+9.44%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gf1" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gf1)" points="0.0,18.4 1.0,17.1 2.1,16.9 3.1,16.6 4.2,17.0 5.2,16.6 6.3,16.3 7.3,16.2 8.3,17.2 9.4,16.2 10.4,16.5 11.5,19.1 12.5,18.7 13.6,17.1 14.6,17.0 15.7,16.5 16.7,15.8 17.7,15.7 18.8,17.5 19.8,17.1 20.9,16.7 21.9,17.7 23.0,18.1 24.0,19.2 25.0,18.5 26.1,16.8 27.1,16.2 28.2,16.7 29.2,18.4 30.3,18.9 31.3,19.3 32.3,17.9 33.4,18.2 34.4,18.2 35.5,18.5 36.5,18.5 37.6,16.7 38.6,17.7 39.7,18.2 40.7,18.9 41.7,20.5 42.8,18.6 43.8,19.4 44.9,20.5 45.9,22.0 47.0,19.6 48.0,19.9 49.0,21.3 50.1,22.2 51.1,21.2 52.2,20.5 53.2,22.2 54.3,23.4 55.3,25.0 56.3,23.3 57.4,24.1 58.4,23.2 59.5,25.0 60.5,27.3 61.6,28.0 62.6,26.5 63.7,23.5 64.7,25.0 65.7,23.0 66.8,23.9 67.8,20.0 68.9,19.6 69.9,18.7 71.0,19.0 72.0,16.8 73.0,15.7 74.1,14.9 75.1,13.6 76.2,13.5 77.2,14.1 78.3,13.1 79.3,14.2 80.3,12.9 81.4,12.3 82.4,12.9 83.5,13.0 84.5,12.7 85.6,10.7 86.6,11.8 87.7,10.6 88.7,9.5 89.7,9.0 90.8,8.2 91.8,7.8 92.9,8.6 93.9,7.9 95.0,6.4 96.0,7.5 97.0,8.4 98.1,8.7 99.1,8.3 100.2,7.7 101.2,6.3 102.3,5.6 103.3,5.6 104.3,5.4 105.4,4.4 106.4,4.4 107.5,4.0 108.5,4.6 109.6,5.3 110.6,8.1 111.7,7.6 112.7,10.5 113.7,10.0 114.8,10.2 115.8,8.2 116.9,5.3 117.9,5.4 119.0,7.4 120.0,6.2 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,18.4 1.0,17.1 2.1,16.9 3.1,16.6 4.2,17.0 5.2,16.6 6.3,16.3 7.3,16.2 8.3,17.2 9.4,16.2 10.4,16.5 11.5,19.1 12.5,18.7 13.6,17.1 14.6,17.0 15.7,16.5 16.7,15.8 17.7,15.7 18.8,17.5 19.8,17.1 20.9,16.7 21.9,17.7 23.0,18.1 24.0,19.2 25.0,18.5 26.1,16.8 27.1,16.2 28.2,16.7 29.2,18.4 30.3,18.9 31.3,19.3 32.3,17.9 33.4,18.2 34.4,18.2 35.5,18.5 36.5,18.5 37.6,16.7 38.6,17.7 39.7,18.2 40.7,18.9 41.7,20.5 42.8,18.6 43.8,19.4 44.9,20.5 45.9,22.0 47.0,19.6 48.0,19.9 49.0,21.3 50.1,22.2 51.1,21.2 52.2,20.5 53.2,22.2 54.3,23.4 55.3,25.0 56.3,23.3 57.4,24.1 58.4,23.2 59.5,25.0 60.5,27.3 61.6,28.0 62.6,26.5 63.7,23.5 64.7,25.0 65.7,23.0 66.8,23.9 67.8,20.0 68.9,19.6 69.9,18.7 71.0,19.0 72.0,16.8 73.0,15.7 74.1,14.9 75.1,13.6 76.2,13.5 77.2,14.1 78.3,13.1 79.3,14.2 80.3,12.9 81.4,12.3 82.4,12.9 83.5,13.0 84.5,12.7 85.6,10.7 86.6,11.8 87.7,10.6 88.7,9.5 89.7,9.0 90.8,8.2 91.8,7.8 92.9,8.6 93.9,7.9 95.0,6.4 96.0,7.5 97.0,8.4 98.1,8.7 99.1,8.3 100.2,7.7 101.2,6.3 102.3,5.6 103.3,5.6 104.3,5.4 105.4,4.4 106.4,4.4 107.5,4.0 108.5,4.6 109.6,5.3 110.6,8.1 111.7,7.6 112.7,10.5 113.7,10.0 114.8,10.2 115.8,8.2 116.9,5.3 117.9,5.4 119.0,7.4 120.0,6.2"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">Nasdaq</td>
+  <td class="num">26,517.93</td>
+  <td class="num up">+0.43%</td>
+  <td class="num up">+13.28%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gf2" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gf2)" points="0.0,18.7 1.0,17.8 2.1,17.6 3.1,17.2 4.2,17.8 5.2,17.5 6.3,17.0 7.3,16.8 8.3,17.9 9.4,17.2 10.4,17.4 11.5,19.4 12.5,19.4 13.6,17.8 14.6,17.7 15.7,17.3 16.7,16.5 17.7,16.1 18.8,18.2 19.8,17.8 20.9,17.7 21.9,19.0 23.0,20.3 24.0,21.2 25.0,20.7 26.1,19.6 27.1,18.8 28.2,19.5 29.2,20.9 30.3,21.4 31.3,22.0 32.3,20.7 33.4,20.7 34.4,20.9 35.5,20.9 36.5,20.9 37.6,19.1 38.6,20.4 39.7,20.9 40.7,21.8 41.7,22.5 42.8,20.8 43.8,21.0 44.9,21.7 45.9,22.7 47.0,20.6 48.0,20.6 49.0,21.8 50.1,22.7 51.1,21.7 52.2,21.4 53.2,22.4 54.3,23.5 55.3,24.8 56.3,23.5 57.4,24.1 58.4,23.5 59.5,25.3 60.5,27.2 61.6,28.0 62.6,26.6 63.7,24.0 64.7,25.4 65.7,23.5 66.8,24.5 67.8,21.0 68.9,20.9 69.9,19.7 71.0,19.9 72.0,17.8 73.0,16.5 74.1,15.7 75.1,14.2 76.2,14.4 77.2,14.5 78.3,13.7 79.3,14.5 80.3,13.3 81.4,12.6 82.4,13.3 83.5,13.2 84.5,13.4 85.6,11.6 86.6,11.8 87.7,10.6 88.7,9.6 89.7,8.7 90.8,7.8 91.8,7.1 92.9,8.6 93.9,7.6 95.0,6.0 96.0,7.2 97.0,8.1 98.1,8.7 99.1,7.9 100.2,7.4 101.2,6.4 102.3,5.6 103.3,5.5 104.3,5.3 105.4,4.3 106.4,4.1 107.5,4.0 108.5,4.6 109.6,5.5 110.6,8.9 111.7,8.1 112.7,11.5 113.7,10.9 114.8,11.0 115.8,9.1 116.9,5.9 117.9,6.2 119.0,7.7 120.0,6.9 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,18.7 1.0,17.8 2.1,17.6 3.1,17.2 4.2,17.8 5.2,17.5 6.3,17.0 7.3,16.8 8.3,17.9 9.4,17.2 10.4,17.4 11.5,19.4 12.5,19.4 13.6,17.8 14.6,17.7 15.7,17.3 16.7,16.5 17.7,16.1 18.8,18.2 19.8,17.8 20.9,17.7 21.9,19.0 23.0,20.3 24.0,21.2 25.0,20.7 26.1,19.6 27.1,18.8 28.2,19.5 29.2,20.9 30.3,21.4 31.3,22.0 32.3,20.7 33.4,20.7 34.4,20.9 35.5,20.9 36.5,20.9 37.6,19.1 38.6,20.4 39.7,20.9 40.7,21.8 41.7,22.5 42.8,20.8 43.8,21.0 44.9,21.7 45.9,22.7 47.0,20.6 48.0,20.6 49.0,21.8 50.1,22.7 51.1,21.7 52.2,21.4 53.2,22.4 54.3,23.5 55.3,24.8 56.3,23.5 57.4,24.1 58.4,23.5 59.5,25.3 60.5,27.2 61.6,28.0 62.6,26.6 63.7,24.0 64.7,25.4 65.7,23.5 66.8,24.5 67.8,21.0 68.9,20.9 69.9,19.7 71.0,19.9 72.0,17.8 73.0,16.5 74.1,15.7 75.1,14.2 76.2,14.4 77.2,14.5 78.3,13.7 79.3,14.5 80.3,13.3 81.4,12.6 82.4,13.3 83.5,13.2 84.5,13.4 85.6,11.6 86.6,11.8 87.7,10.6 88.7,9.6 89.7,8.7 90.8,7.8 91.8,7.1 92.9,8.6 93.9,7.6 95.0,6.0 96.0,7.2 97.0,8.1 98.1,8.7 99.1,7.9 100.2,7.4 101.2,6.4 102.3,5.6 103.3,5.5 104.3,5.3 105.4,4.3 106.4,4.1 107.5,4.0 108.5,4.6 109.6,5.5 110.6,8.9 111.7,8.1 112.7,11.5 113.7,10.9 114.8,11.0 115.8,9.1 116.9,5.9 117.9,6.2 119.0,7.7 120.0,6.9"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">USD/CNY</td>
+  <td class="num">6.7728</td>
+  <td class="num up">+0.08%</td>
+  <td class="num down">-3.10%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gf3" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2e7d32" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#2e7d32" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gf3)" points="0.0,4.7 1.1,4.5 2.2,4.0 3.3,4.4 4.4,4.7 5.6,5.4 6.7,5.1 7.8,5.2 8.9,5.8 10.0,6.0 11.1,6.2 12.2,6.7 13.3,6.1 14.4,6.3 15.6,6.6 16.7,7.1 17.8,7.1 18.9,8.0 20.0,8.0 21.1,7.7 22.2,8.5 23.3,9.0 24.4,9.4 25.6,8.9 26.7,9.0 27.8,10.5 28.9,11.8 30.0,12.1 31.1,12.8 32.2,12.4 33.3,15.1 34.4,16.9 35.6,19.8 36.7,17.5 37.8,16.3 38.9,15.3 40.0,13.5 41.1,15.1 42.2,13.8 43.3,12.2 44.4,16.7 45.6,16.8 46.7,16.2 47.8,14.9 48.9,14.2 50.0,14.7 51.1,15.7 52.2,14.0 53.3,14.6 54.4,14.9 55.6,14.6 56.7,14.5 57.8,12.7 58.9,11.9 60.0,12.3 61.1,13.9 62.2,15.7 63.3,14.6 64.4,15.2 65.6,17.3 66.7,20.8 67.8,20.0 68.9,20.3 70.0,20.0 71.1,21.4 72.2,21.4 73.3,21.3 74.4,21.3 75.6,21.3 76.7,21.6 77.8,21.0 78.9,20.6 80.0,19.8 81.1,20.9 82.2,20.2 83.3,20.0 84.4,20.4 85.6,22.0 86.7,23.0 87.8,23.0 88.9,24.1 90.0,24.0 91.1,24.1 92.2,24.7 93.3,23.8 94.4,23.6 95.6,23.7 96.7,23.3 97.8,23.8 98.9,23.8 100.0,25.1 101.1,24.9 102.2,25.3 103.3,25.6 104.4,26.7 105.6,26.7 106.7,27.1 107.8,26.7 108.9,26.1 110.0,26.7 111.1,25.1 112.2,26.3 113.3,25.9 114.4,25.9 115.6,27.2 116.7,27.6 117.8,27.7 118.9,28.0 120.0,27.1 120,32 0,32"/>
+  <polyline fill="none" stroke="#2e7d32" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,4.7 1.1,4.5 2.2,4.0 3.3,4.4 4.4,4.7 5.6,5.4 6.7,5.1 7.8,5.2 8.9,5.8 10.0,6.0 11.1,6.2 12.2,6.7 13.3,6.1 14.4,6.3 15.6,6.6 16.7,7.1 17.8,7.1 18.9,8.0 20.0,8.0 21.1,7.7 22.2,8.5 23.3,9.0 24.4,9.4 25.6,8.9 26.7,9.0 27.8,10.5 28.9,11.8 30.0,12.1 31.1,12.8 32.2,12.4 33.3,15.1 34.4,16.9 35.6,19.8 36.7,17.5 37.8,16.3 38.9,15.3 40.0,13.5 41.1,15.1 42.2,13.8 43.3,12.2 44.4,16.7 45.6,16.8 46.7,16.2 47.8,14.9 48.9,14.2 50.0,14.7 51.1,15.7 52.2,14.0 53.3,14.6 54.4,14.9 55.6,14.6 56.7,14.5 57.8,12.7 58.9,11.9 60.0,12.3 61.1,13.9 62.2,15.7 63.3,14.6 64.4,15.2 65.6,17.3 66.7,20.8 67.8,20.0 68.9,20.3 70.0,20.0 71.1,21.4 72.2,21.4 73.3,21.3 74.4,21.3 75.6,21.3 76.7,21.6 77.8,21.0 78.9,20.6 80.0,19.8 81.1,20.9 82.2,20.2 83.3,20.0 84.4,20.4 85.6,22.0 86.7,23.0 87.8,23.0 88.9,24.1 90.0,24.0 91.1,24.1 92.2,24.7 93.3,23.8 94.4,23.6 95.6,23.7 96.7,23.3 97.8,23.8 98.9,23.8 100.0,25.1 101.1,24.9 102.2,25.3 103.3,25.6 104.4,26.7 105.6,26.7 106.7,27.1 107.8,26.7 108.9,26.1 110.0,26.7 111.1,25.1 112.2,26.3 113.3,25.9 114.4,25.9 115.6,27.2 116.7,27.6 117.8,27.7 118.9,28.0 120.0,27.1"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">Gold (XAU)</td>
+  <td class="num">4,150.90</td>
+  <td class="num down">-2.01%</td>
+  <td class="num down">-4.64%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gf4" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2e7d32" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#2e7d32" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gf4)" points="0.0,14.5 1.1,14.3 2.1,16.5 3.2,16.3 4.2,15.1 5.3,14.4 6.4,12.9 7.4,12.1 8.5,11.4 9.6,10.4 10.6,10.7 11.7,10.3 12.7,11.2 13.8,10.7 14.9,11.1 15.9,10.0 17.0,10.5 18.1,11.6 19.1,11.1 20.2,11.1 21.2,11.0 22.3,8.4 23.4,7.0 24.4,5.7 25.5,5.1 26.5,5.8 27.6,6.2 28.7,6.8 29.7,6.4 30.8,5.8 31.9,6.2 32.9,7.9 34.0,7.2 35.0,7.3 36.1,7.2 37.2,7.1 38.2,8.4 39.3,8.3 40.4,6.4 41.4,5.0 42.5,5.8 43.5,4.7 44.6,5.3 45.7,4.5 46.7,4.6 47.8,4.0 48.8,8.4 49.9,10.3 51.0,9.3 52.0,9.3 53.1,10.8 54.2,11.0 55.2,12.2 56.3,13.4 57.3,12.4 58.4,11.8 59.5,11.9 60.5,13.0 61.6,12.3 62.7,12.6 63.7,11.5 64.8,11.3 65.8,10.5 66.9,12.1 68.0,10.8 69.0,10.2 70.1,9.1 71.2,9.7 72.2,10.7 73.3,14.6 74.3,14.4 75.4,15.2 76.5,17.3 77.5,16.3 78.6,16.5 79.6,16.3 80.7,17.3 81.8,17.7 82.8,18.2 83.9,17.5 85.0,16.9 86.0,18.4 87.1,18.8 88.1,19.0 89.2,18.4 90.3,17.5 91.3,17.2 92.4,17.0 93.5,17.1 94.5,17.4 95.6,17.3 96.6,17.1 97.7,17.0 98.8,16.8 99.8,17.0 100.9,16.4 101.9,16.0 103.0,15.8 104.1,15.8 105.1,16.0 106.2,16.2 107.3,16.2 108.3,16.0 109.4,16.2 110.4,16.1 111.5,16.5 112.6,16.3 113.6,15.9 114.7,17.0 115.8,18.7 116.8,20.8 117.9,22.8 118.9,22.3 120.0,28.0 120,32 0,32"/>
+  <polyline fill="none" stroke="#2e7d32" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,14.5 1.1,14.3 2.1,16.5 3.2,16.3 4.2,15.1 5.3,14.4 6.4,12.9 7.4,12.1 8.5,11.4 9.6,10.4 10.6,10.7 11.7,10.3 12.7,11.2 13.8,10.7 14.9,11.1 15.9,10.0 17.0,10.5 18.1,11.6 19.1,11.1 20.2,11.1 21.2,11.0 22.3,8.4 23.4,7.0 24.4,5.7 25.5,5.1 26.5,5.8 27.6,6.2 28.7,6.8 29.7,6.4 30.8,5.8 31.9,6.2 32.9,7.9 34.0,7.2 35.0,7.3 36.1,7.2 37.2,7.1 38.2,8.4 39.3,8.3 40.4,6.4 41.4,5.0 42.5,5.8 43.5,4.7 44.6,5.3 45.7,4.5 46.7,4.6 47.8,4.0 48.8,8.4 49.9,10.3 51.0,9.3 52.0,9.3 53.1,10.8 54.2,11.0 55.2,12.2 56.3,13.4 57.3,12.4 58.4,11.8 59.5,11.9 60.5,13.0 61.6,12.3 62.7,12.6 63.7,11.5 64.8,11.3 65.8,10.5 66.9,12.1 68.0,10.8 69.0,10.2 70.1,9.1 71.2,9.7 72.2,10.7 73.3,14.6 74.3,14.4 75.4,15.2 76.5,17.3 77.5,16.3 78.6,16.5 79.6,16.3 80.7,17.3 81.8,17.7 82.8,18.2 83.9,17.5 85.0,16.9 86.0,18.4 87.1,18.8 88.1,19.0 89.2,18.4 90.3,17.5 91.3,17.2 92.4,17.0 93.5,17.1 94.5,17.4 95.6,17.3 96.6,17.1 97.7,17.0 98.8,16.8 99.8,17.0 100.9,16.4 101.9,16.0 103.0,15.8 104.1,15.8 105.1,16.0 106.2,16.2 107.3,16.2 108.3,16.0 109.4,16.2 110.4,16.1 111.5,16.5 112.6,16.3 113.6,15.9 114.7,17.0 115.8,18.7 116.8,20.8 117.9,22.8 118.9,22.3 120.0,28.0"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">WTI Crude</td>
+  <td class="num">75.85</td>
+  <td class="num down">-0.21%</td>
+  <td class="num up">+32.39%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gf5" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gf5)" points="0.0,28.0 1.1,27.3 2.1,27.3 3.2,26.2 4.2,25.0 5.3,24.2 6.3,23.0 7.4,21.9 8.4,22.8 9.5,23.2 10.5,24.5 11.6,26.0 12.6,25.9 13.7,24.6 14.7,24.0 15.8,23.6 16.8,23.0 17.9,23.6 18.9,24.6 20.0,24.5 21.1,24.4 22.1,24.9 23.2,24.8 24.2,23.1 25.3,22.0 26.3,21.3 27.4,20.6 28.4,21.0 29.5,21.8 30.5,21.3 31.6,22.3 32.6,21.0 33.7,20.9 34.7,21.4 35.8,21.0 36.8,21.1 37.9,20.3 38.9,20.8 40.0,21.4 41.1,21.1 42.1,21.6 43.2,19.9 44.2,20.4 45.3,20.3 46.3,20.6 47.4,19.8 48.4,19.1 49.5,19.5 50.5,19.1 51.6,17.7 52.6,18.1 53.7,18.4 54.7,18.6 55.8,18.9 56.8,18.2 57.9,19.0 58.9,19.0 60.0,19.3 61.1,21.4 62.1,21.3 63.2,20.1 64.2,18.5 65.3,19.4 66.3,18.1 67.4,18.6 68.4,16.4 69.5,16.0 70.5,14.1 71.6,14.3 72.6,12.8 73.7,12.1 74.7,12.0 75.8,10.4 76.8,10.9 77.9,10.3 78.9,10.1 80.0,10.1 81.1,9.5 82.1,9.3 83.2,10.1 84.2,10.5 85.3,10.8 86.3,9.5 87.4,9.8 88.4,8.8 89.5,8.1 90.5,6.8 91.6,6.1 92.6,5.6 93.7,5.8 94.7,5.4 95.8,4.0 96.8,4.6 97.9,5.3 98.9,5.9 100.0,5.5 101.1,5.5 102.1,4.6 103.2,4.5 104.2,4.9 105.3,4.6 106.3,4.7 107.4,4.2 108.4,4.0 109.5,4.4 110.5,4.6 111.6,5.8 112.6,6.2 113.7,7.0 114.7,7.0 115.8,7.4 116.8,7.5 117.9,7.7 118.9,7.9 120.0,8.1 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,28.0 1.1,27.3 2.1,27.3 3.2,26.2 4.2,25.0 5.3,24.2 6.3,23.0 7.4,21.9 8.4,22.8 9.5,23.2 10.5,24.5 11.6,26.0 12.6,25.9 13.7,24.6 14.7,24.0 15.8,23.6 16.8,23.0 17.9,23.6 18.9,24.6 20.0,24.5 21.1,24.4 22.1,24.9 23.2,24.8 24.2,23.1 25.3,22.0 26.3,21.3 27.4,20.6 28.4,21.0 29.5,21.8 30.5,21.3 31.6,22.3 32.6,21.0 33.7,20.9 34.7,21.4 35.8,21.0 36.8,21.1 37.9,20.3 38.9,20.8 40.0,21.4 41.1,21.1 42.1,21.6 43.2,19.9 44.2,20.4 45.3,20.3 46.3,20.6 47.4,19.8 48.4,19.1 49.5,19.5 50.5,19.1 51.6,17.7 52.6,18.1 53.7,18.4 54.7,18.6 55.8,18.9 56.8,18.2 57.9,19.0 58.9,19.0 60.0,19.3 61.1,21.4 62.1,21.3 63.2,20.1 64.2,18.5 65.3,19.4 66.3,18.1 67.4,18.6 68.4,16.4 69.5,16.0 70.5,14.1 71.6,14.3 72.6,12.8 73.7,12.1 74.7,12.0 75.8,10.4 76.8,10.9 77.9,10.3 78.9,10.1 80.0,10.1 81.1,9.5 82.1,9.3 83.2,10.1 84.2,10.5 85.3,10.8 86.3,9.5 87.4,9.8 88.4,8.8 89.5,8.1 90.5,6.8 91.6,6.1 92.6,5.6 93.7,5.8 94.7,5.4 95.8,4.0 96.8,4.6 97.9,5.3 98.9,5.9 100.0,5.5 101.1,5.5 102.1,4.6 103.2,4.5 104.2,4.9 105.3,4.6 106.3,4.7 107.4,4.2 108.4,4.0 109.5,4.4 110.5,4.6 111.6,5.8 112.6,6.2 113.7,7.0 114.7,7.0 115.8,7.4 116.8,7.5 117.9,7.7 118.9,7.9 120.0,8.1"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">DXY</td>
+  <td class="num">100.75</td>
+  <td class="num down">-0.08%</td>
+  <td class="num up">+2.55%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gf6" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gf6)" points="0.0,27.8 1.0,26.9 2.0,28.0 3.0,25.9 3.9,26.6 4.9,23.9 5.9,23.4 6.9,22.8 7.9,22.9 8.9,23.7 9.8,22.6 10.8,23.4 11.8,24.5 12.8,22.6 13.8,22.2 14.8,21.3 15.7,21.7 16.7,19.9 17.7,19.1 18.7,18.6 19.7,17.8 20.7,18.1 21.6,16.8 22.6,17.2 23.6,16.7 24.6,15.6 25.6,15.2 26.6,15.1 27.5,14.0 28.5,13.4 29.5,13.0 30.5,12.5 31.5,12.6 32.5,12.7 33.4,12.3 34.4,12.1 35.4,11.5 36.4,11.9 37.4,11.8 38.4,11.0 39.3,10.8 40.3,11.7 41.3,11.3 42.3,11.9 43.3,10.1 44.3,10.4 45.2,9.9 46.2,9.5 47.2,10.1 48.2,10.3 49.2,10.1 50.2,9.8 51.1,9.5 52.1,9.3 53.1,9.4 54.1,9.7 55.1,9.2 56.1,8.9 57.0,8.7 58.0,8.7 59.0,9.2 60.0,9.5 61.0,9.4 62.0,9.1 63.0,9.5 63.9,9.8 64.9,9.7 65.9,10.0 66.9,9.9 67.9,10.0 68.9,10.1 69.8,9.1 70.8,9.0 71.8,8.9 72.8,8.9 73.8,8.9 74.8,8.8 75.7,8.7 76.7,8.6 77.7,8.5 78.7,8.5 79.7,8.3 80.7,8.1 81.6,7.9 82.6,7.8 83.6,7.7 84.6,7.6 85.6,7.5 86.6,7.3 87.5,7.1 88.5,6.9 89.5,6.7 90.5,6.6 91.5,6.6 92.5,6.3 93.4,6.2 94.4,5.8 95.4,5.8 96.4,5.6 97.4,5.5 98.4,5.3 99.3,5.2 100.3,5.1 101.3,4.9 102.3,4.8 103.3,4.6 104.3,4.5 105.2,4.4 106.2,4.4 107.2,4.3 108.2,4.2 109.2,4.1 110.2,4.1 111.1,4.0 112.1,4.2 113.1,4.5 114.1,4.4 115.1,4.6 116.1,5.0 117.0,5.8 118.0,5.8 119.0,5.4 120.0,6.1 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,27.8 1.0,26.9 2.0,28.0 3.0,25.9 3.9,26.6 4.9,23.9 5.9,23.4 6.9,22.8 7.9,22.9 8.9,23.7 9.8,22.6 10.8,23.4 11.8,24.5 12.8,22.6 13.8,22.2 14.8,21.3 15.7,21.7 16.7,19.9 17.7,19.1 18.7,18.6 19.7,17.8 20.7,18.1 21.6,16.8 22.6,17.2 23.6,16.7 24.6,15.6 25.6,15.2 26.6,15.1 27.5,14.0 28.5,13.4 29.5,13.0 30.5,12.5 31.5,12.6 32.5,12.7 33.4,12.3 34.4,12.1 35.4,11.5 36.4,11.9 37.4,11.8 38.4,11.0 39.3,10.8 40.3,11.7 41.3,11.3 42.3,11.9 43.3,10.1 44.3,10.4 45.2,9.9 46.2,9.5 47.2,10.1 48.2,10.3 49.2,10.1 50.2,9.8 51.1,9.5 52.1,9.3 53.1,9.4 54.1,9.7 55.1,9.2 56.1,8.9 57.0,8.7 58.0,8.7 59.0,9.2 60.0,9.5 61.0,9.4 62.0,9.1 63.0,9.5 63.9,9.8 64.9,9.7 65.9,10.0 66.9,9.9 67.9,10.0 68.9,10.1 69.8,9.1 70.8,9.0 71.8,8.9 72.8,8.9 73.8,8.9 74.8,8.8 75.7,8.7 76.7,8.6 77.7,8.5 78.7,8.5 79.7,8.3 80.7,8.1 81.6,7.9 82.6,7.8 83.6,7.7 84.6,7.6 85.6,7.5 86.6,7.3 87.5,7.1 88.5,6.9 89.5,6.7 90.5,6.6 91.5,6.6 92.5,6.3 93.4,6.2 94.4,5.8 95.4,5.8 96.4,5.6 97.4,5.5 98.4,5.3 99.3,5.2 100.3,5.1 101.3,4.9 102.3,4.8 103.3,4.6 104.3,4.5 105.2,4.4 106.2,4.4 107.2,4.3 108.2,4.2 109.2,4.1 110.2,4.1 111.1,4.0 112.1,4.2 113.1,4.5 114.1,4.4 115.1,4.6 116.1,5.0 117.0,5.8 118.0,5.8 119.0,5.4 120.0,6.1"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">US 10Y Yield</td>
+  <td class="num">4.46%</td>
+  <td class="num down">-0bp</td>
+  <td class="num up">+27bp</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gf7" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gf7)" points="0.0,26.4 1.0,25.3 2.1,26.4 3.1,25.8 4.2,24.2 5.2,22.0 6.3,20.9 7.3,24.7 8.3,24.2 9.4,25.3 10.4,26.9 11.5,28.0 12.5,28.0 13.6,26.9 14.6,25.3 15.7,24.2 16.7,23.6 17.7,23.6 18.8,24.7 19.8,26.4 20.9,26.9 21.9,25.3 23.0,24.7 24.0,25.3 25.0,23.1 26.1,21.5 27.1,19.3 28.2,19.8 29.2,22.0 30.3,23.6 31.3,23.1 32.3,23.6 33.4,24.2 34.4,23.1 35.5,23.6 36.5,22.5 37.6,21.5 38.6,21.5 39.7,22.5 40.7,23.6 41.7,24.2 42.8,23.1 43.8,23.1 44.9,22.0 45.9,20.9 47.0,19.8 48.0,19.3 49.0,19.8 50.1,20.9 51.1,20.4 52.2,19.8 53.2,18.7 54.3,19.3 55.3,18.2 56.3,17.1 57.4,16.0 58.4,15.5 59.5,14.4 60.5,16.0 61.6,16.5 62.6,17.6 63.7,17.1 64.7,17.6 65.7,16.5 66.8,15.5 67.8,14.4 68.9,13.8 69.9,12.7 71.0,13.3 72.0,12.2 73.0,12.7 74.1,13.3 75.1,12.2 76.2,11.6 77.2,11.1 78.3,10.5 79.3,9.5 80.3,8.4 81.4,8.9 82.4,7.8 83.5,8.4 84.5,6.7 85.6,5.6 86.6,5.1 87.7,5.6 88.7,6.2 89.7,5.1 90.8,4.5 91.8,4.0 92.9,5.1 93.9,5.6 95.0,6.7 96.0,7.3 97.0,7.8 98.1,8.4 99.1,9.5 100.2,10.0 101.2,11.1 102.3,11.6 103.3,10.5 104.3,11.1 105.4,11.6 106.4,10.5 107.5,11.1 108.5,10.0 109.6,10.5 110.6,9.5 111.7,8.4 112.7,7.8 113.7,7.3 114.8,6.7 115.8,7.3 116.9,7.8 117.9,8.4 119.0,10.0 120.0,11.6 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,26.4 1.0,25.3 2.1,26.4 3.1,25.8 4.2,24.2 5.2,22.0 6.3,20.9 7.3,24.7 8.3,24.2 9.4,25.3 10.4,26.9 11.5,28.0 12.5,28.0 13.6,26.9 14.6,25.3 15.7,24.2 16.7,23.6 17.7,23.6 18.8,24.7 19.8,26.4 20.9,26.9 21.9,25.3 23.0,24.7 24.0,25.3 25.0,23.1 26.1,21.5 27.1,19.3 28.2,19.8 29.2,22.0 30.3,23.6 31.3,23.1 32.3,23.6 33.4,24.2 34.4,23.1 35.5,23.6 36.5,22.5 37.6,21.5 38.6,21.5 39.7,22.5 40.7,23.6 41.7,24.2 42.8,23.1 43.8,23.1 44.9,22.0 45.9,20.9 47.0,19.8 48.0,19.3 49.0,19.8 50.1,20.9 51.1,20.4 52.2,19.8 53.2,18.7 54.3,19.3 55.3,18.2 56.3,17.1 57.4,16.0 58.4,15.5 59.5,14.4 60.5,16.0 61.6,16.5 62.6,17.6 63.7,17.1 64.7,17.6 65.7,16.5 66.8,15.5 67.8,14.4 68.9,13.8 69.9,12.7 71.0,13.3 72.0,12.2 73.0,12.7 74.1,13.3 75.1,12.2 76.2,11.6 77.2,11.1 78.3,10.5 79.3,9.5 80.3,8.4 81.4,8.9 82.4,7.8 83.5,8.4 84.5,6.7 85.6,5.6 86.6,5.1 87.7,5.6 88.7,6.2 89.7,5.1 90.8,4.5 91.8,4.0 92.9,5.1 93.9,5.6 95.0,6.7 96.0,7.3 97.0,7.8 98.1,8.4 99.1,9.5 100.2,10.0 101.2,11.1 102.3,11.6 103.3,10.5 104.3,11.1 105.4,11.6 106.4,10.5 107.5,11.1 108.5,10.0 109.6,10.5 110.6,9.5 111.7,8.4 112.7,7.8 113.7,7.3 114.8,6.7 115.8,7.3 116.9,7.8 117.9,8.4 119.0,10.0 120.0,11.6"/>
+</svg></td>
+</tr>
       </tbody>
     </table>
-
-    <div class="card">
-      <div class="tag">HORMUZ PEACE</div>
-      <h3>US-Iran Interim Deal Reopens Strait of Hormuz; Oil, Stocks React</h3>
-      <p>An interim peace deal between the US and Iran took effect Thursday, ending the Middle East conflict and allowing oil tankers to transit the Strait of Hormuz again. Brent settled at $79.85/bbl while WTI edged lower to $76.60. US stocks surged led by semiconductors, with the S&P 500 closing at a fresh record. Analysts cautioned the deal's durability remains uncertain — talks in Switzerland were later cancelled and US VP JD Vance warned Israel against further Hezbollah attacks.</p>
-      <div class="cn-trans">
-        <strong>美伊临时和平协议重开霍尔木兹海峡</strong><br>美伊临时协议周四生效，结束中东冲突，霍尔木兹海峡恢复油轮通行。布伦特原油收于79.85美元，WTI小幅回落至76.60美元。美股半导体领涨，标普500再创新高。分析师警告协议可持续性存疑——瑞士会谈随后取消，美国副总统万斯警告以色列勿再攻击真主党。
-      </div>
-      <div class="source">Source: <a href="https://www.reuters.com" target="_blank">Reuters</a> · <a href="https://www.bloomberg.com" target="_blank">Bloomberg</a></div>
-    </div>
-
-    <div class="card">
-      <div class="tag">FED WATCH</div>
-      <h3>New Fed Chair Kevin Warsh Holds Rates, Signals Hawkish Tilt in Debut</h3>
-      <p>In his first FOMC meeting as Fed Chair, Kevin Warsh held rates steady at 3.50%–3.75% but signalled a hawkish pivot, vowing to restore price stability. Markets now price ~68% odds of a rate hike by September. The dollar index surged to a 13-month high of 100.83, while gold tumbled 3.1% to $4,245.90/oz. The 2-year Treasury yield rose to ~4.15% and the 10-year to ~4.44%.</p>
-      <div class="cn-trans">
-        <strong>美联储新主席Warsh首秀按兵不动，鹰派信号推高美元</strong><br>美联储新任主席Kevin Warsh首次FOMC会议维持利率3.50%-3.75%不变，但释放鹰派转向信号，誓言恢复物价稳定。市场定价9月加息概率约68%。美元指数飙升至13个月高点100.83，黄金暴跌3.1%至4245.90美元/盎司。2年期美债收益率升至约4.15%，10年期约4.44%。
-      </div>
-      <div class="source">Source: <a href="https://www.cnbc.com" target="_blank">CNBC</a> · <a href="https://www.wsj.com" target="_blank">WSJ</a></div>
-    </div>
-
-    <div class="card">
-      <div class="tag">CHIP RALLY</div>
-      <h3>Philadelphia Semiconductor Index Surges 6.4% to Record; Intel Jumps 10.6%</h3>
-      <p>The SOX semiconductor index soared 6.42% to an all-time high as chip stocks led the market rally. Intel surged 10.64% after President Trump announced Apple would partner with Intel to design and manufacture chips in the US. Nvidia (+2.95%), Micron, Broadcom, and TSMC (+6.86%) were among top S&P 500 gainers. The move reflects growing optimism about domestic AI chip production capacity.</p>
-      <div class="cn-trans">
-        <strong>费城半导体指数暴涨6.4%创新高，英特尔飙升10.6%</strong><br>费城半导体指数暴涨6.42%创历史新高。特朗普宣布苹果将与英特尔合作在美国设计和制造芯片，英特尔飙升10.64%。英伟达（+2.95%）、美光、博通、台积电（+6.86%）领涨标普500。此轮上涨反映了市场对本土AI芯片产能的乐观预期。
-      </div>
-      <div class="source">Source: <a href="https://www.reuters.com" target="_blank">Reuters</a> · <a href="https://www.cnbc.com" target="_blank">CNBC</a></div>
-    </div>
+    <div class="card finance">
+  <div class="tag">IRAN TENSIONS</div>
+  <h3>US Futures Slip, Oil Surges as US-Iran Peace Talks Hit Turbulence</h3>
+  <p>US stock futures fell (Dow -200 pts, Nasdaq -300 pts) and Brent crude surged 2.2% to $82.30 as US-Iran peace negotiations in Switzerland were suspended after 80 minutes. Iran's delegation walked out protesting Trump's Truth Social threats, while the Strait of Hormuz remained a flashpoint despite continued oil flows via southern routes.</p>
+  <div class="cn-trans">
+    <strong>美伊和谈遇挫，油价飙升美股期货承压</strong><br>美伊瑞士和谈仅持续80分钟即告暂停，伊朗代表团抗议特朗普社交媒体威胁后离场。布伦特原油跳涨2.2%至82.30美元，标普500期货下跌0.4%。霍尔木兹海峡局势持续紧张，但南部航线仍有数百万桶原油通行。
+  </div>
+  <div class="source">Source: <a href="https://www.cnbctv18.com/market/dow-jones-snp-500-nasdaq-futures-us-iran-talks-strait-of-hormuz-trump-key-triggers-pce-19929434.htm" target="_blank">CNBC TV18</a> · <a href="https://www.reuters.com" target="_blank">Reuters</a></div>
+</div><div class="card finance">
+  <div class="tag">LEVERAGE WARNING</div>
+  <h3>Goldman Sachs Flows Guru Warns: Record Market Leverage, Expect More Volatility</h3>
+  <p>Goldman Sachs' Lee Coppersmith warned hedge fund net leverage has hit 4-year highs, with systematic flows amplifying both upside and downside. Large-cap tech volatility is expanding, though AI remains 'the highest-conviction secular theme' with Semis on pace for a second straight year as the most net-bought global subsector.</p>
+  <div class="cn-trans">
+    <strong>高盛交易流大师警告：市场杠杆创四年新高，波动率将扩大</strong><br>高盛Lee Coppersmith指出全球对冲基金净杠杆攀至四年最高，系统性资金流（杠杆ETF）放大了双向波动。大型科技股波动率正在扩张，但AI仍是'最高信念的长期主题'，半导体板块有望连续第二年成为全球净买入最多的子行业。
+  </div>
+  <div class="source">Source: <a href="https://www.mexc.io/news/1162877" target="_blank">Goldman Sachs PB</a></div>
+</div><div class="card finance">
+  <div class="tag">YEN WEAKNESS</div>
+  <h3>Yen Slides Past 161/USD, Japan FinMin Threatens 'Bold Action' Against Speculators</h3>
+  <p>The Japanese yen weakened to 161 per dollar, nearing 40-year lows, prompting Finance Minister to reiterate readiness for intervention. The move comes as the BOJ struggles to normalize policy amid global rate divergence and safe-haven USD demand from Iran tensions.</p>
+  <div class="cn-trans">
+    <strong>日元跌破161关口，日本财相威胁对投机者采取'大胆行动'</strong><br>日元兑美元跌至161，逼近40年低点。日本财务大臣重申已做好干预准备。在伊朗局势推升美元避险需求的背景下，日银政策正常化步履维艰，全球利差持续施压日元。
+  </div>
+  <div class="source">Source: <a href="https://www.reuters.com" target="_blank">Reuters</a></div>
+</div><div class="card finance">
+  <div class="tag">UK POLITICS</div>
+  <h3>Pound Slides as Starmer Faces Leadership Challenge, Resignation Timeline Expected</h3>
+  <p>The British pound fell toward a fresh year-low as PM Keir Starmer was expected to set out a resignation timetable as early as Monday, following Andy Burnham's by-election victory. Markets fear increased borrowing under a potentially new Labour leadership, with UK gilts underperforming.</p>
+  <div class="cn-trans">
+    <strong>英镑下挫，斯塔默面临党魁挑战或于今日公布辞职时间表</strong><br>英镑跌向年内新低。英国首相斯塔默预计最早于周一公布辞职时间表，此前伯纳姆在补选中获胜并获得挑战党魁的路径。市场担忧新领导层可能增加借款，英国国债表现落后。
+  </div>
+  <div class="source">Source: <a href="https://www.bbc.com" target="_blank">BBC</a> · <a href="https://www.reuters.com" target="_blank">Reuters</a></div>
+</div>
   </div>
 
   <!-- ===== TECHNOLOGY PANEL ===== -->
@@ -199,115 +266,206 @@
     <table class="market-table">
       <thead><tr><th>Stock</th><th>Close</th><th>Day Chg</th><th>YTD</th><th>YTD Trend</th></tr></thead>
       <tbody>
-        <tr><td class="name">Apple</td><td class="num">$298.01</td><td class="num up">+0.70%</td><td class="num up">+10.2%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gAapl" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gAapl)" points="0,21 15,19 30,17 45,14 60,11 75,9 90,8 105,7 120,6 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,21 15,19 30,17 45,14 60,11 75,9 90,8 105,7 120,6"/></svg></td></tr>
-        <tr><td class="name">Microsoft</td><td class="num">$379.40</td><td class="num up">+0.13%</td><td class="num down">−19.4%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gMsft" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gMsft)" points="0,22 15,20 30,19 45,18 60,16 75,15 90,14 105,13 120,14 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,22 15,20 30,19 45,18 60,16 75,15 90,14 105,13 120,14"/></svg></td></tr>
-        <tr><td class="name">Nvidia</td><td class="num">$210.69</td><td class="num up">+2.95%</td><td class="num up">+11.7%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gNvda" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gNvda)" points="0,24 15,22 30,18 45,14 60,10 75,7 90,5 105,4 120,3 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,24 15,22 30,18 45,14 60,10 75,7 90,5 105,4 120,3"/></svg></td></tr>
-        <tr><td class="name">Amazon</td><td class="num">$244.39</td><td class="num up">+2.90%</td><td class="num up">+7.9%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gAmzn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gAmzn)" points="0,22 15,20 30,17 45,14 60,11 75,8 90,6 105,5 120,4 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,22 15,20 30,17 45,14 60,11 75,8 90,6 105,5 120,4"/></svg></td></tr>
-        <tr><td class="name">Meta</td><td class="num">$577.22</td><td class="num up">+1.70%</td><td class="num down">−11.1%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gMeta" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gMeta)" points="0,20 15,18 30,17 45,15 60,13 75,11 90,10 105,9 120,8 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,20 15,18 30,17 45,15 60,13 75,11 90,10 105,9 120,8"/></svg></td></tr>
-        <tr><td class="name">Alphabet</td><td class="num">$368.03</td><td class="num up">+1.17%</td><td class="num up">+16.9%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gGoog" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gGoog)" points="0,21 15,19 30,18 45,16 60,14 75,12 90,11 105,10 120,9 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,21 15,19 30,18 45,16 60,14 75,12 90,11 105,10 120,9"/></svg></td></tr>
-        <tr><td class="name">Tesla</td><td class="num">$400.49</td><td class="num up">+1.04%</td><td class="num down">−8.6%</td><td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32"><defs><linearGradient id="gTsla" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C44B3B" stop-opacity="0.2"/><stop offset="100%" stop-color="#C44B3B" stop-opacity="0.02"/></linearGradient></defs><polygon fill="url(#gTsla)" points="0,18 15,16 30,14 45,12 60,10 75,9 90,12 105,11 120,10 120,30 0,30"/><polyline fill="none" stroke="#C44B3B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="0,18 15,16 30,14 45,12 60,10 75,9 90,12 105,11 120,10"/></svg></td></tr>
+<tr>
+  <td class="name">Apple</td>
+  <td class="num">298.01</td>
+  <td class="num up">+0.70%</td>
+  <td class="num up">+10.10%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gt0" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gt0)" points="0.0,18.8 1.0,19.8 2.1,21.3 3.1,22.1 4.2,23.6 5.2,23.4 6.3,23.2 7.3,22.6 8.3,23.2 9.4,23.1 10.4,23.9 11.5,28.0 12.5,27.4 13.6,26.3 14.6,27.5 15.7,25.7 16.7,22.7 17.7,24.0 18.8,24.1 19.8,24.9 20.9,22.3 21.9,19.3 23.0,17.6 24.0,17.3 25.0,16.0 26.1,17.7 27.1,17.3 28.2,16.8 29.2,21.9 30.3,23.6 31.3,23.6 32.3,21.1 33.4,21.9 34.4,22.6 35.5,20.7 36.5,19.2 37.6,18.0 38.6,18.1 39.7,20.9 40.7,21.9 41.7,21.9 42.8,21.4 43.8,22.9 44.9,24.0 45.9,24.2 47.0,23.1 48.0,22.1 49.0,24.0 50.1,25.7 51.1,25.6 52.2,24.8 53.2,25.9 54.3,26.5 55.3,27.0 56.3,25.5 57.4,25.7 58.4,25.0 59.5,25.3 60.5,26.2 61.6,27.2 62.6,26.6 63.7,24.4 64.7,25.3 65.7,23.2 66.8,27.1 67.8,23.2 68.9,23.4 69.9,22.3 71.0,23.2 72.0,23.0 73.0,22.7 74.1,21.5 75.1,19.5 76.2,18.3 77.2,20.0 78.3,19.5 79.3,17.8 80.3,18.5 81.4,20.1 82.4,18.8 83.5,19.4 84.5,19.0 85.6,15.4 86.6,16.6 87.7,16.0 88.7,14.4 89.7,12.7 90.8,11.2 91.8,11.0 92.9,10.2 93.9,9.8 95.0,9.1 96.0,8.7 97.0,9.3 98.1,8.8 99.1,8.2 100.2,7.3 101.2,5.4 102.3,4.7 103.3,4.5 104.3,4.0 105.4,4.0 106.4,5.7 107.5,5.1 108.5,4.3 109.6,4.0 110.6,4.9 111.7,7.1 112.7,11.9 113.7,12.0 114.8,11.2 115.8,11.2 116.9,10.5 117.9,9.6 119.0,9.5 120.0,9.0 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,18.8 1.0,19.8 2.1,21.3 3.1,22.1 4.2,23.6 5.2,23.4 6.3,23.2 7.3,22.6 8.3,23.2 9.4,23.1 10.4,23.9 11.5,28.0 12.5,27.4 13.6,26.3 14.6,27.5 15.7,25.7 16.7,22.7 17.7,24.0 18.8,24.1 19.8,24.9 20.9,22.3 21.9,19.3 23.0,17.6 24.0,17.3 25.0,16.0 26.1,17.7 27.1,17.3 28.2,16.8 29.2,21.9 30.3,23.6 31.3,23.6 32.3,21.1 33.4,21.9 34.4,22.6 35.5,20.7 36.5,19.2 37.6,18.0 38.6,18.1 39.7,20.9 40.7,21.9 41.7,21.9 42.8,21.4 43.8,22.9 44.9,24.0 45.9,24.2 47.0,23.1 48.0,22.1 49.0,24.0 50.1,25.7 51.1,25.6 52.2,24.8 53.2,25.9 54.3,26.5 55.3,27.0 56.3,25.5 57.4,25.7 58.4,25.0 59.5,25.3 60.5,26.2 61.6,27.2 62.6,26.6 63.7,24.4 64.7,25.3 65.7,23.2 66.8,27.1 67.8,23.2 68.9,23.4 69.9,22.3 71.0,23.2 72.0,23.0 73.0,22.7 74.1,21.5 75.1,19.5 76.2,18.3 77.2,20.0 78.3,19.5 79.3,17.8 80.3,18.5 81.4,20.1 82.4,18.8 83.5,19.4 84.5,19.0 85.6,15.4 86.6,16.6 87.7,16.0 88.7,14.4 89.7,12.7 90.8,11.2 91.8,11.0 92.9,10.2 93.9,9.8 95.0,9.1 96.0,8.7 97.0,9.3 98.1,8.8 99.1,8.2 100.2,7.3 101.2,5.4 102.3,4.7 103.3,4.5 104.3,4.0 105.4,4.0 106.4,5.7 107.5,5.1 108.5,4.3 109.6,4.0 110.6,4.9 111.7,7.1 112.7,11.9 113.7,12.0 114.8,11.2 115.8,11.2 116.9,10.5 117.9,9.6 119.0,9.5 120.0,9.0"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">Microsoft</td>
+  <td class="num">379.40</td>
+  <td class="num up">+0.13%</td>
+  <td class="num down">-20.25%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gt1" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2e7d32" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#2e7d32" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gt1)" points="0.0,5.6 1.0,5.7 2.1,5.6 3.1,4.0 4.2,4.4 5.2,5.2 6.3,4.5 7.3,6.4 8.3,8.1 9.4,8.4 10.4,8.3 11.5,9.7 12.5,11.8 13.6,10.6 14.6,9.5 15.7,7.2 16.7,5.0 17.7,4.0 18.8,15.3 19.8,14.2 20.9,15.1 21.9,17.8 23.0,17.6 24.0,21.0 25.0,20.9 26.1,19.3 27.1,17.0 28.2,19.3 29.2,19.9 30.3,19.9 31.3,20.6 32.3,20.2 33.4,20.0 34.4,20.3 35.5,22.7 36.5,22.9 37.6,21.3 38.6,19.6 39.7,21.3 40.7,21.2 41.7,20.8 42.8,19.2 43.8,18.4 44.9,17.6 45.9,18.6 47.0,18.7 48.0,19.0 49.0,19.0 50.1,20.4 51.1,20.3 52.2,19.8 53.2,21.1 54.3,21.9 55.3,23.3 56.3,22.9 57.4,24.9 58.4,25.3 59.5,26.2 60.5,28.0 61.6,28.0 62.6,26.6 63.7,25.6 64.7,26.4 65.7,25.4 66.8,26.0 67.8,25.0 68.9,25.9 69.9,25.3 71.0,25.1 72.0,22.0 73.0,20.0 74.1,16.9 75.1,15.2 76.2,16.1 77.2,15.9 78.3,14.6 79.3,17.0 80.3,16.2 81.4,15.9 82.4,14.9 83.5,15.3 84.5,19.7 85.6,17.2 86.6,17.2 87.7,17.6 88.7,18.3 89.7,15.6 90.8,16.5 91.8,18.2 92.9,18.0 93.9,19.1 95.0,19.1 96.0,16.7 97.0,16.2 98.1,16.0 99.1,17.1 100.2,16.0 101.2,15.9 102.3,16.5 103.3,17.2 104.3,16.6 105.4,12.7 106.4,7.5 107.5,11.1 108.5,14.3 109.6,13.9 110.6,16.3 111.7,17.4 112.7,19.4 113.7,19.7 114.8,22.3 115.8,22.7 116.9,20.6 117.9,21.0 119.0,23.7 120.0,24.5 120,32 0,32"/>
+  <polyline fill="none" stroke="#2e7d32" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,5.6 1.0,5.7 2.1,5.6 3.1,4.0 4.2,4.4 5.2,5.2 6.3,4.5 7.3,6.4 8.3,8.1 9.4,8.4 10.4,8.3 11.5,9.7 12.5,11.8 13.6,10.6 14.6,9.5 15.7,7.2 16.7,5.0 17.7,4.0 18.8,15.3 19.8,14.2 20.9,15.1 21.9,17.8 23.0,17.6 24.0,21.0 25.0,20.9 26.1,19.3 27.1,17.0 28.2,19.3 29.2,19.9 30.3,19.9 31.3,20.6 32.3,20.2 33.4,20.0 34.4,20.3 35.5,22.7 36.5,22.9 37.6,21.3 38.6,19.6 39.7,21.3 40.7,21.2 41.7,20.8 42.8,19.2 43.8,18.4 44.9,17.6 45.9,18.6 47.0,18.7 48.0,19.0 49.0,19.0 50.1,20.4 51.1,20.3 52.2,19.8 53.2,21.1 54.3,21.9 55.3,23.3 56.3,22.9 57.4,24.9 58.4,25.3 59.5,26.2 60.5,28.0 61.6,28.0 62.6,26.6 63.7,25.6 64.7,26.4 65.7,25.4 66.8,26.0 67.8,25.0 68.9,25.9 69.9,25.3 71.0,25.1 72.0,22.0 73.0,20.0 74.1,16.9 75.1,15.2 76.2,16.1 77.2,15.9 78.3,14.6 79.3,17.0 80.3,16.2 81.4,15.9 82.4,14.9 83.5,15.3 84.5,19.7 85.6,17.2 86.6,17.2 87.7,17.6 88.7,18.3 89.7,15.6 90.8,16.5 91.8,18.2 92.9,18.0 93.9,19.1 95.0,19.1 96.0,16.7 97.0,16.2 98.1,16.0 99.1,17.1 100.2,16.0 101.2,15.9 102.3,16.5 103.3,17.2 104.3,16.6 105.4,12.7 106.4,7.5 107.5,11.1 108.5,14.3 109.6,13.9 110.6,16.3 111.7,17.4 112.7,19.4 113.7,19.7 114.8,22.3 115.8,22.7 116.9,20.6 117.9,21.0 119.0,23.7 120.0,24.5"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">Nvidia</td>
+  <td class="num">210.69</td>
+  <td class="num up">+2.95%</td>
+  <td class="num up">+9.82%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gt2" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gt2)" points="0.0,19.1 1.0,19.9 2.1,19.7 3.1,19.8 4.2,20.8 5.2,20.8 6.3,21.1 7.3,20.9 8.3,21.9 9.4,19.9 10.4,20.0 11.5,23.1 12.5,22.8 13.6,20.7 14.6,19.7 15.7,20.0 16.7,20.1 17.7,18.6 18.8,20.0 19.8,18.7 20.9,20.4 21.9,23.6 23.0,25.2 24.0,25.5 25.0,24.2 26.1,20.7 27.1,19.2 28.2,19.0 29.2,19.8 30.3,21.6 31.3,22.5 32.3,19.7 33.4,20.1 34.4,20.0 35.5,18.7 36.5,19.5 37.6,17.1 38.6,20.6 39.7,23.5 40.7,24.2 41.7,23.3 42.8,22.2 43.8,23.0 44.9,23.4 45.9,23.8 47.0,21.5 48.0,20.6 49.0,21.5 50.1,22.2 51.1,21.7 52.2,21.6 53.2,22.1 54.3,23.8 55.3,25.3 56.3,24.1 57.4,24.4 58.4,23.4 59.5,25.5 60.5,27.0 61.6,28.0 62.6,27.0 63.7,24.1 64.7,25.4 65.7,23.8 66.8,24.5 67.8,22.1 68.9,22.0 69.9,20.6 71.0,20.1 72.0,18.2 73.0,16.4 74.1,16.4 75.1,15.1 76.2,15.6 77.2,15.2 78.3,15.2 79.3,15.8 80.3,14.9 81.4,12.1 82.4,11.8 83.5,12.0 84.5,15.3 85.6,15.9 86.6,16.8 87.7,16.3 88.7,15.3 89.7,12.4 90.8,10.1 91.8,9.7 92.9,9.3 93.9,6.9 95.0,4.0 96.0,5.9 97.0,8.0 98.1,8.2 99.1,7.2 100.2,8.2 101.2,9.4 102.3,10.4 103.3,11.6 104.3,10.7 105.4,10.7 106.4,9.0 107.5,6.9 108.5,9.5 109.6,10.7 110.6,13.1 111.7,12.5 112.7,15.0 113.7,14.8 114.8,14.9 115.8,13.5 116.9,11.6 117.9,12.0 119.0,13.6 120.0,12.3 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,19.1 1.0,19.9 2.1,19.7 3.1,19.8 4.2,20.8 5.2,20.8 6.3,21.1 7.3,20.9 8.3,21.9 9.4,19.9 10.4,20.0 11.5,23.1 12.5,22.8 13.6,20.7 14.6,19.7 15.7,20.0 16.7,20.1 17.7,18.6 18.8,20.0 19.8,18.7 20.9,20.4 21.9,23.6 23.0,25.2 24.0,25.5 25.0,24.2 26.1,20.7 27.1,19.2 28.2,19.0 29.2,19.8 30.3,21.6 31.3,22.5 32.3,19.7 33.4,20.1 34.4,20.0 35.5,18.7 36.5,19.5 37.6,17.1 38.6,20.6 39.7,23.5 40.7,24.2 41.7,23.3 42.8,22.2 43.8,23.0 44.9,23.4 45.9,23.8 47.0,21.5 48.0,20.6 49.0,21.5 50.1,22.2 51.1,21.7 52.2,21.6 53.2,22.1 54.3,23.8 55.3,25.3 56.3,24.1 57.4,24.4 58.4,23.4 59.5,25.5 60.5,27.0 61.6,28.0 62.6,27.0 63.7,24.1 64.7,25.4 65.7,23.8 66.8,24.5 67.8,22.1 68.9,22.0 69.9,20.6 71.0,20.1 72.0,18.2 73.0,16.4 74.1,16.4 75.1,15.1 76.2,15.6 77.2,15.2 78.3,15.2 79.3,15.8 80.3,14.9 81.4,12.1 82.4,11.8 83.5,12.0 84.5,15.3 85.6,15.9 86.6,16.8 87.7,16.3 88.7,15.3 89.7,12.4 90.8,10.1 91.8,9.7 92.9,9.3 93.9,6.9 95.0,4.0 96.0,5.9 97.0,8.0 98.1,8.2 99.1,7.2 100.2,8.2 101.2,9.4 102.3,10.4 103.3,11.6 104.3,10.7 105.4,10.7 106.4,9.0 107.5,6.9 108.5,9.5 109.6,10.7 110.6,13.1 111.7,12.5 112.7,15.0 113.7,14.8 114.8,14.9 115.8,13.5 116.9,11.6 117.9,12.0 119.0,13.6 120.0,12.3"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">Amazon</td>
+  <td class="num">244.39</td>
+  <td class="num up">+2.90%</td>
+  <td class="num up">+5.04%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gt3" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gt3)" points="0.0,19.0 1.0,18.2 2.1,16.7 3.1,14.3 4.2,13.6 5.2,13.5 6.3,12.3 7.3,14.1 8.3,15.4 9.4,15.2 10.4,15.3 11.5,17.5 12.5,18.3 13.6,17.0 14.6,15.9 15.7,14.9 16.7,14.8 17.7,13.7 18.8,15.2 19.8,14.9 20.9,14.7 21.9,15.6 23.0,16.7 24.0,20.3 25.0,26.6 26.1,25.7 27.1,24.7 28.2,26.0 29.2,27.5 30.3,27.6 31.3,28.0 32.3,26.3 33.4,25.9 34.4,25.6 35.5,25.8 36.5,25.7 37.6,23.9 38.6,25.1 39.7,25.1 40.7,25.7 41.7,26.0 42.8,23.6 43.8,21.8 44.9,22.8 45.9,24.5 47.0,22.8 48.0,23.2 49.0,24.2 50.1,24.8 51.1,24.4 52.2,22.8 53.2,24.0 54.3,24.8 55.3,25.4 56.3,23.8 57.4,24.7 58.4,23.6 59.5,24.5 60.5,27.0 61.6,26.7 62.6,25.4 63.7,24.2 64.7,25.2 65.7,23.7 66.8,23.9 67.8,20.6 68.9,19.4 69.9,15.7 71.0,15.5 72.0,13.6 73.0,11.9 74.1,12.9 75.1,11.0 76.2,12.5 77.2,11.3 78.3,10.9 79.3,10.1 80.3,8.6 81.4,7.8 82.4,8.9 83.5,8.6 84.5,9.1 85.6,7.0 86.6,5.1 87.7,4.0 88.7,4.1 89.7,4.6 90.8,4.8 91.8,5.2 92.9,7.1 93.9,6.9 95.0,5.8 96.0,7.6 97.0,7.1 98.1,9.4 99.1,8.0 100.2,7.5 101.2,5.9 102.3,7.2 103.3,6.1 104.3,5.6 105.4,4.9 106.4,7.7 107.5,9.7 108.5,11.8 109.6,10.5 110.6,12.4 111.7,13.1 112.7,14.0 113.7,15.0 114.8,15.7 115.8,16.2 116.9,12.7 117.9,12.5 119.0,15.4 120.0,15.4 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,19.0 1.0,18.2 2.1,16.7 3.1,14.3 4.2,13.6 5.2,13.5 6.3,12.3 7.3,14.1 8.3,15.4 9.4,15.2 10.4,15.3 11.5,17.5 12.5,18.3 13.6,17.0 14.6,15.9 15.7,14.9 16.7,14.8 17.7,13.7 18.8,15.2 19.8,14.9 20.9,14.7 21.9,15.6 23.0,16.7 24.0,20.3 25.0,26.6 26.1,25.7 27.1,24.7 28.2,26.0 29.2,27.5 30.3,27.6 31.3,28.0 32.3,26.3 33.4,25.9 34.4,25.6 35.5,25.8 36.5,25.7 37.6,23.9 38.6,25.1 39.7,25.1 40.7,25.7 41.7,26.0 42.8,23.6 43.8,21.8 44.9,22.8 45.9,24.5 47.0,22.8 48.0,23.2 49.0,24.2 50.1,24.8 51.1,24.4 52.2,22.8 53.2,24.0 54.3,24.8 55.3,25.4 56.3,23.8 57.4,24.7 58.4,23.6 59.5,24.5 60.5,27.0 61.6,26.7 62.6,25.4 63.7,24.2 64.7,25.2 65.7,23.7 66.8,23.9 67.8,20.6 68.9,19.4 69.9,15.7 71.0,15.5 72.0,13.6 73.0,11.9 74.1,12.9 75.1,11.0 76.2,12.5 77.2,11.3 78.3,10.9 79.3,10.1 80.3,8.6 81.4,7.8 82.4,8.9 83.5,8.6 84.5,9.1 85.6,7.0 86.6,5.1 87.7,4.0 88.7,4.1 89.7,4.6 90.8,4.8 91.8,5.2 92.9,7.1 93.9,6.9 95.0,5.8 96.0,7.6 97.0,7.1 98.1,9.4 99.1,8.0 100.2,7.5 101.2,5.9 102.3,7.2 103.3,6.1 104.3,5.6 105.4,4.9 106.4,7.7 107.5,9.7 108.5,11.8 109.6,10.5 110.6,12.4 111.7,13.1 112.7,14.0 113.7,15.0 114.8,15.7 115.8,16.2 116.9,12.7 117.9,12.5 119.0,15.4 120.0,15.4"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">Meta</td>
+  <td class="num">577.22</td>
+  <td class="num up">+1.70%</td>
+  <td class="num down">-12.34%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gt4" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2e7d32" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#2e7d32" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gt4)" points="0.0,12.7 1.0,12.2 2.1,11.7 3.1,12.6 4.2,13.7 5.2,12.8 6.3,13.0 7.3,15.1 8.3,16.3 9.4,16.4 10.4,15.6 11.5,18.1 12.5,18.1 13.6,14.8 14.6,12.6 15.7,10.5 16.7,10.1 17.7,9.9 18.8,4.1 19.8,4.0 20.9,5.3 21.9,7.4 23.0,9.7 24.0,11.5 25.0,12.3 26.1,10.8 27.1,9.4 28.2,11.0 29.2,12.5 30.3,13.8 31.3,14.6 32.3,14.6 33.4,13.6 34.4,13.3 35.5,13.7 36.5,14.5 37.6,12.9 38.6,12.2 39.7,13.4 40.7,13.8 41.7,13.3 42.8,11.0 43.8,11.9 44.9,13.6 45.9,14.8 47.0,12.0 48.0,12.1 49.0,13.5 50.1,16.9 51.1,15.2 52.2,15.4 53.2,16.3 54.3,17.8 55.3,19.7 56.3,18.2 57.4,19.2 58.4,18.9 59.5,25.1 60.5,28.0 61.6,27.0 62.6,24.7 63.7,21.3 64.7,23.1 65.7,21.6 66.8,22.5 67.8,19.1 68.9,15.2 69.9,15.0 71.0,15.0 72.0,13.2 73.0,10.1 74.1,9.6 75.1,8.7 76.2,9.6 77.2,9.7 78.3,9.4 79.3,11.5 80.3,11.4 81.4,9.2 82.4,9.9 83.5,10.1 84.5,18.1 85.6,17.3 86.6,17.7 87.7,18.0 88.7,18.3 89.7,16.4 90.8,17.3 91.8,18.3 92.9,19.0 93.9,18.5 95.0,16.2 96.0,16.9 97.0,17.6 98.1,18.0 99.1,18.3 100.2,18.7 101.2,17.2 102.3,17.4 103.3,16.9 104.3,14.4 105.4,15.2 106.4,18.1 107.5,18.5 108.5,18.0 109.6,15.3 110.6,20.2 111.7,20.7 112.7,20.4 113.7,21.7 114.8,23.4 115.8,22.9 116.9,20.6 117.9,19.0 119.0,22.2 120.0,22.6 120,32 0,32"/>
+  <polyline fill="none" stroke="#2e7d32" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,12.7 1.0,12.2 2.1,11.7 3.1,12.6 4.2,13.7 5.2,12.8 6.3,13.0 7.3,15.1 8.3,16.3 9.4,16.4 10.4,15.6 11.5,18.1 12.5,18.1 13.6,14.8 14.6,12.6 15.7,10.5 16.7,10.1 17.7,9.9 18.8,4.1 19.8,4.0 20.9,5.3 21.9,7.4 23.0,9.7 24.0,11.5 25.0,12.3 26.1,10.8 27.1,9.4 28.2,11.0 29.2,12.5 30.3,13.8 31.3,14.6 32.3,14.6 33.4,13.6 34.4,13.3 35.5,13.7 36.5,14.5 37.6,12.9 38.6,12.2 39.7,13.4 40.7,13.8 41.7,13.3 42.8,11.0 43.8,11.9 44.9,13.6 45.9,14.8 47.0,12.0 48.0,12.1 49.0,13.5 50.1,16.9 51.1,15.2 52.2,15.4 53.2,16.3 54.3,17.8 55.3,19.7 56.3,18.2 57.4,19.2 58.4,18.9 59.5,25.1 60.5,28.0 61.6,27.0 62.6,24.7 63.7,21.3 64.7,23.1 65.7,21.6 66.8,22.5 67.8,19.1 68.9,15.2 69.9,15.0 71.0,15.0 72.0,13.2 73.0,10.1 74.1,9.6 75.1,8.7 76.2,9.6 77.2,9.7 78.3,9.4 79.3,11.5 80.3,11.4 81.4,9.2 82.4,9.9 83.5,10.1 84.5,18.1 85.6,17.3 86.6,17.7 87.7,18.0 88.7,18.3 89.7,16.4 90.8,17.3 91.8,18.3 92.9,19.0 93.9,18.5 95.0,16.2 96.0,16.9 97.0,17.6 98.1,18.0 99.1,18.3 100.2,18.7 101.2,17.2 102.3,17.4 103.3,16.9 104.3,14.4 105.4,15.2 106.4,18.1 107.5,18.5 108.5,18.0 109.6,15.3 110.6,20.2 111.7,20.7 112.7,20.4 113.7,21.7 114.8,23.4 115.8,22.9 116.9,20.6 117.9,19.0 119.0,22.2 120.0,22.6"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">Alphabet</td>
+  <td class="num">368.03</td>
+  <td class="num up">+1.17%</td>
+  <td class="num up">+15.73%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gt5" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#d32f2f" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#d32f2f" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gt5)" points="0.0,20.7 1.0,19.8 2.1,20.4 3.1,19.9 4.2,18.5 5.2,17.7 6.3,17.8 7.3,16.2 8.3,16.8 9.4,16.7 10.4,17.3 11.5,18.7 12.5,18.9 13.6,17.1 14.6,17.4 15.7,17.4 16.7,16.2 17.7,16.5 18.8,17.5 19.8,16.4 20.9,15.8 21.9,15.4 23.0,17.1 24.0,21.4 25.0,18.8 26.1,19.3 27.1,19.8 28.2,20.8 29.2,21.3 30.3,21.9 31.3,23.4 32.3,22.4 33.4,22.6 34.4,21.9 35.5,20.7 36.5,21.5 37.6,20.8 38.6,22.2 39.7,21.9 40.7,22.4 41.7,23.3 42.8,22.5 43.8,23.0 44.9,23.6 45.9,23.8 47.0,21.5 48.0,21.5 49.0,22.4 50.1,22.5 51.1,22.0 52.2,21.6 53.2,21.3 54.3,22.2 55.3,22.9 56.3,22.4 57.4,24.5 58.4,24.7 59.5,26.8 60.5,27.6 61.6,28.0 62.6,27.0 63.7,24.5 64.7,24.7 65.7,23.5 66.8,23.1 67.8,19.7 68.9,20.5 69.9,19.5 71.0,19.6 72.0,18.0 73.0,16.6 74.1,15.9 75.1,15.6 76.2,15.5 77.2,16.6 78.3,15.8 79.3,15.6 80.3,15.8 81.4,14.4 82.4,13.7 83.5,14.1 84.5,9.9 85.6,7.3 86.6,7.2 87.7,6.4 88.7,4.7 89.7,4.7 90.8,4.0 91.8,5.5 92.9,6.6 93.9,6.2 95.0,4.1 96.0,4.6 97.0,4.4 98.1,6.0 99.1,6.6 100.2,6.6 101.2,6.8 102.3,6.7 103.3,6.0 104.3,6.2 105.4,7.5 106.4,8.4 107.5,11.3 108.5,11.4 109.6,11.4 110.6,10.2 111.7,10.9 112.7,11.5 113.7,11.9 114.8,13.6 115.8,12.0 116.9,9.7 117.9,9.6 119.0,10.6 120.0,11.2 120,32 0,32"/>
+  <polyline fill="none" stroke="#d32f2f" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,20.7 1.0,19.8 2.1,20.4 3.1,19.9 4.2,18.5 5.2,17.7 6.3,17.8 7.3,16.2 8.3,16.8 9.4,16.7 10.4,17.3 11.5,18.7 12.5,18.9 13.6,17.1 14.6,17.4 15.7,17.4 16.7,16.2 17.7,16.5 18.8,17.5 19.8,16.4 20.9,15.8 21.9,15.4 23.0,17.1 24.0,21.4 25.0,18.8 26.1,19.3 27.1,19.8 28.2,20.8 29.2,21.3 30.3,21.9 31.3,23.4 32.3,22.4 33.4,22.6 34.4,21.9 35.5,20.7 36.5,21.5 37.6,20.8 38.6,22.2 39.7,21.9 40.7,22.4 41.7,23.3 42.8,22.5 43.8,23.0 44.9,23.6 45.9,23.8 47.0,21.5 48.0,21.5 49.0,22.4 50.1,22.5 51.1,22.0 52.2,21.6 53.2,21.3 54.3,22.2 55.3,22.9 56.3,22.4 57.4,24.5 58.4,24.7 59.5,26.8 60.5,27.6 61.6,28.0 62.6,27.0 63.7,24.5 64.7,24.7 65.7,23.5 66.8,23.1 67.8,19.7 68.9,20.5 69.9,19.5 71.0,19.6 72.0,18.0 73.0,16.6 74.1,15.9 75.1,15.6 76.2,15.5 77.2,16.6 78.3,15.8 79.3,15.6 80.3,15.8 81.4,14.4 82.4,13.7 83.5,14.1 84.5,9.9 85.6,7.3 86.6,7.2 87.7,6.4 88.7,4.7 89.7,4.7 90.8,4.0 91.8,5.5 92.9,6.6 93.9,6.2 95.0,4.1 96.0,4.6 97.0,4.4 98.1,6.0 99.1,6.6 100.2,6.6 101.2,6.8 102.3,6.7 103.3,6.0 104.3,6.2 105.4,7.5 106.4,8.4 107.5,11.3 108.5,11.4 109.6,11.4 110.6,10.2 111.7,10.9 112.7,11.5 113.7,11.9 114.8,13.6 115.8,12.0 116.9,9.7 117.9,9.6 119.0,10.6 120.0,11.2"/>
+</svg></td>
+</tr>
+<tr>
+  <td class="name">Tesla</td>
+  <td class="num">400.49</td>
+  <td class="num up">+1.04%</td>
+  <td class="num down">-11.62%</td>
+  <td class="sparkline-cell"><svg viewBox="0 0 120 32" width="120" height="32">
+  <defs><linearGradient id="gt6" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#2e7d32" stop-opacity="0.25"/>
+    <stop offset="100%" stop-color="#2e7d32" stop-opacity="0.02"/>
+  </linearGradient></defs>
+  <polygon fill="url(#gt6)" points="0.0,6.1 1.0,4.0 2.1,7.5 3.1,7.0 4.2,8.5 5.2,7.2 6.3,5.5 7.3,4.1 8.3,6.3 9.4,5.5 10.4,6.1 11.5,10.1 12.5,9.6 13.6,6.7 14.6,4.1 15.7,6.3 16.7,7.1 17.7,7.2 18.8,10.7 19.8,8.9 20.9,10.7 21.9,10.9 23.0,14.1 24.0,16.8 25.0,14.5 26.1,12.3 27.1,10.2 28.2,9.5 29.2,10.8 30.3,11.5 31.3,13.9 32.3,11.8 33.4,13.0 34.4,12.7 35.5,15.3 36.5,14.5 37.6,11.2 38.6,13.1 39.7,14.4 40.7,16.6 41.7,17.2 42.8,15.2 43.8,14.1 44.9,15.3 45.9,18.1 47.0,14.4 48.0,13.5 49.0,15.2 50.1,16.2 51.1,15.2 52.2,15.5 53.2,15.7 54.3,18.7 55.3,21.9 56.3,20.1 57.4,19.3 58.4,17.3 59.5,20.3 60.5,23.0 61.6,24.7 62.6,22.6 63.7,19.8 64.7,23.1 65.7,25.9 66.8,28.0 67.8,27.5 68.9,28.0 69.9,26.8 71.0,25.5 72.0,24.1 73.0,22.4 74.1,18.0 75.1,15.8 76.2,16.6 77.2,17.3 78.3,17.3 79.3,21.0 80.3,20.5 81.4,22.0 82.4,20.1 83.5,20.7 84.5,21.1 85.6,18.7 86.6,17.4 87.7,16.4 88.7,17.5 89.7,13.5 90.8,10.3 91.8,10.2 92.9,9.0 93.9,7.2 95.0,4.8 96.0,9.0 97.0,12.8 98.1,15.4 99.1,12.5 100.2,11.1 101.2,9.4 102.3,8.1 103.3,6.0 104.3,5.8 105.4,7.7 106.4,10.5 107.5,10.9 108.5,10.4 109.6,10.1 110.6,16.5 111.7,15.1 112.7,17.5 113.7,18.4 114.8,18.3 115.8,16.9 116.9,12.4 117.9,13.8 119.0,15.4 120.0,17.4 120,32 0,32"/>
+  <polyline fill="none" stroke="#2e7d32" stroke-width="1.5"
+    stroke-linejoin="round" stroke-linecap="round" points="0.0,6.1 1.0,4.0 2.1,7.5 3.1,7.0 4.2,8.5 5.2,7.2 6.3,5.5 7.3,4.1 8.3,6.3 9.4,5.5 10.4,6.1 11.5,10.1 12.5,9.6 13.6,6.7 14.6,4.1 15.7,6.3 16.7,7.1 17.7,7.2 18.8,10.7 19.8,8.9 20.9,10.7 21.9,10.9 23.0,14.1 24.0,16.8 25.0,14.5 26.1,12.3 27.1,10.2 28.2,9.5 29.2,10.8 30.3,11.5 31.3,13.9 32.3,11.8 33.4,13.0 34.4,12.7 35.5,15.3 36.5,14.5 37.6,11.2 38.6,13.1 39.7,14.4 40.7,16.6 41.7,17.2 42.8,15.2 43.8,14.1 44.9,15.3 45.9,18.1 47.0,14.4 48.0,13.5 49.0,15.2 50.1,16.2 51.1,15.2 52.2,15.5 53.2,15.7 54.3,18.7 55.3,21.9 56.3,20.1 57.4,19.3 58.4,17.3 59.5,20.3 60.5,23.0 61.6,24.7 62.6,22.6 63.7,19.8 64.7,23.1 65.7,25.9 66.8,28.0 67.8,27.5 68.9,28.0 69.9,26.8 71.0,25.5 72.0,24.1 73.0,22.4 74.1,18.0 75.1,15.8 76.2,16.6 77.2,17.3 78.3,17.3 79.3,21.0 80.3,20.5 81.4,22.0 82.4,20.1 83.5,20.7 84.5,21.1 85.6,18.7 86.6,17.4 87.7,16.4 88.7,17.5 89.7,13.5 90.8,10.3 91.8,10.2 92.9,9.0 93.9,7.2 95.0,4.8 96.0,9.0 97.0,12.8 98.1,15.4 99.1,12.5 100.2,11.1 101.2,9.4 102.3,8.1 103.3,6.0 104.3,5.8 105.4,7.7 106.4,10.5 107.5,10.9 108.5,10.4 109.6,10.1 110.6,16.5 111.7,15.1 112.7,17.5 113.7,18.4 114.8,18.3 115.8,16.9 116.9,12.4 117.9,13.8 119.0,15.4 120.0,17.4"/>
+</svg></td>
+</tr>
       </tbody>
     </table>
-
-    <div class="card">
-      <div class="tag">AI CHIPS</div>
-      <h3>Google Orders Millions of AI Chips from Intel as TSMC Strains to Meet Demand</h3>
-      <p>Google is ordering millions of custom AI chips (TPUs) from Intel's foundry as TSMC faces capacity constraints through 2028. The deal marks a significant shift in the AI chip supply chain and validates Intel's foundry strategy. Amazon separately announced it will begin selling its Trainium AI chips externally, directly challenging Nvidia's dominance.</p>
-      <div class="cn-trans">
-        <strong>Google向英特尔订购数百万AI芯片，台积电产能吃紧</strong><br>由于台积电产能紧张延续至2028年，Google转向英特尔代工厂订购数百万定制AI芯片。该交易标志着AI芯片供应链的重大转变。亚马逊同时宣布将对外销售Trainium AI芯片，直接挑战英伟达在AI加速器市场的主导地位。
-      </div>
-      <div class="source">Source: <a href="https://qz.com" target="_blank">Quartz</a> · <a href="https://www.reuters.com" target="_blank">Reuters</a></div>
-    </div>
-
-    <div class="card">
-      <div class="tag">APPLE-INTEL</div>
-      <h3>Trump Announces Apple-Intel Partnership for US Chip Manufacturing</h3>
-      <p>President Trump announced that Apple will work with Intel to design and manufacture advanced chips in the United States, sending Intel shares up 10.6%. The partnership represents a major win for Intel's nascent foundry business and aligns with the administration's push for domestic semiconductor production. Apple CEO Tim Cook signalled potential price increases to offset rising component costs.</p>
-      <div class="cn-trans">
-        <strong>特朗普宣布苹果与英特尔合作在美制造芯片</strong><br>特朗普总统宣布苹果将与英特尔合作在美国设计和制造先进芯片，英特尔股价飙升10.6%。该合作是英特尔代工业务的重大胜利，与政府推动本土半导体生产的政策一致。苹果CEO库克暗示可能因美国制造成本上升而提价。
-      </div>
-      <div class="source">Source: <a href="https://www.cnbc.com" target="_blank">CNBC</a> · <a href="https://www.wsj.com" target="_blank">WSJ</a></div>
-    </div>
-
-    <div class="card">
-      <div class="tag">MEMORY DEAL</div>
-      <h3>Nvidia and SK Hynix Sign Multiyear Deal to Develop Next-Gen AI Memory Chips</h3>
-      <p>Nvidia and SK hynix announced a multiyear partnership to co-develop next-generation HBM (High Bandwidth Memory) chips for AI factories. The deal underscores the growing importance of advanced memory in AI computing as GPU performance increasingly depends on memory bandwidth. Samsung foundry also reported gaining major traction amid the AI chip supply bottleneck.</p>
-      <div class="cn-trans">
-        <strong>英伟达与SK海力士签署多年协议，共同开发下一代AI内存芯片</strong><br>英伟达与SK海力士宣布多年合作，共同开发用于AI工厂的下一代HBM（高带宽内存）芯片。该协议凸显了先进内存在AI计算中日益增长的重要性。三星代工也报告在AI芯片供应瓶颈中获得重大进展。
-      </div>
-      <div class="source">Source: <a href="https://www.reuters.com" target="_blank">Reuters</a> · <a href="https://en.yna.co.kr" target="_blank">Yonhap</a></div>
-    </div>
+    <div class="card tech">
+  <div class="tag">CHINA AI CHIPS</div>
+  <h3>China's 'GPU Four Little Dragons' Complete IPO Lineup as Enflame Tech Approved</h3>
+  <p>Enflame Technology (燧原科技) received STAR Market IPO approval on June 15, targeting a 60 billion yuan ($8.3B) raise — the largest of China's four major GPU startups. All four 'little dragons' (Moore Threads, Muxi, Biren, Enflame) are now public, fueled by sanctions-driven demand for domestic AI chip alternatives to Nvidia. Tencent, which provides 83.8% of Enflame's revenue, holds a 20% stake.</p>
+  <div class="cn-trans">
+    <strong>中国GPU四小龙齐聚资本市场，燧原科技IPO过会</strong><br>燧原科技6月15日科创板IPO过会，拟募资600亿元（约83亿美元），为国产GPU四小龙中最大规模。至此，摩尔线程、沐曦、壁仞、燧原全部登陆资本市场。在制裁驱动下，国产AI芯片需求激增。腾讯贡献燧原83.8%营收并持有20%股权。
+  </div>
+  <div class="source">Source: <a href="https://chosunbiz-chosunbiz-prod.cdn.arcpublishing.com/en/en-international/2026/06/17/5HO4R62SC5HPLKFOYZICXZ34KA/" target="_blank">ChosunBiz</a> · <a href="https://www.reuters.com" target="_blank">Reuters</a></div>
+</div><div class="card tech">
+  <div class="tag">GPT-5.6</div>
+  <h3>GPT-5.6 Launch Anticipated This Week as AI Arms Race Intensifies</h3>
+  <p>OpenAI is expected to launch GPT-5.6 as early as this week, marking another leap in frontier model capabilities. The launch comes amid intensifying competition from Google, Anthropic, and Chinese labs, with enterprise AI adoption accelerating across industries. Early benchmarks suggest significant improvements in reasoning and coding tasks.</p>
+  <div class="cn-trans">
+    <strong>GPT-5.6 预计本周发布，AI军备竞赛再升级</strong><br>OpenAI预计最早本周推出GPT-5.6，标志着前沿模型能力的又一次跃升。此次发布正值谷歌、Anthropic及中国实验室竞争加剧之际，企业AI应用正在加速。早期基准测试显示推理和编程任务有显著提升。
+  </div>
+  <div class="source">Source: <a href="https://www.theverge.com" target="_blank">The Verge</a></div>
+</div><div class="card tech">
+  <div class="tag">TENCENT AI</div>
+  <h3>Tencent's AI Chip Strategy: 83.8% of Enflame Revenue Shows Big Tech's Hardware Bets</h3>
+  <p>Tencent's deep financial entanglement with Enflame Technology — providing 83.8% of revenue and holding 20% equity — reveals how China's internet giants are anchoring the domestic AI chip ecosystem. With US export controls limiting Nvidia's China reach, Tencent, Alibaba, and ByteDance are increasingly backing local alternatives for inference and training workloads.</p>
+  <div class="cn-trans">
+    <strong>腾讯AI芯片战略：燧原科技83.8%营收依赖揭示大厂硬件布局</strong><br>腾讯与燧原科技的深度绑定——贡献83.8%营收并持有20%股权——揭示了中国互联网巨头如何锚定国产AI芯片生态。随着美国出口管制限制英伟达在华业务，腾讯、阿里、字节跳动正加大对国产替代方案的支持力度。
+  </div>
+  <div class="source">Source: <a href="https://www.cnbc.com" target="_blank">CNBC</a></div>
+</div>
   </div>
 
   <!-- ===== POLITICAL PANEL ===== -->
   <div class="panel" id="panel-politics">
     <div class="section-bar politics">Politics &amp; Geopolitics</div>
-
-    <div class="card">
-      <div class="tag">MIDDLE EAST</div>
-      <h3>US and Iran Sign Interim Peace Deal, Ending Hormuz Standoff</h3>
-      <p>The United States and Iran signed an interim peace agreement Thursday, formally ending the months-long Middle East conflict. The US has lifted its naval blockade of the Strait of Hormuz, allowing oil tanker traffic to resume. However, the deal faces immediate tests: US VP JD Vance warned Israel against further military action against Hezbollah, and follow-up talks in Switzerland were abruptly cancelled. Skepticism remains high about the deal's long-term durability.</p>
-      <div class="cn-trans">
-        <strong>美伊签署临时和平协议，结束霍尔木兹海峡对峙</strong><br>美伊周四正式签署临时和平协议，结束数月中东冲突。美国已解除霍尔木兹海峡海军封锁，恢复油轮通行。但协议面临即时考验：副总统万斯警告以色列勿再对真主党采取军事行动，瑞士后续会谈突然取消。外界对协议长期可持续性仍持怀疑态度。
-      </div>
-      <div class="source">Source: <a href="https://www.reuters.com" target="_blank">Reuters</a> · <a href="https://apnews.com" target="_blank">AP News</a></div>
-    </div>
-
-    <div class="card">
-      <div class="tag">BOE &amp; SNB</div>
-      <h3>Bank of England and Swiss National Bank Hold Rates Steady</h3>
-      <p>The Bank of England held interest rates at 3.75% in a 7-2 vote, signalling caution on the Hormuz reopening's impact on inflation. The Swiss National Bank also held at 0%, stating willingness to intervene on franc strength. Both banks are watching the US-Iran peace deal's effect on energy prices and global inflation closely.</p>
-      <div class="cn-trans">
-        <strong>英国央行与瑞士央行维持利率不变</strong><br>英国央行以7比2投票维持利率3.75%不变，对霍尔木兹重开对通胀的影响持谨慎态度。瑞士央行维持0%利率，表示愿意干预瑞郎升值。两家央行均密切关注美伊和平协议对能源价格和全球通胀的影响。
-      </div>
-      <div class="source">Source: <a href="https://www.bloomberg.com" target="_blank">Bloomberg</a> · <a href="https://www.wsj.com" target="_blank">WSJ</a></div>
-    </div>
-
-    <div class="card">
-      <div class="tag">TRADE</div>
-      <h3>US-China Trade Tensions Flare as Semiconductor Export Controls Tighten</h3>
-      <p>The Biden administration's latest round of semiconductor export controls targeting China's AI capabilities continues to generate friction. Beijing has warned of "necessary countermeasures" as the US restricts sales of advanced chipmaking equipment to Chinese firms. The tensions come as global chip supply chains are already strained by TSMC capacity constraints and booming AI demand.</p>
-      <div class="cn-trans">
-        <strong>美国收紧半导体出口管制，中美贸易摩擦升温</strong><br>拜登政府最新一轮针对中国AI能力的半导体出口管制持续引发摩擦。北京警告将采取"必要反制措施"。此时全球芯片供应链已因台积电产能限制和AI需求爆发而紧张。
-      </div>
-      <div class="source">Source: <a href="https://www.reuters.com" target="_blank">Reuters</a> · <a href="https://apnews.com" target="_blank">AP News</a></div>
-    </div>
+    <div class="card politics">
+  <div class="tag">US-IRAN TALKS</div>
+  <h3>US-Iran Peace Talks Suspended After Trump Threats, Hormuz Crisis Intensifies</h3>
+  <p>High-stakes US-Iran negotiations in Bürgenstock, Switzerland — led by VP JD Vance and Iranian Speaker Ghalibaf with Pakistan/Qatar mediation — were suspended after 80 minutes when Iran's delegation walked out over Trump's threats. Trump warned on Fox News the US could 'take control' of the Strait of Hormuz and collect tolls. Despite Iran's closure declaration, oil continues flowing via southern routes under US military protection.</p>
+  <div class="cn-trans">
+    <strong>美伊和谈因特朗普威胁中断，霍尔木兹危机升级</strong><br>由副总统万斯和伊朗议长卡利巴夫主导的美伊瑞士和谈仅80分钟即告中断。伊朗代表团因特朗普在福克斯新闻中威胁'控制霍尔木兹海峡并收通行费'而离场。尽管伊朗宣布封锁海峡，但在美军保护下，南部航线仍有石油通行。巴基斯坦与卡塔尔继续斡旋。
+  </div>
+  <div class="source">Source: <a href="https://apnews.com" target="_blank">AP News</a> · <a href="https://www.reuters.com" target="_blank">Reuters</a></div>
+</div><div class="card politics">
+  <div class="tag">US-CHINA TRUCE</div>
+  <h3>US-China Trade Truce Holds: Tariff Talks Progress on $300B in Non-Sensitive Goods</h3>
+  <p>The US and China are actively negotiating tariff reductions on $300 billion worth of non-sensitive goods, with progress on soybean purchases and civilian drone export relaxations. However, the US maintains strict semiconductor controls and launched a new Section 301 investigation into alleged forced labor. Trump publicly thanked China for its neutral stance during the US-Iran conflict.</p>
+  <div class="cn-trans">
+    <strong>中美贸易休战持续：3000亿美元非敏感商品关税谈判取得进展</strong><br>中美正积极谈判削减3000亿美元非敏感商品关税，大豆采购和民用无人机出口放松方面取得进展。但美国维持严格半导体管制，并启动新的301调查。特朗普公开感谢中国在美伊冲突中的中立立场及维护霍尔木兹海峡航行自由。
+  </div>
+  <div class="source">Source: <a href="https://www.wsj.com" target="_blank">WSJ</a></div>
+</div><div class="card politics">
+  <div class="tag">UK LEADERSHIP</div>
+  <h3>UK PM Starmer Expected to Set Resignation Timeline Amid Leadership Crisis</h3>
+  <p>Prime Minister Keir Starmer faces mounting pressure to resign after Greater Manchester Mayor Andy Burnham won a by-election, creating a viable path to challenge for Labour leadership. Starmer is expected to announce a resignation timetable as early as Monday. Markets are pricing in increased fiscal uncertainty, with the pound sliding and UK gilts underperforming European peers.</p>
+  <div class="cn-trans">
+    <strong>英国首相斯塔默预计公布辞职时间表，领导层危机加剧</strong><br>首相斯塔默面临日益增长的辞职压力，此前大曼彻斯特市长伯纳姆在补选中获胜，为挑战工党领袖职位提供了可行路径。斯塔默预计最早周一公布辞职时间表。市场已开始定价财政不确定性上升，英镑下滑，英国国债表现落后于欧洲同行。
+  </div>
+  <div class="source">Source: <a href="https://www.bbc.com" target="_blank">BBC</a> · <a href="https://www.reuters.com" target="_blank">Reuters</a></div>
+</div>
   </div>
 
   <!-- ===== OTHER HIGHLIGHTS PANEL ===== -->
   <div class="panel" id="panel-other">
     <div class="section-bar other">Other Highlights</div>
-
-    <div class="card">
-      <div class="tag">RECORDS</div>
-      <h3>Japan Nikkei, South Korea Kospi Hit Record Highs in Stellar Weekly Rally</h3>
-      <p>Japan's Nikkei 225 index rose for a fifth straight session to record highs, posting a weekly gain of ~8.5%. South Korea's Kospi surged ~15% for the week, briefly crossing the 9,000-point mark before retreating on Friday profit-taking. The rallies were fueled by the US-Iran peace deal, AI chip optimism, and continued yen weakness boosting Japanese exporters.</p>
-      <div class="cn-trans">
-        <strong>日韩股市齐创新高，周线暴涨</strong><br>日经225指数连续第五个交易日创新高，周涨幅约8.5%。韩国KOSPI周涨幅约15%，一度突破9000点大关后因获利回吐回落。美伊和平协议、AI芯片乐观情绪及日元持续走弱推动日本出口商，共同助推这轮涨势。
-      </div>
-      <div class="source">Source: <a href="https://www.bloomberg.com" target="_blank">Bloomberg</a> · <a href="https://finance.yahoo.com" target="_blank">Yahoo Finance</a></div>
-    </div>
-
-    <div class="card">
-      <div class="tag">SPORTS</div>
-      <h3>FIFA World Cup 2026: Knockout Stage Matchups Set as Group Play Concludes</h3>
-      <p>The 2026 FIFA World Cup group stage has concluded with several surprise eliminations. Knockout stage brackets are now set with traditional powers Brazil, France, and Argentina advancing alongside emerging contenders. The tournament, hosted across the US, Canada, and Mexico, has drawn record global viewership numbers.</p>
-      <div class="cn-trans">
-        <strong>2026世界杯小组赛收官，淘汰赛对阵出炉</strong><br>2026年FIFA世界杯小组赛收官，多支传统强队爆冷出局。淘汰赛对阵已确定，巴西、法国、阿根廷等传统强队晋级。本届由美加墨联合主办的世界杯创下全球收视纪录。
-      </div>
-      <div class="source">Source: <a href="https://www.bbc.com" target="_blank">BBC</a> · <a href="https://apnews.com" target="_blank">AP News</a></div>
-    </div>
-
-    <div class="card">
-      <div class="tag">CRYPTO</div>
-      <h3>Bitcoin Holds Above $95,000 as Institutional Adoption Accelerates</h3>
-      <p>Bitcoin continued trading above $95,000, supported by accelerating institutional adoption and new ETF inflows. Major Wall Street firms have expanded their crypto trading desks, while several sovereign wealth funds disclosed BTC allocations. Ethereum traded near $5,800 as the ecosystem's total value locked reached new highs.</p>
-      <div class="cn-trans">
-        <strong>比特币持稳于95000美元上方，机构加速入场</strong><br>比特币在95000美元上方交易，受机构加速采用和新ETF资金流入支撑。多家华尔街大行扩大加密货币交易部门，数个主权财富基金披露比特币配置。以太坊交易于5800美元附近，生态总锁仓量创新高。
-      </div>
-      <div class="source">Source: <a href="https://www.cnbc.com" target="_blank">CNBC</a> · <a href="https://www.bloomberg.com" target="_blank">Bloomberg</a></div>
-    </div>
+    <div class="card other">
+  <div class="tag">FIFA CRYPTO</div>
+  <h3>FIFA World Cup 2026 Goes Crypto: Kraken Sponsorship, Avalanche Ticketing, Fan Tokens</h3>
+  <p>The 2026 FIFA World Cup has become a showcase for crypto adoption: Kraken signed as the first Official Crypto Exchange Supporter in World Cup history, Avalanche blockchain powers an anti-scalping ticket system, and national fan tokens (e.g., Belgium's $BELG) enable voting rights. Prediction markets Polymarket and Kalshi hit a record $4.8 billion daily volume on June 12, driven by World Cup bets.</p>
+  <div class="cn-trans">
+    <strong>2026世界杯成为加密试验场：Kraken赞助、Avalanche票务、粉丝代币</strong><br>2026年世界杯成为加密货币应用的展示窗口：Kraken成为首个官方加密交易所赞助商，Avalanche区块链用于防止黄牛票，国家粉丝代币（如比利时$BELG）提供投票权。预测市场Polymarket和Kalshi在6月12日创下48亿美元日交易量纪录。
+  </div>
+  <div class="source">Source: <a href="https://www.kucoin.com/news/flash/fifa-partners-with-kraken-as-crypto-exchange-for-2026-world-cup" target="_blank">KuCoin</a> · <a href="https://coinmarketcap.com/community/articles/6a3304f5977d9f6899b2b357/" target="_blank">CoinMarketCap</a></div>
+</div><div class="card other">
+  <div class="tag">CRYPTO BUST</div>
+  <h3>US Secret Service Dismantles $389M Crypto Money Laundering Ring in 11-Country Operation</h3>
+  <p>The US Secret Service led an 11-nation operation (June 11-13) that dismantled 'AudiA6', a major crypto money laundering service. Two arrests were made, servers seized, and digital assets tied to $389 million in unlawful transactions were frozen. The agency also highlighted its World Cup security role, noting several agents previously played professional soccer.</p>
+  <div class="cn-trans">
+    <strong>美国特勤局11国联合行动捣毁3.89亿美元加密洗钱网络</strong><br>美国特勤局6月11-13日主导11国联合行动，捣毁名为'AudiA6'的大型加密洗钱服务网络。逮捕2人、查封服务器并冻结涉及3.89亿美元非法交易的数字资产。特勤局同时强调了其在世界杯期间的安保角色。
+  </div>
+  <div class="source">Source: <a href="https://thefederalnewswire.com/u-s-secret-service-announces-major-crypto-bust-and-highlights-world-cup-security-role" target="_blank">The Federal Newswire</a></div>
+</div><div class="card other">
+  <div class="tag">BITCOIN SLIPS</div>
+  <h3>Bitcoin Falls Below $64,000 as Iran Tensions Weigh on Risk Assets</h3>
+  <p>Bitcoin dropped below $64,000, trading around $63,338, as geopolitical tensions between the US and Iran drove investors toward traditional safe havens. The crypto sell-off coincided with broader risk-off sentiment across equity futures, though FIFA World Cup-related crypto activity provided some offsetting demand.</p>
+  <div class="cn-trans">
+    <strong>比特币跌破64000美元，伊朗局势施压风险资产</strong><br>比特币跌破64000美元至约63338美元，美伊地缘政治紧张局势推动投资者转向传统避险资产。加密市场抛售与股市期货风险厌恶情绪同步，但世界杯相关加密活动提供了部分对冲需求。
+  </div>
+  <div class="source">Source: <a href="https://www.cnbc.com" target="_blank">CNBC</a></div>
+</div><div class="card other">
+  <div class="tag">POLYMARKET RECORD</div>
+  <h3>Polymarket & Kalshi Hit Record $4.8 Billion Daily Volume on World Cup Mania</h3>
+  <p>Daily prediction-market turnover surged from $2.2 billion (June 11) to $4.8 billion (June 12) — a new category record — as World Cup betting drove unprecedented activity. Combined World Cup-related trading crossed $2 billion. However, regulatory headwinds are building: Spain blocked both platforms, and the CFTC proposed new rules on event contracts.</p>
+  <div class="cn-trans">
+    <strong>Polymarket与Kalshi世界杯狂欢创48亿美元日交易量纪录</strong><br>预测市场日交易量从6月11日的22亿美元飙升至6月12日的48亿美元——创品类新纪录。世界杯相关交易合计突破20亿美元。但监管阻力正在加大：西班牙已封禁两个平台，CFTC提出事件合约新规。
+  </div>
+  <div class="source">Source: <a href="https://www.mexc.io/news/1156899" target="_blank">MEXC</a></div>
+</div>
   </div>
 
   <div class="footer">
@@ -318,7 +476,7 @@
     <a href="https://www.wsj.com" target="_blank">WSJ</a> &middot;
     <a href="https://www.bloomberg.com" target="_blank">Bloomberg</a> &middot;
     <a href="https://www.reuters.com" target="_blank">Reuters</a><br>
-    As of 09:30 CST, June 19, 2026 &middot; Market data as of June 18, 2026 close
+    As of 08:30 CST, 2026年6月22日 &middot; Market data as of June 18-19, 2026 close
   </div>
 </div>
 <script>

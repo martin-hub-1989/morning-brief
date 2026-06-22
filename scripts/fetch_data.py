@@ -12,6 +12,7 @@
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 import urllib.error
@@ -25,6 +26,178 @@ from lib import (
 )
 
 DEFAULT_MAPPING = ROOT / "config" / "edb_mapping.json"
+WIND_MAPPING_PATH = ROOT / "config" / "wind_mapping.json"
+
+# ── Wind CLI (for EDB → Wind fallback) ─────────────────────────────────
+
+_WIND_SKILL_DIR = Path(os.environ.get(
+    "WIND_SKILL_DIR",
+    str(Path.home() / ".claude" / "skills" / "wind-mcp-skill")
+))
+
+# Global counter for Wind API calls (shared across modules)
+WIND_CALL_COUNT = 0
+
+
+def _call_wind_cli(server_type, tool_name, params, timeout=30):
+    """Call Wind MCP CLI. Returns parsed data or None."""
+    global WIND_CALL_COUNT
+    params_json = json.dumps(params, ensure_ascii=False)
+    cmd = ["node", "scripts/cli.mjs", "call", server_type, tool_name, params_json]
+    WIND_CALL_COUNT += 1
+
+    try:
+        result = subprocess.run(
+            cmd, cwd=str(_WIND_SKILL_DIR),
+            capture_output=True, text=True, timeout=timeout
+        )
+    except subprocess.TimeoutExpired:
+        log(f"Wind CLI timeout after {timeout}s", "WARN")
+        return None
+    except Exception as e:
+        log(f"Wind CLI error: {e}", "WARN")
+        return None
+
+    if result.returncode != 0:
+        return None
+
+    try:
+        outer = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return None
+
+    if outer.get("isError"):
+        return None
+
+    content = outer.get("content", [])
+    if not content:
+        return None
+
+    try:
+        inner = json.loads(content[0]["text"])
+    except (json.JSONDecodeError, KeyError, IndexError):
+        return None
+
+    if inner.get("error"):
+        return None
+
+    return inner.get("data")
+
+
+def _fetch_wind_kline(windcode, begin_date, end_date):
+    """Fetch daily kline from Wind, return [[date_str, close], ...] sorted ascending."""
+    params = {
+        "windcode": windcode,
+        "begin_date": begin_date.strftime("%Y%m%d"),
+        "end_date": end_date.strftime("%Y%m%d")
+    }
+    data = _call_wind_cli("index_data", "get_index_kline", params)
+    if not data:
+        return None
+    rows = data.get("rows", [])
+    if not rows:
+        return None
+    points = []
+    for row in rows:
+        if len(row) < 3:
+            continue
+        raw_date = row[-1][:8]  # _DATE column: yyyyMMdd
+        try:
+            date_str = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:8]}"
+        except IndexError:
+            continue
+        try:
+            close_val = float(row[2])  # MATCH column
+        except (ValueError, TypeError):
+            continue
+        points.append([date_str, close_val])
+    points.sort(key=lambda x: x[0])
+    return points
+
+
+def _fetch_wind_economic(metric_ids_str, indicator_filter, begin_date, end_date):
+    """Fetch economic data from Wind, return [[date_str, value], ...] sorted ascending."""
+    params = {
+        "metricIdsStr": metric_ids_str,
+        "freq": "日",
+        "beginDate": begin_date.strftime("%Y%m%d"),
+        "endDate": end_date.strftime("%Y%m%d")
+    }
+    data = _call_wind_cli("economic_data", "get_economic_data", params)
+    if not data:
+        return None
+
+    dates = data.get("date", [])
+    indicators = data.get("indicatorInfo", [])
+    if not dates or not indicators:
+        return None
+
+    # Match by indicator_filter
+    target = None
+    for ind in indicators:
+        name = ind.get("name", "")
+        if indicator_filter.lower() in name.lower():
+            target = ind
+            break
+    if not target:
+        for ind in indicators:
+            vals = [v for v in ind.get("data", []) if v is not None]
+            if vals:
+                target = ind
+                break
+    if not target:
+        return None
+
+    values = target.get("data", [])
+    points = []
+    for d, v in zip(dates, values):
+        if v is not None:
+            try:
+                raw_date = str(d)
+                date_str = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:8]}"
+                points.append([date_str, float(v)])
+            except (ValueError, TypeError, IndexError):
+                continue
+    points.sort(key=lambda x: x[0])
+    return points
+
+
+def _try_wind_fallback(series_id, wind_mappings, begin_date, end_date):
+    """
+    Attempt to fetch a series from Wind MCP as fallback when EDB fails.
+    Returns dict with 'points' key (same format as EDB data) or None.
+    """
+    wm = wind_mappings.get(series_id)
+    if not wm:
+        return None
+
+    method = wm.get("method", "")
+    log(f"{series_id}: EDB failed, trying Wind fallback ({method})...", "WARN")
+
+    try:
+        if method == "kline":
+            points = _fetch_wind_kline(wm["windcode"], begin_date, end_date)
+        elif method == "economic":
+            points = _fetch_wind_economic(
+                wm["metricIdsStr"], wm["indicator_filter"], begin_date, end_date
+            )
+        else:
+            log(f"{series_id}: unknown Wind method '{method}'", "WARN")
+            return None
+
+        if points:
+            log(f"{series_id}: Wind fallback OK — {len(points)} points, "
+                f"latest={points[-1][0]}={points[-1][1]}", "OK")
+            return {
+                "points": points,
+                "source": "wind_fallback"
+            }
+        else:
+            log(f"{series_id}: Wind fallback returned no data", "WARN")
+            return None
+    except Exception as e:
+        log(f"{series_id}: Wind fallback error: {e}", "ERROR")
+        return None
 
 
 # ── EDB API ──────────────────────────────────────────────────────────
@@ -223,6 +396,13 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
     token = extract_jwe_token()
     base_url = fetch_cfg["base_url"]
 
+    # ---- load Wind fallback mappings ----
+    wind_mappings = {}
+    if WIND_MAPPING_PATH.exists():
+        wind_cfg = load_json(WIND_MAPPING_PATH)
+        wind_mappings = wind_cfg.get("mappings", {})
+    fallback_begin_date = date.today() - timedelta(days=90)  # 90-day lookback for fallback
+
     with open_db(db_path) as conn:
 
         # ---- identify targets ----
@@ -294,12 +474,26 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
                     time.sleep(backoff)
 
             if data is None:
-                fetch_errors.append({"series_id": sid, "reason": "fetch_failed"})
-                log(f"{sid}: fetch failed after retries", "ERROR")
+                # Try Wind MCP fallback
+                wind_data = _try_wind_fallback(
+                    sid, wind_mappings, fallback_begin_date, date.today()
+                )
+                if wind_data:
+                    results[sid] = wind_data
+                else:
+                    fetch_errors.append({"series_id": sid, "reason": "fetch_failed"})
+                    log(f"{sid}: fetch failed after retries (EDB + Wind)", "ERROR")
             elif not data["points"]:
-                fetch_errors.append({"series_id": sid, "reason": "empty_data"})
-                if verbose:
-                    log(f"{sid}: no data returned", "WARN")
+                # Try Wind MCP fallback for empty EDB data
+                wind_data = _try_wind_fallback(
+                    sid, wind_mappings, fallback_begin_date, date.today()
+                )
+                if wind_data:
+                    results[sid] = wind_data
+                else:
+                    fetch_errors.append({"series_id": sid, "reason": "empty_data"})
+                    if verbose:
+                        log(f"{sid}: no data returned (EDB + Wind)", "WARN")
             else:
                 results[sid] = data
                 if verbose:
@@ -341,7 +535,27 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
                 validated.append(item)
             elif status == "partial":
                 partial.append(item)
-            else:
+            elif status == "fail":
+                # Try Wind fallback on validation failure
+                if data.get("source") != "wind_fallback":  # don't double-fallback
+                    wind_data = _try_wind_fallback(
+                        sid, wind_mappings, fallback_begin_date, date.today()
+                    )
+                    if wind_data:
+                        # Validate Wind data too
+                        w_status, w_msg = validate_series(
+                            conn, sid, wind_data["points"], validation_cfg
+                        )
+                        log(f"{sid}: Wind fallback validate={w_status} — {w_msg}",
+                            "WARN" if w_status != "ok" else "OK")
+                        if w_status == "ok":
+                            results[sid] = wind_data
+                            validated.append(item)
+                            continue
+                        elif w_status == "partial":
+                            results[sid] = wind_data
+                            partial.append(item)
+                            continue
                 failed.append({"series_id": sid, "reason": f"validation_failed: {msg}"})
 
         log(f"Validated: {len(validated)} ok, {len(partial)} partial, {len(failed)} failed")
@@ -393,9 +607,10 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
                     obs_inserted += 1
 
                 # 更新 series 表的 update_method
+                method = 'wind_mcp_fallback' if data.get("source") == "wind_fallback" else 'edb_mcp'
                 conn.execute(
-                    "UPDATE series SET update_method = 'edb_mcp', updated_at = ? WHERE series_id = ?",
-                    (imported_at, sid)
+                    "UPDATE series SET update_method = ?, updated_at = ? WHERE series_id = ?",
+                    (method, imported_at, sid)
                 )
                 series_updated += 1
 
@@ -407,6 +622,9 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
 
         # ---- summary ----
         all_errors = fetch_errors + failed
+        wind_fallback_count = sum(
+            1 for v in results.values() if v.get("source") == "wind_fallback"
+        )
         summary = {
             "timestamp": imported_at,
             "dry_run": dry_run,
@@ -416,6 +634,8 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
             "series_partial": len(partial),
             "series_failed": len(all_errors),
             "obs_inserted": obs_inserted,
+            "wind_fallback_used": wind_fallback_count,
+            "wind_api_calls": WIND_CALL_COUNT,
             "failures": all_errors
         }
 
@@ -475,6 +695,10 @@ def main():
     log(f"Passed:   {summary['series_validated']} ok + {summary['series_partial']} partial")
     log(f"Failed:   {summary['series_failed']} series")
     log(f"New obs:  {summary['obs_inserted']} observations")
+    if summary.get("wind_fallback_used", 0) > 0:
+        log(f"Wind fallback: {summary['wind_fallback_used']} series (EDB→Wind auto-switch)", "OK")
+    if summary.get("wind_api_calls", 0) > 0:
+        log(f"Wind API calls: {summary['wind_api_calls']} (fallback)")
 
     if summary["failures"]:
         log("Failures:", "WARN")

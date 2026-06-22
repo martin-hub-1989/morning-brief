@@ -19,12 +19,15 @@
 """
 
 import argparse
+import json
 import os
 import subprocess
 import sys
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
-from lib import ROOT, DEFAULT_DB, open_db
+from lib import ROOT, DEFAULT_DB, open_db, load_json
 
 PYTHON = sys.executable
 
@@ -34,6 +37,14 @@ _UTF8_ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
 
 def run(args):
     subprocess.run([PYTHON, *args], cwd=ROOT, check=True, env=_UTF8_ENV)
+
+
+def _read_json(path):
+    """Read JSON file, return {} if missing."""
+    try:
+        return load_json(path)
+    except (FileNotFoundError, json.JSONDecodeError, Exception):
+        return {}
 
 
 def main():
@@ -47,6 +58,9 @@ def main():
     parser.add_argument("--skip-fetch-emotion", action="store_true",
                         help="Skip only HTSC emotion fetch")
     args = parser.parse_args()
+
+    start_time = time.time()
+    start_dt = datetime.now()
 
     db = DEFAULT_DB
     if not db.exists():
@@ -91,6 +105,7 @@ def main():
     steps.append(("Generating interactive dashboard", ["scripts/generate_interactive_dashboard.py"]))
 
     total_steps = len(steps)
+    step_failures = 0
 
     for i, (label, cmd) in enumerate(steps):
         print(f"[run_daily] Step {i+1}/{total_steps}: {label}")
@@ -100,11 +115,46 @@ def main():
             except subprocess.CalledProcessError as e:
                 print(f"[run_daily] WARNING: {cmd[0]} failed with exit code {e.returncode}")
                 print("[run_daily] Continuing...")
+                step_failures += 1
+
+    # ── Collect metrics ──
+    elapsed = time.time() - start_time
+    elapsed_str = str(timedelta(seconds=int(elapsed)))
+
+    # Read Wind API call counts from summary JSONs
+    edb_summary = _read_json(ROOT / "data" / "fetch_summary.json")
+    wind_summary = _read_json(ROOT / "data" / "wind_fetch_summary.json")
+
+    edb_wind_calls = edb_summary.get("wind_api_calls", 0)
+    edb_fallback = edb_summary.get("wind_fallback_used", 0)
+    wind_calls = wind_summary.get("wind_api_calls", 0)
+    total_wind_calls = edb_wind_calls + wind_calls
+
+    # Total observations inserted
+    edb_obs = edb_summary.get("obs_inserted", 0)
+    wind_obs = wind_summary.get("obs_inserted", 0)
 
     dashboard = ROOT / "output" / "interactive_dashboard.html"
     docs_dashboard = ROOT / "docs" / "index.html"
     print(f"[run_daily] Done! Dashboard: {dashboard}")
     print(f"[run_daily] GitHub Pages: {docs_dashboard}")
+
+    # ── Execution Report ──
+    print()
+    print("=" * 60)
+    print("  Martin Morning Brief — 执行报告")
+    print("=" * 60)
+    print(f"  执行时间:     {start_dt.strftime('%Y-%m-%d %H:%M:%S')} CST")
+    print(f"  总耗时:       {elapsed_str}")
+    print(f"  数据新增:     {edb_obs + wind_obs} 条观测")
+    print(f"  Wind API 调用: {total_wind_calls} 次")
+    if edb_fallback > 0:
+        print(f"    ├─ EDB→Wind 自动切换: {edb_fallback} 个序列")
+        print(f"    └─ 常规 Wind 拉取:    {wind_calls} 次")
+    if edb_wind_calls > 0:
+        print(f"  EDB 降级拉取:  {edb_wind_calls} 次 Wind 调用 (auto-fallback)")
+    print(f"  步骤失败:     {step_failures} 个 (已自动跳过)")
+    print("=" * 60)
 
 
 if __name__ == "__main__":

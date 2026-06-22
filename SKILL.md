@@ -519,11 +519,13 @@ python3 scripts/run_daily.py
 这将依次运行脚本：
 
 1. **update_data.py** — 扫描数据库，生成增量更新计划 (`data/update_plan.json`)
-2. **fetch_data.py** — 从同花顺 EDB API 拉取日频数据，验证后写入 SQLite
+2. **fetch_data.py** — 从同花顺 EDB API 拉取日频数据，验证后写入 SQLite。**EDB 拉取失败时自动降级到 Wind MCP**（需该序列在 `wind_mapping.json` 中有映射）
 3. **fetch_wind.py** — 从 Wind MCP 拉取外汇原始数据（CNH远期/掉期点）+ 全收益指数 + 估值
 4. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（汇率拆解+套保成本+年化），幂等
 5. **fetch_emotion.py** — 从华泰智研 MCP 拉取市场情绪和资金面数据
 6. **generate_interactive_dashboard.py** — 从 DB & `templates/dashboard.html` 生成 `output/interactive_dashboard.html` + `docs/index.html`（GitHub Pages），同时自动复制最新的 Global News Report 到 `output/global-news-report.html`（供看板「看世界」iframe 使用）
+
+**EDB → Wind 自动切换**（新增）：当 `fetch_data.py` 从同花顺 EDB 拉取或验证失败时，自动检查 `config/wind_mapping.json` 是否有该序列的 Wind 映射。如有，则自动通过 Wind MCP 拉取，标记为 `wind_mcp_fallback`。无需人工干预。
 
 如果 fetch 步骤部分序列验证失败，看板仍会用现有数据生成。
 
@@ -542,13 +544,16 @@ python3 scripts/run_daily.py --skip-fetch-emotion  # 仅跳过华泰智研 MCP
 ```
 === THS EDB Fetch Summary ===
 Targeted: 36 series    ← 需要更新的序列总数
-Fetched:  36 series    ← 成功从同花顺 EDB 拉取
+Fetched:  36 series    ← 成功拉取（含 Wind 降级）
 Passed:   36 ok        ← 验证通过
+Wind fallback: 2       ← EDB 失败后自动切换 Wind 的序列数
+Wind API calls: 4      ← 降级拉取消耗的 Wind 调用次数
 New obs:  N observations
 
 === Wind Fetch Summary ===
 Targeted: 38 series    ← Wind 负责的序列
 Fetched:  38 series    ← 成功从 Wind 拉取
+Wind API calls: 52     ← Wind 调用总次数
 New obs:  N observations
 
 === Recompute FX Derived ===
@@ -565,19 +570,38 @@ New derived obs: N     ← 新增的复算观测（幂等，重复运行=0）
 
 ### 4. 报告结果
 
-向用户报告：
+**每次执行完成后，必须向用户反馈以下信息：**
 
 ```
-## Daily Morning Brief 每日更新完成
+## Martin Morning Brief 每日更新完成
 
-- 更新时间：<timestamp>
+- 更新时间：<timestamp> CST
+- 执行耗时：<HH:MM:SS>
 - 全球新闻报告：已生成 / 复用最近报告（<filename>）
-- 同花顺 EDB：36 / 36 个序列通过
-- Wind MCP：38 / 38 个序列拉取成功
-- FX 衍生复算：N 条新观测
-- 验证通过：74 个
+
+### 数据拉取
+| 数据源 | 结果 |
+|--------|------|
+| 同花顺 EDB | X ok + Y partial, Z 失败 |
+| EDB→Wind 自动切换 | N 个序列 (EDB 失败后自动降级) |
+| Wind MCP (常规) | X ok, Y 失败 |
+| 华泰智研情绪 | N 条新观测 |
+| FX 衍生复算 | N 条新观测 |
+
+### 资源消耗
+| 指标 | 数值 |
+|------|------|
+| Wind API 调用 | N 次 (含 EDB 降级 + 常规拉取) |
+| 本会话 Token | 约 N 万 |
+
 - 看板文件：output/interactive_dashboard.html
 ```
+
+**Wind 积分估算**（参考）：
+- 每次 K-line 调用 ≈ 1 积分
+- 每次 economic_data 调用 ≈ 1 积分
+- 每次 get_index_fundamentals 调用 ≈ 1 积分
+- 总消耗 = Wind API 调用次数 × 1 积分
 
 如有新的验证失败（非预期），列出具体序列和差异值。
 
@@ -767,11 +791,13 @@ Martin Morning Brief/
 | 看世界 iframe 显示占位 | Step 0 未执行或报告未生成 | 运行 Step 0 或 `@global-news-report` skill |
 | 看世界内容不是当天新闻 | Step 0 执行了但报告是旧的 | 检查根目录是否有当天日期的 `Global News Report-*.html` |
 | `fetch_data.py` 报认证错误 | JWE Token 过期 | 从同花顺重新获取 Token，更新 `~/.claude/mcp.json` |
-| `fetch_data.py` 网络超时 | 同花顺 API 不可达 | 检查网络，确认 `api-mcp.51ifind.com:8643` 可达 |
+| `fetch_data.py` 网络超时 | 同花顺 API 不可达 | 检查网络；系统会自动降级到 Wind MCP（如该序列在 `wind_mapping.json` 中有映射） |
 | `fetch_wind.py` FX 序列无数据 | Wind 搜索词不精确 | 调整 `config/wind_mapping.json` 中的 `indicator_filter` |
-| 大量验证失败（新序列） | 数据库数据源与 EDB 口径不一致 | 检查 `config/edb_mapping.json` 中的 EDB 查询是否准确 |
+| 大量验证失败（新序列） | 数据库数据源与 EDB 口径不一致 | 检查 `config/edb_mapping.json` 中的 EDB 查询是否准确；EDB 验证失败也会自动尝试 Wind 降级 |
+| EDB 序列持续失败 | EDB + Wind 均无此序列 | 检查该序列是否同时在 `edb_mapping.json` 和 `wind_mapping.json` 中缺失；如是，需手动添加映射 |
 | 数据库不存在 | 首次运行 | `run_daily.py` 会自动调用 `import_seed.py --replace`（all-in-one） |
 | 衍生序列缺失 | `recompute_fx_derived.py` 未运行 | 手动运行 `python3 scripts/recompute_fx_derived.py` |
+| Wind CLI 无输出 | symlink 路径问题 | 检查 `WIND_SKILL_DIR` 或使用真实路径 `~/.agents/skills/wind-mcp-skill/` |
 | Windows 编码报错（UnicodeEncodeError） | Windows 默认 GBK 编码无法处理 ✓✗⚠ 等字符 | 运行时加前缀 `PYTHONIOENCODING=utf-8`；或使用 Windows Terminal（默认 UTF-8） |
 | Windows 路径报错 | SKILL.md / README 中路径示例为 Unix 格式 | 参考 README 快速开始中的 Windows 对应命令 |
 | Yahoo MCP 不工作 | 中国大陆被屏蔽 | 已切换为同花顺 EDB，无需 Yahoo |

@@ -29,6 +29,9 @@ WIND_SKILL_DIR = Path(os.environ.get(
     str(Path.home() / ".claude" / "skills" / "wind-mcp-skill")
 ))
 
+# Global counter for Wind API calls
+WIND_CALL_COUNT = 0
+
 
 # ── Wind CLI ─────────────────────────────────────────────────────────
 
@@ -37,8 +40,10 @@ def call_wind_cli(server_type, tool_name, params, timeout=30):
     调用 Wind MCP CLI，返回解析后的 Python 对象或 None。
     params 是 dict，自动序列化为 JSON 字符串。
     """
+    global WIND_CALL_COUNT
     params_json = json.dumps(params, ensure_ascii=False)
     cmd = ["node", "scripts/cli.mjs", "call", server_type, tool_name, params_json]
+    WIND_CALL_COUNT += 1
 
     try:
         result = subprocess.run(
@@ -665,6 +670,7 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
             "val_partial": val_partial,
             "val_failures": len(val_errors),
             "obs_inserted": obs_inserted + val_inserted,
+            "wind_api_calls": WIND_CALL_COUNT,
             "failures": all_errors
         }
 
@@ -723,6 +729,7 @@ def main():
             f"{summary['val_fetched']} fetched, "
             f"{summary['val_ok']} ok + {summary['val_partial']} partial, {summary['val_failures']} failures")
     log(f"New obs:  {summary['obs_inserted']} observations")
+    log(f"Wind API calls: {summary['wind_api_calls']}")
 
     if summary["failures"]:
         log("Failures:", "WARN")
