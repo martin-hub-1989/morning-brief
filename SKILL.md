@@ -92,6 +92,8 @@ Always available (24/7). Returns minute K-lines; extract last bar for daily clos
 
 > Note: quote returns MATCH (close), AVGPRICE, VOLUME, TURNOVER, TIME, _DATE columns.
 > Day change % requires Open from `rows[0][0]`: `(Close - Open) / Open * 100`.
+>
+> **YTD data**: Fetch enough bars to cover from **{PREV_YEAR}-12-15** onward (or pass `beginDate`/`endDate` if supported). The last bar with a date ≤ `{PREV_YEAR}-12-31` is the YTD base.
 
 ##### 0A-2: Mag 7 Stocks — `get_global_stock_price_indicators` (global_stock_data)
 
@@ -109,13 +111,15 @@ Always available. Returns PrevClose → exact daily change %.
 
 Parse: `data.rows[0]` contains price, prevClose, change%, volume etc.
 
+> **YTD base for stocks**: Fetch data for the **first trading day of the current year** separately. The `prevClose` in that day's response = the last trading day's close of the previous year. This `prevClose` IS the YTD denominator. Alternatively, fetch the year's full daily K-line and take the first bar's prevClose.
+
 ##### 0A-3: Macro/Commodity (Gold, WTI, DXY, US 10Y) — `get_economic_data` (economic_data)
 
 **Single call covers all 4 indicators** — `economic_data` endpoint has broader coverage than `index_data` and is available 24/7 (EDB economic database).
 
 ```
 node scripts/cli.mjs call economic_data get_economic_data \
-  '{"metricIdsStr":"美元指数,伦敦现货黄金价格,NYMEX原油期货价格,美国国债收益率10年","freq":"日","beginDate":"20260101","endDate":"{TODAY}"}'
+  '{"metricIdsStr":"美元指数,伦敦现货黄金价格,NYMEX原油期货价格,美国国债收益率10年","freq":"日","beginDate":"{PREV_YEAR}1215","endDate":"{TODAY}"}'
 ```
 
 **Response structure**: `content[0].text` → parse inner JSON → `data.date[]` + `data.indicatorInfo[]`.
@@ -140,32 +144,47 @@ Each indicator has `code`, `name`, `data[]` (same length as `date[]`, null = non
 
 ##### 0A-4: YTD Calculation — CRITICAL
 
-**⚠️ YTD % must be computed from the FIRST trading day of the year, NOT from any other reference point.**
+**⚠️ Unified methodology: YTD is anchored on the LAST trading day of the PREVIOUS year's close price.**
+This is consistent with the main dashboard's `nearestOnOrBefore(series, "YYYY-01-01")` pattern (see `templates/dashboard.html`).
+Industry standard (Bloomberg, Reuters) — covers the full calendar-year return including the year-end overnight gap.
 
 ###### YTD Formula (price/index indicators)
 
 ```
-YTD% = (latest_value / first_trading_day_of_year_value - 1) × 100
+YTD% = (latest_value / prev_year_last_trading_day_value - 1) × 100
 ```
 
 Where:
-- `latest_value` = last non-null data point in the YTD series
-- `first_trading_day_of_year_value` = **first non-null data point** after stripping nulls from the YTD series (this is the earliest trading day the API returns for the year)
+- `latest_value` = last non-null data point across the full series (current date)
+- `prev_year_last_trading_day_value` = **last non-null data point whose date falls in the previous calendar year** (e.g. 2025-12-31 or earlier if that day is a holiday)
 
 ###### YTD Formula (US 10Y yield — basis points)
 
 ```
-YTD_bp = (latest_yield - first_trading_day_yield) × 100
+YTD_bp = (latest_yield - prev_year_last_trading_day_yield) × 100
 ```
 Display as e.g. `+55bp` or `-12bp` (no % sign for yields).
 
-###### Per-source data for YTD
+###### Data fetching — extend backward into December
 
-| Source | Indicators | YTD Data | First Day | Latest |
-|--------|-----------|----------|-----------|--------|
-| `get_index_kline` (index_data) | DJI, SPX, IXIC | Full YTD bars | `bars[0]` close | `bars[-1]` close |
-| `get_economic_data` (economic_data) | Gold, WTI, DXY, US 10Y | Stripped non-null array — **first element IS the first trading day** | `data[0][1]` | `data[-1][1]` |
-| `get_global_stock_price_indicators` | Mag 7 | Compare latest vs Jan 2 close | Fetch separately or use prevClose chain | Latest close |
+To capture the last trading day of the previous year, ALL data queries must start from **{PREV_YEAR}-12-15** (Dec 15 of the previous year), not Jan 1 of the current year:
+
+| Source | Indicators | beginDate | YTD Base | Latest |
+|--------|-----------|-----------|----------|--------|
+| `get_index_kline` (index_data) | DJI, SPX, IXIC | `{PREV_YEAR}1215` | Last bar with date ≤ `{PREV_YEAR}-12-31` | `bars[-1]` close |
+| `get_economic_data` (economic_data) | Gold, WTI, DXY, US 10Y | `{PREV_YEAR}1215` | Last non-null value with date ≤ `{PREV_YEAR}-12-31` | `data[-1][1]` |
+| `get_global_stock_price_indicators` | Mag 7 | Latest + first-trading-day prevClose | `prevClose` from the first trading day of the current year = last trading day of previous year | Latest close |
+
+**For stocks**: the `prevClose` field returned for the first trading day of the year IS the last trading day's close of the previous year. Use it as the YTD base.
+
+###### YTD data extraction algorithm
+
+1. Fetch data with `beginDate = {PREV_YEAR}1215`
+2. Strip nulls (non-trading days)
+3. Partition: `prev_year = [(d, v) for (d, v) in data if d[:4] == '{PREV_YEAR}']`
+4. `prev_year_last_trading_day_value = prev_year[-1][1]` (last non-null of previous year)
+5. `latest_value = data[-1][1]` (last non-null overall)
+6. For stocks: `ytd_base = prevClose_from_first_trading_day_of_year_response`
 
 ###### Correct YTD sign conventions
 
