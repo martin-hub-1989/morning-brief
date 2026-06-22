@@ -523,7 +523,7 @@ python3 scripts/run_daily.py
 3. **fetch_wind.py** — 从 Wind MCP 拉取外汇原始数据（CNH远期/掉期点）+ 全收益指数 + 估值
 4. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（汇率拆解+套保成本+年化），幂等
 5. **fetch_emotion.py** — 从华泰智研 MCP 拉取市场情绪和资金面数据
-6. **generate_interactive_dashboard.py** — 从 DB & `templates/dashboard.html` 生成 `output/interactive_dashboard.html` + `docs/index.html`（GitHub Pages），同时自动复制最新的 Global News Report 到 `output/global-news-report.html`（供看板「看世界」iframe 使用）
+6. **generate_interactive_dashboard.py** — 从 DB & `templates/dashboard.html` 生成 `output/interactive_dashboard.html` + `docs/index.html`（GitHub Pages）。同时自动查找最新的 Global News Report 并**内联嵌入**到看板 HTML（通过 Blob URL 注入 iframe），使看板文件完全自包含，单个文件即可共享给他人并正常显示「看世界」模块。
 
 **EDB → Wind 自动切换**（新增）：当 `fetch_data.py` 从同花顺 EDB 拉取或验证失败时，自动检查 `config/wind_mapping.json` 是否有该序列的 Wind 映射。如有，则自动通过 Wind MCP 拉取，标记为 `wind_mcp_fallback`。无需人工干预。
 
@@ -560,7 +560,7 @@ New obs:  N observations
 New derived obs: N     ← 新增的复算观测（幂等，重复运行=0）
 
 === Dashboard ===
-看世界 report: Global News Report-YYYYMMDD.html → output/global-news-report.html
+看世界 report: Global News Report-YYYYMMDD.html → inline (自包含，Blob URL 注入)
 ```
 
 **THS EDB 跳过分类**：
@@ -631,7 +631,7 @@ xdg-open output/interactive_dashboard.html
 | # | 模块 | 所在标签 | 验证要点 |
 |---|------|---------|---------|
 | 1 | 封面 | 默认 | 标题、日期、导航卡片完整 |
-| 2 | 看世界 | 看世界 | iframe 加载成功，新闻表格+卡片内容正常；若无当天报告则显示占位提示 |
+| 2 | 看世界 | 看世界 | 内联加载成功（Blob URL），新闻表格+卡片内容正常；若无当天报告则显示占位提示 |
 | 3 | 走势看板 | 走势看板 | 图表+数据表正常，可选择不同指标和周期 |
 | 4 | 股票涨跌 | 涨跌复盘 | 柱状图+表格正常，中信风格子图正常。区间选项含 Since 924（以 2024-09-23 收盘为基准，即 9/24 拐点前一日） |
 | 5 | 利率涨跌 | 涨跌复盘 | 柱状图+表格正常。>1Y 时右侧显示年化 bp |

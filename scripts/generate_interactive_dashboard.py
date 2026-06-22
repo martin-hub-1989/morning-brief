@@ -4,6 +4,7 @@ import glob
 import json
 import math
 import os
+import re
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -278,28 +279,10 @@ def build_payload(db_path):
 HTML_TEMPLATE = None  # Lazy-loaded from TEMPLATE_PATH on first render
 
 
-def render_dashboard(db_path, output_path):
-    global HTML_TEMPLATE
-    if HTML_TEMPLATE is None:
-        HTML_TEMPLATE = TEMPLATE_PATH.read_text(encoding="utf-8")
-    payload = build_payload(db_path)
-    html = HTML_TEMPLATE.replace("__DATA__", json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(html, encoding="utf-8")
-
-    # Also copy to docs/ for GitHub Pages deployment
-    docs_path = DOCS_OUTPUT
-    docs_path.parent.mkdir(parents=True, exist_ok=True)
-    docs_path.write_text(html, encoding="utf-8")
-
-    # Copy latest Global News Report for 看世界 module
-    _copy_global_news_report()
-
-    return output_path
-
-
-def _copy_global_news_report():
-    """Find the latest Global News Report HTML, widen its layout, and copy to output/ and docs/."""
+def _find_world_html():
+    """Find the latest Global News Report HTML and return its content (with widened layout).
+    Returns empty string if no report found.
+    """
     candidates = []
     for pattern in [
         str(ROOT / "Global News Report-*.html"),
@@ -309,22 +292,39 @@ def _copy_global_news_report():
     ]:
         candidates.extend(glob.glob(pattern))
 
-    if candidates:
-        latest = max(candidates, key=os.path.getmtime)
-        # Read and widen the layout for the dashboard iframe
-        content = Path(latest).read_text(encoding="utf-8")
-        # Widen the container for better iframe display
-        import re
-        content = re.sub(r'max-width:\s*\d+px', 'max-width: 100%', content, count=1)
-        for dest in [
-            ROOT / "output" / "global-news-report.html",
-            ROOT / "docs" / "global-news-report.html",
-        ]:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(content, encoding="utf-8")
-        print(f"[dashboard] 看世界 report: {os.path.basename(latest)} → output/global-news-report.html (layout widened)")
-    else:
+    if not candidates:
         print("[dashboard] 看世界 report not found — run @global-news-report skill first")
+        return ""
+
+    latest = max(candidates, key=os.path.getmtime)
+    content = Path(latest).read_text(encoding="utf-8")
+    # Widen the container for better iframe display
+    content = re.sub(r'max-width:\s*\d+px', 'max-width: 100%', content, count=1)
+    print(f"[dashboard] 看世界 report: {os.path.basename(latest)} → inline (layout widened)")
+    return content
+
+
+def render_dashboard(db_path, output_path):
+    global HTML_TEMPLATE
+    if HTML_TEMPLATE is None:
+        HTML_TEMPLATE = TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    # Find and embed the global news report (inline, so the dashboard is self-contained)
+    world_html = _find_world_html()
+
+    payload = build_payload(db_path)
+    html = HTML_TEMPLATE.replace("__DATA__", json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
+    html = html.replace("__WORLD_HTML__", world_html)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(html, encoding="utf-8")
+
+    # Also copy to docs/ for GitHub Pages deployment
+    docs_path = DOCS_OUTPUT
+    docs_path.parent.mkdir(parents=True, exist_ok=True)
+    docs_path.write_text(html, encoding="utf-8")
+
+    return output_path
 
 
 def main():

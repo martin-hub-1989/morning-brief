@@ -14,3 +14,6 @@ data/morning_brief.sqlite
 
 # Generated output
 output/interactive_dashboard.html
+
+# Project instructions (local only, not tracked)
+CLAUDE.md

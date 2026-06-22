@@ -250,12 +250,34 @@
       box-shadow: var(--shadow-sm);
     }
     .panel-head {
+      position: relative;
       padding: 18px 20px 12px;
       border-bottom: 1px solid var(--line);
     }
     h2 { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; padding-left: 12px; border-left: 2px solid var(--red); }
     h3 { margin: 14px 0 6px 20px; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
     .panel-head p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .back-home-btn {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+    .back-home-btn:hover {
+      color: var(--red);
+      border-color: var(--red);
+      background: var(--red-bg);
+    }
     .controls {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -584,18 +606,17 @@
           <h2>看世界</h2>
           <p>全球宏观要闻、市场数据、科技动态一览。数据来源：global-news-report skill（Wind MCP + Web Search）。本模块内容由 Nina 贡献。</p>
         </div>
-        <iframe id="world-iframe" src="global-news-report.html"
-                style="width:100%; min-height:85vh; border:none; border-radius:0 0 var(--radius-md) var(--radius-md); display:block;"
+        <script type="text/html" id="world-html-content">__WORLD_HTML__</script>
+        <iframe id="world-iframe"
+                style="width:100%; min-height:85vh; border:none; border-radius:0 0 var(--radius-md) var(--radius-md); display:none;"
                 title="看世界 - Global News Report"
-                onload="(function(){try{this.style.height=this.contentWindow.document.body.scrollHeight+'px';}catch(e){}})(this)"
-                onerror="document.getElementById('world-placeholder').style.display=''">
+                onload="(function(){try{this.style.height=this.contentWindow.document.body.scrollHeight+'px';}catch(e){}})(this)">
         </iframe>
         <div id="world-placeholder" class="empty" style="padding:60px 20px; text-align:center;">
           <p style="font-size:16px; color:var(--muted);">全球新闻报告尚未生成</p>
           <p style="font-size:13px; color:var(--muted); margin-top:8px;">
-            请先运行 <code>@global-news-report</code> skill 生成今日报告，然后将生成的
-            <code>Global News Report-YYYYMMDD.html</code> 复制为
-            <code>output/global-news-report.html</code> 后重新生成看板。
+            请先运行 <code>@global-news-report</code> skill 生成今日报告，然后重新生成看板
+            (<code>python3 scripts/run_daily.py --skip-fetch</code>)。
           </p>
         </div>
       </div>
@@ -2806,6 +2827,32 @@ function switchToGroup(groupName) {
   switchToView(defaultView);
 }
 
+function goHome() {
+  // Show cover, hide all module views
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  const cover = document.getElementById("view-cover");
+  if (cover) cover.classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  // Reset tab highlights
+  document.querySelectorAll(".primary-tabs .tab, #sub-tabs .tab").forEach(b => b.classList.remove("active"));
+  document.getElementById("sub-tabs").classList.remove("visible");
+  document.getElementById("sub-tabs").innerHTML = "";
+}
+
+function injectBackButtons() {
+  document.querySelectorAll(".view:not(#view-cover)").forEach(view => {
+    const panelHead = view.querySelector(".panel-head");
+    if (panelHead && !panelHead.querySelector(".back-home-btn")) {
+      const btn = document.createElement("button");
+      btn.className = "back-home-btn";
+      btn.textContent = "← 主页";
+      btn.title = "返回主页";
+      btn.addEventListener("click", goHome);
+      panelHead.appendChild(btn);
+    }
+  });
+}
+
 function initTabs() {
   // Primary tabs
   document.querySelectorAll(".primary-tabs .tab").forEach(btn => {
@@ -2830,10 +2877,23 @@ function init() {
   // Collect init errors for diagnostics
   window._initErrors = [];
 
-  // Check if global-news-report.html is available
-  fetch("global-news-report.html", { method: "HEAD" })
-    .then(r => { if (r.ok) document.getElementById("world-placeholder").style.display = "none"; })
-    .catch(() => {});
+  // Load 看世界 module from embedded content (self-contained, no external file needed)
+  (function initWorldView() {
+    var contentEl = document.getElementById("world-html-content");
+    var iframe = document.getElementById("world-iframe");
+    var placeholder = document.getElementById("world-placeholder");
+    if (contentEl && contentEl.textContent.trim()) {
+      var blob = new Blob([contentEl.textContent], { type: "text/html;charset=utf-8" });
+      iframe.src = URL.createObjectURL(blob);
+      iframe.style.display = "block";
+      if (placeholder) placeholder.style.display = "none";
+      // Clean up the raw HTML source — no longer needed after blob creation
+      contentEl.remove();
+    }
+  })();
+
+  // Inject back-to-home buttons on every module view
+  try { injectBackButtons(); } catch(e) { console.error("injectBackButtons error:", e); }
 
   // Each module is wrapped in its own try/catch so one failure doesn't cascade
   var _initFns = [
