@@ -2883,7 +2883,10 @@ function init() {
     var iframe = document.getElementById("world-iframe");
     var placeholder = document.getElementById("world-placeholder");
     if (contentEl && contentEl.textContent.trim()) {
-      var blob = new Blob([contentEl.textContent], { type: "text/html;charset=utf-8" });
+      // The build pipeline escapes inner end-script tags (see generate_interactive_dashboard.py)
+      // so the outer script wrapper does not close prematurely. Restore them for the Blob URL.
+      var html = contentEl.textContent.split('<\\/script>').join('<\/script>');
+      var blob = new Blob([html], { type: "text/html;charset=utf-8" });
       iframe.src = URL.createObjectURL(blob);
       iframe.style.display = "block";
       if (placeholder) placeholder.style.display = "none";

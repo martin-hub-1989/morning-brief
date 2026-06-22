@@ -300,6 +300,9 @@ def _find_world_html():
     content = Path(latest).read_text(encoding="utf-8")
     # Widen the container for better iframe display
     content = re.sub(r'max-width:\s*\d+px', 'max-width: 100%', content, count=1)
+    # Escape </script> so it won't prematurely close the outer <script type="text/html"> wrapper.
+    # The dashboard JS initWorldView() reverses this before creating the Blob URL.
+    content = content.replace('</script>', '<\\/script>')
     print(f"[dashboard] 看世界 report: {os.path.basename(latest)} → inline (layout widened)")
     return content
 
