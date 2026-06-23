@@ -525,6 +525,49 @@
       background: var(--blue);
       border-color: var(--blue);
     }
+
+    /* ── Axis-invert toggles (top-right of chart) ── */
+    .axis-invert-btns {
+      position: absolute;
+      top: 6px;
+      right: 10px;
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 4;
+    }
+    .chart-area:hover .axis-invert-btns,
+    .topic-chart-area:hover .axis-invert-btns {
+      opacity: 1;
+    }
+    .axis-invert-btn {
+      height: 26px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .axis-invert-btn:hover {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+    .axis-invert-btn.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
   </style>
 </head>
 <body>
@@ -1134,9 +1177,18 @@ function renderSegmented(id, options, active, onClick) {
   }
 }
 function renderSvgLine(containerId, cfg) {
+  const container = document.getElementById(containerId);
+  // Persist cfg so axis-invert toggles can re-render with the same data
+  if (container) container._lineCfg = cfg;
+  const invL = (container && container._invertLeft) || false;
+  const invR = (container && container._invertRight) || false;
   const width = 980, height = 420;
   const left = 64, right = cfg.rightAxis ? 64 : 22, top = 62, bottom = 58;
   const plotW = width - left - right, plotH = height - top - bottom;
+  // Map a value to a y-pixel; inverted flips the axis direction
+  const yOf = (val, axisArr, inverted) => inverted
+    ? scale(val, axisArr[0], axisArr[1], top, top + plotH)
+    : scale(val, axisArr[0], axisArr[1], top + plotH, top);
   const allX = cfg.series.flatMap(s => s.points.map(p => toDate(p[0]).getTime()));
   if (!allX.length) {
     document.getElementById(containerId).innerHTML = '<div class="empty">暂无可用数据</div>';
@@ -1148,11 +1200,16 @@ function renderSvgLine(containerId, cfg) {
   const grid = [];
   for (let i = 0; i <= 4; i++) {
     const y = top + i * plotH / 4;
-    const valLeft = yLeft[1] - i * (yLeft[1] - yLeft[0]) / 4;
+    // i=0 is the top row. Normal: top shows max. Inverted: top shows min.
+    const valLeft = invL
+      ? yLeft[0] + i * (yLeft[1] - yLeft[0]) / 4
+      : yLeft[1] - i * (yLeft[1] - yLeft[0]) / 4;
     grid.push(`<line x1="${left}" y1="${y.toFixed(1)}" x2="${width - right}" y2="${y.toFixed(1)}" class="grid-line"/>`);
     grid.push(`<text x="${left - 10}" y="${(y + 4).toFixed(1)}" text-anchor="end" class="axis-text">${cfg.leftFormat(valLeft)}</text>`);
     if (cfg.rightAxis) {
-      const valRight = yRight[1] - i * (yRight[1] - yRight[0]) / 4;
+      const valRight = invR
+        ? yRight[0] + i * (yRight[1] - yRight[0]) / 4
+        : yRight[1] - i * (yRight[1] - yRight[0]) / 4;
       grid.push(`<text x="${width - right + 10}" y="${(y + 4).toFixed(1)}" class="axis-text">${cfg.rightFormat(valRight)}</text>`);
     }
   }
@@ -1166,11 +1223,13 @@ function renderSvgLine(containerId, cfg) {
   const markers = [];
   const hitTargets = [];
   cfg.series.forEach((s, idx) => {
-    const axis = s.axis === "right" ? yRight : yLeft;
-    const fmt = s.axis === "right" ? cfg.rightFormat : cfg.leftFormat;
+    const onRight = s.axis === "right";
+    const axis = onRight ? yRight : yLeft;
+    const inverted = onRight ? invR : invL;
+    const fmt = onRight ? cfg.rightFormat : cfg.leftFormat;
     const d = s.points.map((p, i) => {
       const x = scale(toDate(p[0]).getTime(), minX, maxX, left, left + plotW);
-      const y = scale(p[1], axis[0], axis[1], top + plotH, top);
+      const y = yOf(p[1], axis, inverted);
       return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(" ");
     const dash = s.dash ? ` stroke-dasharray="${s.dash}"` : "";
@@ -1178,19 +1237,20 @@ function renderSvgLine(containerId, cfg) {
     if ((s.markers ?? true) && s.points.length <= 320) {
       for (const p of s.points) {
         const x = scale(toDate(p[0]).getTime(), minX, maxX, left, left + plotW);
-        const y = scale(p[1], axis[0], axis[1], top + plotH, top);
+        const y = yOf(p[1], axis, inverted);
         markers.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.7" fill="${s.color}" opacity="0.85"/>`);
       }
     }
     for (const p of s.points) {
       const x = scale(toDate(p[0]).getTime(), minX, maxX, left, left + plotW);
-      const y = scale(p[1], axis[0], axis[1], top + plotH, top);
+      const y = yOf(p[1], axis, inverted);
       const label = `${s.name}|${p[0]}|${fmt(p[1])}`;
       hitTargets.push(`<circle class="chart-hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" data-color="${s.color}" data-label="${label}"><title>${label}</title></circle>`);
     }
     const lx = left + (idx % 4) * 210;
     const ly = 24 + Math.floor(idx / 4) * 20;
-    legends.push(`<line x1="${lx}" y1="${ly - 4}" x2="${lx + 18}" y2="${ly - 4}" stroke="${s.color}" stroke-width="2.8"${dash}/><text x="${lx + 24}" y="${ly}" class="legend-text">${s.name}</text>`);
+    const invNote = inverted ? `（${onRight ? "右轴" : "左轴"}逆序）` : "";
+    legends.push(`<line x1="${lx}" y1="${ly - 4}" x2="${lx + 18}" y2="${ly - 4}" stroke="${s.color}" stroke-width="2.8"${dash}/><text x="${lx + 24}" y="${ly}" class="legend-text">${s.name}${invNote}</text>`);
   });
   const html = `<svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${cfg.title}">
     ${grid.join("")}
@@ -1233,6 +1293,40 @@ function renderSvgLine(containerId, cfg) {
     hit.addEventListener("click", event => showPointTip(event.currentTarget));
   });
   svg.addEventListener("mouseleave", () => { tooltip.style.display = "none"; });
+  // Inject axis-invert toggles (top-right). hasRight controls whether the right toggle shows.
+  addInvertToggles(containerId, !!cfg.rightAxis);
+}
+
+// ── Axis inversion toggles ───────────────────────────────────────
+// Lets the user reverse the left or right Y-axis of any line chart.
+// State is stored on the container (_invertLeft / _invertRight) and the
+// chart is re-rendered from its persisted cfg (_lineCfg).
+function addInvertToggles(containerId, hasRight) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const old = container.querySelector(".axis-invert-btns");
+  if (old) old.remove();
+  const btns = document.createElement("div");
+  btns.className = "axis-invert-btns";
+  const leftActive = container._invertLeft ? " active" : "";
+  const rightActive = container._invertRight ? " active" : "";
+  let html = `<button class="axis-invert-btn${leftActive}" data-axis="left" title="左轴坐标逆序">左轴逆序</button>`;
+  if (hasRight) {
+    html += `<button class="axis-invert-btn${rightActive}" data-axis="right" title="右轴坐标逆序">右轴逆序</button>`;
+  }
+  btns.innerHTML = html;
+  btns.querySelectorAll(".axis-invert-btn").forEach(b => {
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const axis = b.dataset.axis;
+      if (axis === "left") container._invertLeft = !container._invertLeft;
+      else container._invertRight = !container._invertRight;
+      // Re-render from persisted cfg, then restore export buttons (innerHTML reset wipes them)
+      if (container._lineCfg) renderSvgLine(containerId, container._lineCfg);
+      if (container._chartData) addChartExport(containerId, container._chartData);
+    });
+  });
+  container.appendChild(btns);
 }
 function tableHtml(headers, rows) {
   return `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
