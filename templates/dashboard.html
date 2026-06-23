@@ -41,14 +41,19 @@
     header.top {
       background: var(--panel);
       border-bottom: 1px solid var(--line);
-      padding: 16px 28px 12px;
+      padding: 14px 28px 10px;
       position: sticky;
       top: 0;
       z-index: 5;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      background: rgba(255,255,255,0.90);
+      background: rgba(255,255,255,0.92);
     }
+    .top-inner {
+      max-width: 1536px;
+      margin: 0 auto;
+    }
+    .top-head { margin-bottom: 12px; }
     h1 { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; }
     .freshness { margin-top: 5px; color: var(--muted); font-size: 12px; font-weight: 500; }
 
@@ -181,8 +186,9 @@
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
-      margin-bottom: 18px;
+      margin-bottom: 0;
     }
+    .primary-tabs:has(+ .sub-tabs.visible) { margin-bottom: 8px; }
     .tab {
       border: 1px solid var(--line);
       background: var(--panel);
@@ -213,8 +219,8 @@
       outline-offset: 2px;
     }
     .sub-tabs {
-      margin-top: -4px;
-      margin-bottom: 18px;
+      margin-top: 0;
+      margin-bottom: 0;
       padding: 8px 12px;
       background: var(--panel);
       border: 1px solid var(--line);
@@ -442,7 +448,7 @@
       padding: 16px 20px;
     }
     @media (max-width: 860px) {
-      header.top { position: static; padding: 14px 16px; }
+      header.top { padding: 12px 16px 8px; max-height: 60vh; overflow-y: auto; }
       main { padding: 12px 14px 32px; }
       .controls { grid-template-columns: 1fr; }
       .control-wide { grid-column: span 1; }
@@ -572,18 +578,22 @@
 </head>
 <body>
   <header class="top">
-    <h1>Daily Morning Brief - Dashboard</h1>
-    <div class="freshness" id="freshness"></div>
+    <div class="top-inner">
+      <div class="top-head">
+        <h1>Daily Morning Brief - Dashboard</h1>
+        <div class="freshness" id="freshness"></div>
+      </div>
+      <nav class="tabs primary-tabs" id="primary-tabs" aria-label="Primary sections">
+        <button class="tab" data-group="world">看世界</button>
+        <button class="tab" data-group="trend">走势看板</button>
+        <button class="tab" data-group="review">涨跌复盘</button>
+        <button class="tab" data-group="equity">权益看板</button>
+        <button class="tab" data-group="fxwatch">外汇看板</button>
+      </nav>
+      <nav class="tabs sub-tabs" id="sub-tabs" aria-label="Sub sections"></nav>
+    </div>
   </header>
   <main>
-    <nav class="tabs primary-tabs" id="primary-tabs" aria-label="Primary sections">
-      <button class="tab" data-group="world">看世界</button>
-      <button class="tab" data-group="trend">走势看板</button>
-      <button class="tab" data-group="review">涨跌复盘</button>
-      <button class="tab" data-group="equity">权益看板</button>
-      <button class="tab" data-group="fxwatch">外汇看板</button>
-    </nav>
-    <nav class="tabs sub-tabs" id="sub-tabs" aria-label="Sub sections"></nav>
 
     <section class="view active" id="view-cover">
       <div class="cover">
@@ -2876,7 +2886,9 @@ function switchToView(viewName) {
 
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
   const view = document.getElementById(`view-${viewName}`);
-  if (view) { view.classList.add("active"); view.scrollIntoView({behavior:"smooth",block:"start"}); }
+  // Don't auto-scroll: the directory (primary + sub tabs) is fixed in the sticky
+  // header, so switching views should keep the page position stable.
+  if (view) view.classList.add("active");
 
   // Resolve group: prefer current group if it contains this view
   let group = _currentGroup;
