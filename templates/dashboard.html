@@ -1267,7 +1267,6 @@ function renderSvgLine(containerId, cfg) {
     </g>
     ${legends.join("")}
   </svg>`;
-  const container = document.getElementById(containerId);
   container.innerHTML = html;
   const svg = container.querySelector("svg");
   const tooltip = svg.querySelector(".chart-tooltip");
