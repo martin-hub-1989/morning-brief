@@ -307,6 +307,27 @@ def _find_world_html():
     return content
 
 
+def _prune_old_reports(keep=7):
+    """Keep only the most recent `keep` Global News Reports in output/; delete older ones.
+    Sorted by the YYYYMMDD in the filename (descending) so calendar order wins regardless of mtime.
+    """
+    reports = glob.glob(str(ROOT / "output" / "Global News Report-*.html"))
+    if len(reports) <= keep:
+        return
+
+    def date_key(path):
+        m = re.search(r'(\d{8})', os.path.basename(path))
+        return m.group(1) if m else "00000000"
+
+    reports.sort(key=date_key, reverse=True)
+    for old in reports[keep:]:
+        try:
+            os.remove(old)
+            print(f"[dashboard] 清理旧报告: {os.path.basename(old)}")
+        except OSError as e:
+            print(f"[dashboard] 无法删除 {os.path.basename(old)}: {e}")
+
+
 def render_dashboard(db_path, output_path):
     global HTML_TEMPLATE
     if HTML_TEMPLATE is None:
@@ -326,6 +347,9 @@ def render_dashboard(db_path, output_path):
     docs_path = DOCS_OUTPUT
     docs_path.parent.mkdir(parents=True, exist_ok=True)
     docs_path.write_text(html, encoding="utf-8")
+
+    # Keep only the most recent 7 daily reports in output/
+    _prune_old_reports(keep=7)
 
     return output_path
 

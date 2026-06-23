@@ -15,5 +15,13 @@ data/morning_brief.sqlite
 # Generated output
 output/interactive_dashboard.html
 
+# 看世界新闻报告（构建中间产物，最近7天滚动；看板已内联，不入库）
+output/Global News Report-*.html
+Global News Report-*.html
+
+# 过时 iframe 源（已废弃，看板改为内联 Blob 注入）
+output/global-news-report.html
+docs/global-news-report.html
+
 # Project instructions (local only, not tracked)
 CLAUDE.md

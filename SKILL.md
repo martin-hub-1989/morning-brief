@@ -60,7 +60,7 @@ Generate a polished, self-contained HTML report with market data tables and bili
 
 #### Output
 
-- **File**: `Global News Report-YYYYMMDD.html` in workspace root
+- **File**: `output/Global News Report-YYYYMMDD.html`（生成到 output/，看板自动内联嵌入；仅滚动保留最近 7 天）
 - **Title**: "Global Top News"
 - **Display language**: English; cards bilingual (EN + 中文)
 - **Color**: Up=Red `#d32f2f`, Down=Green `#2e7d32`
@@ -672,7 +672,7 @@ xdg-open output/interactive_dashboard.html
 常见故障排查：
 - 图表空白 → 检查对应 `fetch_*.py` 步骤是否成功拉取该模块所需序列
 - 超级周期图表空白 → 检查 `import_seed.py` 是否正确导入 `CYCLE_BASE_DATES`
-- 看世界 iframe 占位或无当天报告 → 检查 Step 0 是否成功执行，报告是否生成在项目根目录
+- 看世界 iframe 占位或无当天报告 → 检查 Step 0 是否成功执行，报告是否生成在 output/
 - 中间价/套保成本无数据 → 检查 `recompute_fx_derived.py` 是否成功运行
 - **⚠️ 级联故障（关键）**：如果多个连续模块同时空白（尤其是外汇看板的后三个模块：中间价/套保成本/专题图表），很可能是某个**前面的模块**抛出了未捕获的 JS 错误导致 `init()` 中断。最常引发此问题的模块是**市场情绪**（`renderEmotion`），当 HTSC 情绪数据缺失时 `latestDate()` 返回 `null`，传入 `startForPeriod()` → `toDate(null)` 生成无效 Date → `toISO()` 调用 `toISOString()` 抛出 `RangeError: Invalid time value`。排查方法：检查浏览器控制台是否有 JS 错误，检查 `htsc:*` 系列数据是否存在。
 
@@ -757,17 +757,16 @@ Martin Morning Brief/
 ├── SKILL.md                      ← 本文件（canonical skill）
 ├── scripts/
 │   ├── run_daily.py              ← 每日流水线主入口
-│   ├── generate_interactive_dashboard.py  ← 看板生成 + 复制 GNR
+│   ├── generate_interactive_dashboard.py  ← 看板生成 + 内联嵌入报告 + 7天滚动清理
 │   └── ...
 ├── templates/
 │   └── dashboard.html            ← 看板 HTML 模板
 ├── output/
-│   ├── interactive_dashboard.html
-│   └── global-news-report.html   ← Step 0 产物，看板 iframe 加载
+│   ├── interactive_dashboard.html        ← 主看板（不入库）
+│   └── Global News Report-*.html         ← Step 0 产物，看板内联嵌入；仅留最近7天，不入库
 ├── docs/
-│   ├── index.html                ← GitHub Pages
-│   └── global-news-report.html
-└── Global News Report-*.html     ← Step 0 原始产物（每日保留）
+│   └── index.html                ← GitHub Pages（自包含，已内联报告内容）
+└── ...
 ```
 
 ---
@@ -808,7 +807,7 @@ Martin Morning Brief/
 | 症状 | 可能原因 | 解决方案 |
 |------|---------|---------|
 | 看世界 iframe 显示占位 | Step 0 未执行或报告未生成 | 运行 Step 0 或 `@global-news-report` skill |
-| 看世界内容不是当天新闻 | Step 0 执行了但报告是旧的 | 检查根目录是否有当天日期的 `Global News Report-*.html` |
+| 看世界内容不是当天新闻 | Step 0 执行了但报告是旧的 | 检查 output/ 是否有当天日期的 `Global News Report-*.html` |
 | `fetch_data.py` 报认证错误 | JWE Token 过期 | 从同花顺重新获取 Token，更新 `~/.claude/mcp.json` |
 | `fetch_data.py` 网络超时 | 同花顺 API 不可达 | 检查网络；系统会自动降级到 Wind MCP（如该序列在 `wind_mapping.json` 中有映射） |
 | `fetch_wind.py` FX 序列无数据 | Wind 搜索词不精确 | 调整 `config/wind_mapping.json` 中的 `indicator_filter` |

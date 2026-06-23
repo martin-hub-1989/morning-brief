@@ -135,7 +135,7 @@ cp /tmp/global-news-report/SKILL.md ~/.claude/skills/global-news-report/SKILL.md
 # 2. 在 Claude Code 中运行
 @global-news-report
 
-# 3. 将生成的 Global News Report-YYYYMMDD.html 放到项目根目录，然后重新生成看板
+# 3. 将生成的 Global News Report-YYYYMMDD.html 放到 output/，然后重新生成看板
 python3 scripts/run_daily.py --skip-fetch
 ```
 
