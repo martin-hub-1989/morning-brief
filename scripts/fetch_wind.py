@@ -164,13 +164,21 @@ def fetch_economic(metric_ids_str, indicator_filter, begin_date, end_date):
     if not dates or not indicators:
         return None
 
-    # 筛选匹配的指标
+    # 筛选匹配的指标：优先精确名匹配，再退回包含匹配（substring）
+    # Wind NL 查询返回的候选集不确定，substring 匹配可能误中名字含 filter
+    # 但实为其他口径的指标（如 DXY 的 filter "美元指数" 误中值 36.4 的变体）。
+    # 精确名匹配优先可避免此类误匹配。
     target = None
-    for ind in indicators:
-        name = ind.get("name", "")
-        if indicator_filter.lower() in name.lower():
+    fl = indicator_filter.lower()
+    for ind in indicators:  # 1st pass: exact name match
+        if ind.get("name", "").lower() == fl:
             target = ind
             break
+    if not target:  # 2nd pass: substring match
+        for ind in indicators:
+            if fl in ind.get("name", "").lower():
+                target = ind
+                break
 
     # 如果没精确匹配，取第一个有数据的
     if not target:
@@ -397,6 +405,7 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
                 "metricIdsStr": m.get("metricIdsStr"),
                 "indicator_filter": m.get("indicator_filter"),
                 "category": m.get("category", ""),
+                "skip_validation": m.get("skip_validation", False),
                 "notes": m.get("notes", "")
             })
 
@@ -469,12 +478,17 @@ def fetch_and_update(db_path, mapping_path, dry_run=False, verbose=False,
                 continue
 
             category = item.get("category", "")
+            skip_val = item.get("skip_validation", False)
             status, msg = validate_series(conn, sid, data, validation_cfg, category)
-            if verbose or status == "fail":
-                log(f"{sid}: validate={status} — {msg}",
-                    "ERROR" if status == "fail" else ("WARN" if status == "partial" else "OK"))
+            # skip_validation: Wind is the authoritative primary source for this series
+            # (migrated from EDB). Still run validation + log mismatches for audit, but
+            # do not block the update — Wind data overrides a potentially stale DB seed.
+            if verbose or status == "fail" or (skip_val and status != "ok"):
+                tag = " (skipped, Wind-authoritative)" if skip_val and status != "ok" else ""
+                log(f"{sid}: validate={status}{tag} — {msg}",
+                    "ERROR" if (status == "fail" and not skip_val) else ("WARN" if status != "ok" else "OK"))
 
-            if status == "ok":
+            if status == "ok" or skip_val:
                 validated.append(item)
             elif status == "partial":
                 partial.append(item)

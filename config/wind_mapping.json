@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "last_updated": "2026-06-17",
+  "last_updated": "2026-06-24",
   "auth": {
     "note": "Wind MCP 认证由 CLI 自动处理（用户全局配置 > Skill 本地配置 > WIND_API_KEY 环境变量）"
   },
@@ -17,10 +17,22 @@
     "float_absolute_tolerance": 0.005,
     "note": "Wind 与 DB 数据同源，容差与 THS EDB 一致",
     "category_overrides": {
-      "fx_swap": {"float_absolute_tolerance": 50, "note": "掉期点每日波动可达 5-20 pips，不同报价源可差 10-30 pips"},
-      "fx_forward": {"float_absolute_tolerance": 0.5, "note": "远期汇率绝对容差 0.5 元"},
-      "fx": {"float_absolute_tolerance": 0.5, "note": "汇率绝对容差 0.5 元"},
-      "bond_yield": {"float_absolute_tolerance": 0.5, "note": "债券收益率不同数据源有系统性偏差"}
+      "fx_swap": {
+        "float_absolute_tolerance": 50,
+        "note": "掉期点每日波动可达 5-20 pips，不同报价源可差 10-30 pips"
+      },
+      "fx_forward": {
+        "float_absolute_tolerance": 0.5,
+        "note": "远期汇率绝对容差 0.5 元"
+      },
+      "fx": {
+        "float_absolute_tolerance": 0.5,
+        "note": "汇率绝对容差 0.5 元"
+      },
+      "bond_yield": {
+        "float_absolute_tolerance": 0.5,
+        "note": "债券收益率不同数据源有系统性偏差"
+      }
     }
   },
   "mappings": {
@@ -166,7 +178,8 @@
       "metricIdsStr": "CFETS人民币汇率指数",
       "indicator_filter": "CFETS人民币汇率指数:日:向前复制",
       "category": "fx_index",
-      "notes": "THS EDB 仅稀疏周频数据，Wind 提供日频"
+      "notes": "CFETS 人民币汇率指数（周度发布，Wind M0325601 前填日频）。原 EDB 种子滞后一周",
+      "skip_validation": true
     },
     "fx:usdcny-fixing": {
       "method": "economic",
@@ -258,9 +271,250 @@
       "indicator_filter": "美国国债:收益率:1年",
       "category": "bond_yield",
       "notes": "美国 1Y 国债。EDB 备选源"
+    },
+    "trend:上证指数": {
+      "method": "kline",
+      "windcode": "000001.SH",
+      "category": "a_share_index",
+      "notes": "上证综指价格指数。EDB 端滞后，改用 Wind",
+      "skip_validation": true
+    },
+    "trend:沪深300": {
+      "method": "kline",
+      "windcode": "000300.SH",
+      "category": "a_share_index",
+      "notes": "沪深300价格指数",
+      "skip_validation": true
+    },
+    "trend:中证500": {
+      "method": "kline",
+      "windcode": "000905.SH",
+      "category": "a_share_index",
+      "notes": "中证500价格指数",
+      "skip_validation": true
+    },
+    "trend:中证1000": {
+      "method": "kline",
+      "windcode": "000852.SH",
+      "category": "a_share_index",
+      "notes": "中证1000价格指数",
+      "skip_validation": true
+    },
+    "trend:中证2000": {
+      "method": "kline",
+      "windcode": "932000.CSI",
+      "category": "a_share_index",
+      "notes": "中证2000价格指数",
+      "skip_validation": true
+    },
+    "trend:中证A500": {
+      "method": "kline",
+      "windcode": "000510.SH",
+      "category": "a_share_index",
+      "notes": "中证A500价格指数",
+      "skip_validation": true
+    },
+    "trend:中证红利": {
+      "method": "kline",
+      "windcode": "000922.SH",
+      "category": "a_share_index",
+      "notes": "中证红利价格指数",
+      "skip_validation": true
+    },
+    "trend:创业板指": {
+      "method": "kline",
+      "windcode": "399006.SZ",
+      "category": "a_share_index",
+      "notes": "创业板指价格指数",
+      "skip_validation": true
+    },
+    "trend:科创50": {
+      "method": "kline",
+      "windcode": "000688.SH",
+      "category": "a_share_index",
+      "notes": "科创50价格指数",
+      "skip_validation": true
+    },
+    "trend:恒生指数": {
+      "method": "kline",
+      "windcode": "HSI.HI",
+      "category": "hk_index",
+      "notes": "恒生指数价格指数",
+      "skip_validation": true
+    },
+    "trend:恒生科技": {
+      "method": "kline",
+      "windcode": "HSTECH.HI",
+      "category": "hk_index",
+      "notes": "恒生科技价格指数",
+      "skip_validation": true
+    },
+    "trend:恒生高股息率": {
+      "method": "kline",
+      "windcode": "HSHDYI.HI",
+      "category": "hk_index",
+      "notes": "恒生高股息率价格指数",
+      "skip_validation": true
+    },
+    "trend:标普500": {
+      "method": "kline",
+      "windcode": "SPX.GI",
+      "category": "us_index",
+      "notes": "标普500价格指数",
+      "skip_validation": true
+    },
+    "trend:纳斯达克指数": {
+      "method": "kline",
+      "windcode": "IXIC.GI",
+      "category": "us_index",
+      "notes": "纳斯达克综合指数价格",
+      "skip_validation": true
+    },
+    "trend:南华商品指数": {
+      "method": "kline",
+      "windcode": "NH0100.NHF",
+      "category": "commodity",
+      "notes": "南华商品指数。EDB 无匹配，Wind kline NH0100.NHF",
+      "skip_validation": true
+    },
+    "trend:中-10债": {
+      "method": "economic",
+      "metricIdsStr": "中债国债收益率10年",
+      "indicator_filter": "中国:国债到期收益率:10年",
+      "category": "cn_bond_yield",
+      "notes": "中债 10Y 到期收益率",
+      "skip_validation": true
+    },
+    "trend:中-2债": {
+      "method": "economic",
+      "metricIdsStr": "中债国债收益率2年",
+      "indicator_filter": "中国:国债到期收益率:2年",
+      "category": "cn_bond_yield",
+      "notes": "中债 2Y",
+      "skip_validation": true
+    },
+    "trend:中-30债": {
+      "method": "economic",
+      "metricIdsStr": "中债国债收益率30年",
+      "indicator_filter": "中国:国债到期收益率:30年",
+      "category": "cn_bond_yield",
+      "notes": "中债 30Y",
+      "skip_validation": true
+    },
+    "trend:美-10债": {
+      "method": "economic",
+      "metricIdsStr": "美国国债收益率10年",
+      "indicator_filter": "美国:国债收益率:10年",
+      "category": "us_bond_yield",
+      "notes": "美国 10Y（美国财政部）",
+      "skip_validation": true
+    },
+    "trend:美-2债": {
+      "method": "economic",
+      "metricIdsStr": "美国国债收益率2年",
+      "indicator_filter": "美国:国债收益率:2年",
+      "category": "us_bond_yield",
+      "notes": "美国 2Y",
+      "skip_validation": true
+    },
+    "trend:美-30债": {
+      "method": "economic",
+      "metricIdsStr": "美国国债收益率30年",
+      "indicator_filter": "美国:国债收益率:30年",
+      "category": "us_bond_yield",
+      "notes": "美国 30Y",
+      "skip_validation": true
+    },
+    "trend:英-10债": {
+      "method": "economic",
+      "metricIdsStr": "英国国债收益率10年",
+      "indicator_filter": "英国:国债收益率:10年",
+      "category": "eu_bond_yield",
+      "notes": "英国 10Y（B1，BoE）。原 EDB 验证失败改 Wind",
+      "skip_validation": true
+    },
+    "trend:法-10债": {
+      "method": "economic",
+      "metricIdsStr": "法国国债收益率10年",
+      "indicator_filter": "法国:国债收益率:10年",
+      "category": "eu_bond_yield",
+      "notes": "法国 10Y",
+      "skip_validation": true
+    },
+    "trend:意-10债": {
+      "method": "economic",
+      "metricIdsStr": "意大利国债收益率10年",
+      "indicator_filter": "意大利:国债收益率:10年",
+      "category": "eu_bond_yield",
+      "notes": "意大利 10Y",
+      "skip_validation": true
+    },
+    "trend:澳-10债": {
+      "method": "economic",
+      "metricIdsStr": "澳大利亚国债收益率10年",
+      "indicator_filter": "澳大利亚:国债收益率:10年",
+      "category": "eu_bond_yield",
+      "notes": "澳大利亚 10Y（RBA）",
+      "skip_validation": true
+    },
+    "trend:DXY": {
+      "method": "economic",
+      "metricIdsStr": "美元指数",
+      "indicator_filter": "美元指数",
+      "category": "fx_index",
+      "notes": "美元指数 DXY",
+      "skip_validation": true
+    },
+    "trend:USDCNY": {
+      "method": "economic",
+      "metricIdsStr": "美元兑人民币即期汇率",
+      "indicator_filter": "CFETS:即期汇率:美元兑人民币",
+      "category": "fx",
+      "notes": "USDCNY 即期（CFETS）。原 EDB 种子值陈旧",
+      "skip_validation": true
+    },
+    "trend:USDHKD": {
+      "method": "economic",
+      "metricIdsStr": "美元兑港元",
+      "indicator_filter": "美元兑港元",
+      "category": "fx",
+      "notes": "USDHKD",
+      "skip_validation": true
+    },
+    "trend:AUDCNY": {
+      "method": "economic",
+      "metricIdsStr": "基准汇率澳元兑人民币",
+      "indicator_filter": "基准汇率:澳元兑人民币",
+      "category": "fx",
+      "notes": "AUDCNY 人行基准汇率",
+      "skip_validation": true
+    },
+    "trend:AUXCNY": {
+      "method": "economic",
+      "metricIdsStr": "上海黄金交易所AU9999",
+      "indicator_filter": "中国:加权平均价:黄金现货:Au99.99:上海金交所",
+      "category": "commodity",
+      "notes": "上海金 AU99.99 加权平均价。DB 原为收盘价，Wind 为加权平均价，口径略异",
+      "skip_validation": true
+    },
+    "trend:伦敦金现": {
+      "method": "economic",
+      "metricIdsStr": "伦敦现货黄金价格",
+      "indicator_filter": "现货价(伦敦市场):黄金:美元",
+      "category": "commodity",
+      "notes": "伦敦金现（USD/oz）",
+      "skip_validation": true
+    },
+    "trend:ICE布油": {
+      "method": "economic",
+      "metricIdsStr": "ICE布伦特原油期货价格",
+      "indicator_filter": "期货结算价(连续):布伦特原油",
+      "category": "commodity",
+      "notes": "ICE 布伦特原油期货连续",
+      "skip_validation": true
     }
   },
-  "note": "共 38 个序列（新增 14 个 fx: 外汇原始序列）。K-line 方法 18 个，economic 方法 20 个。",
+  "note": "共 38 个序列（新增 14 个 fx: 外汇原始序列）。K-line 方法 18 个，economic 方法 20 个。 | 2026-06-24: 32 个 EDB 滞后序列改用 Wind（指数 kline + 债券/外汇/商品 economic）",
   "valuation": {
     "note": "估值序列（PE TTM + PB LF + 股息率）。每次 get_index_fundamentals 调用返回三个指标，覆盖 3 个 series。16 个指数 × 1 次调用/天 = 16 次 Wind 调用/天。",
     "indices": {

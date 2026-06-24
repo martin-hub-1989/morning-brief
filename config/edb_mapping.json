@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "last_updated": "2026-06-17",
+  "last_updated": "2026-06-24",
   "auth": {
     "token_source": "mcp_config",
     "mcp_config_path": "~/.claude/mcp.json",
@@ -25,72 +25,12 @@
     "note": "相对容差 0.05%，绝对容差 0.005。EDB 与 Excel 种子数据来自不同数据商，微小差异属正常。"
   },
   "mappings": {
-    "trend:美-10债": {
-      "edb_query": "美国国债收益率10年",
-      "category": "us_bond_yield",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:美-2债": {
-      "edb_query": "美国国债收益率2年",
-      "category": "us_bond_yield",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:美-30债": {
-      "edb_query": "美国国债收益率30年",
-      "category": "us_bond_yield",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:中-10债": {
-      "edb_query": "中国国债到期收益率10年",
-      "category": "cn_bond_yield",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:中-2债": {
-      "edb_query": "中国国债到期收益率2年",
-      "category": "cn_bond_yield",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:中-30债": {
-      "edb_query": "中国国债到期收益率30年",
-      "category": "cn_bond_yield",
-      "frequency": "D",
-      "notes": ""
-    },
     "trend:德-10债": {
       "edb_query": "德国国债收益率10年",
       "category": "eu_bond_yield",
       "frequency": "D",
       "notes": "",
       "skip_reason": "改用 Wind MCP — THS EDB 有 ~9bp 偏差，Wind 与 DB 一致"
-    },
-    "trend:英-10债": {
-      "edb_query": "英国国债收益率10年",
-      "category": "eu_bond_yield",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:法-10债": {
-      "edb_query": "法国国债收益率10年",
-      "category": "eu_bond_yield",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:意-10债": {
-      "edb_query": "意大利国债收益率10年",
-      "category": "eu_bond_yield",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:澳-10债": {
-      "edb_query": "澳大利亚国债收益率10年",
-      "category": "eu_bond_yield",
-      "frequency": "D",
-      "notes": ""
     },
     "trend:日-10债": {
       "edb_query": "日本国债利率10年",
@@ -106,24 +46,12 @@
       "notes": "",
       "skip_reason": "改用 Wind MCP — THS EDB 有 ~2bp 偏差"
     },
-    "trend:USDCNY": {
-      "edb_query": "美元兑人民币即期汇率收盘价",
-      "category": "fx_cny",
-      "frequency": "D",
-      "notes": "16:30 收盘价"
-    },
     "trend:USDJPY": {
       "edb_query": "美元兑日元即期汇率",
       "category": "fx_major",
       "frequency": "D",
       "notes": "日本假日可能缺失某些日期",
       "skip_reason": "改用 Wind MCP — DB 有前向填补值，Wind 提供真实日频数据"
-    },
-    "trend:USDHKD": {
-      "edb_query": "美元兑港币即期汇率",
-      "category": "fx_major",
-      "frequency": "D",
-      "notes": ""
     },
     "trend:GBPCNY": {
       "edb_query": "英镑兑人民币即期汇率",
@@ -132,18 +60,6 @@
       "notes": "16:30 收盘价",
       "skip_reason": "改用 Wind MCP — DB 有前向填补值，Wind 提供真实日频数据"
     },
-    "trend:AUDCNY": {
-      "edb_query": "澳元兑人民币即期汇率",
-      "category": "fx_cross",
-      "frequency": "D",
-      "notes": "16:30 收盘价"
-    },
-    "trend:DXY": {
-      "edb_query": "美元指数",
-      "category": "fx_index",
-      "frequency": "D",
-      "notes": ""
-    },
     "trend:CNYX": {
       "edb_query": "CFETS人民币汇率指数",
       "category": "fx_index",
@@ -151,120 +67,12 @@
       "skip_reason": "EDB 仅返回稀疏数据(约10个点，周频更新)，无法覆盖日频需求。",
       "notes": "CFETS 指数为周度公布，DB 中日频数据为前向填补。"
     },
-    "trend:伦敦金现": {
-      "edb_query": "伦敦金现收盘价",
-      "category": "commodity",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:ICE布油": {
-      "edb_query": "ICE布伦特原油期货收盘价",
-      "category": "commodity",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:南华商品指数": {
-      "edb_query": "南华商品指数",
-      "category": "commodity",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:AUXCNY": {
-      "edb_query": "上海黄金交易所 AU9999 收盘价",
-      "category": "commodity",
-      "frequency": "D",
-      "notes": "Au9999 人民币计价黄金"
-    },
-    "trend:上证指数": {
-      "edb_query": "上证综合指数收盘价",
-      "category": "a_share_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:沪深300": {
-      "edb_query": "沪深300指数收盘价",
-      "category": "a_share_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:中证500": {
-      "edb_query": "中证500指数收盘价",
-      "category": "a_share_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:中证A500": {
-      "edb_query": "中证A500指数收盘价",
-      "category": "a_share_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:中证1000": {
-      "edb_query": "中证1000指数收盘价",
-      "category": "a_share_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:中证2000": {
-      "edb_query": "中证2000指数收盘价",
-      "category": "a_share_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:中证红利": {
-      "edb_query": "中证红利指数收盘价",
-      "category": "a_share_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:创业板指": {
-      "edb_query": "创业板指数收盘价",
-      "category": "a_share_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:科创50": {
-      "edb_query": "科创50指数收盘价",
-      "category": "a_share_index",
-      "frequency": "D",
-      "notes": ""
-    },
     "trend:万得全A": {
       "edb_query": "万得全A指数收盘价",
       "category": "a_share_index",
       "frequency": "D",
       "skip_reason": "EDB 无万得全A(881001.WI)，仅返回申万A股/同花顺全A。此指数需 Wind MCP 拉取。",
       "notes": "待 Wind MCP 接入后补充"
-    },
-    "trend:恒生指数": {
-      "edb_query": "恒生指数收盘价",
-      "category": "hk_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:恒生科技": {
-      "edb_query": "恒生科技指数收盘价",
-      "category": "hk_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:恒生高股息率": {
-      "edb_query": "恒生高股息率指数收盘价",
-      "category": "hk_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:标普500": {
-      "edb_query": "标准普尔500指数收盘价",
-      "category": "us_index",
-      "frequency": "D",
-      "notes": ""
-    },
-    "trend:纳斯达克指数": {
-      "edb_query": "纳斯达克综合指数收盘价",
-      "category": "us_index",
-      "frequency": "D",
-      "notes": ""
     },
     "trend:周期(风格.中信)": {
       "edb_query": "中信周期风格指数收盘价",
