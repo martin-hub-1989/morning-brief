@@ -214,6 +214,18 @@
       border-color: var(--ink);
       box-shadow: var(--shadow-sm);
     }
+    /* Data health tab — muted/util style to signal lower priority */
+    .primary-tabs .tab[data-group="freshness"] {
+      color: var(--muted);
+      border-style: dashed;
+      font-weight: 500;
+    }
+    .primary-tabs .tab[data-group="freshness"].active {
+      background: var(--card-bg);
+      color: var(--text);
+      border-style: solid;
+      border-color: var(--line);
+    }
     .tab:focus-visible {
       outline: 2px solid var(--blue);
       outline-offset: 2px;
@@ -284,6 +296,28 @@
       border-color: var(--red);
       background: var(--red-bg);
     }
+    /* Data Health (freshness) module — util style */
+    .freshness-summary { display: flex; gap: 12px; margin: 4px 0 20px; flex-wrap: wrap; }
+    .freshness-stat { padding: 12px 18px; border-radius: 8px; background: var(--card-bg); border: 1px solid var(--line); min-width: 110px; }
+    .freshness-stat .num { font-size: 26px; font-weight: 700; line-height: 1.1; }
+    .freshness-stat.green .num { color: #2e7d32; }
+    .freshness-stat.yellow .num { color: #e65100; }
+    .freshness-stat.red .num { color: #c62828; }
+    .freshness-stat .label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .freshness-tables { display: grid; gap: 18px; }
+    .freshness-group h3 { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .freshness-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card-bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+    .freshness-table th { text-align: left; padding: 8px 12px; font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; background: var(--bg-soft, var(--card-bg)); border-bottom: 1px solid var(--line); }
+    .freshness-table td { padding: 7px 12px; border-bottom: 1px solid var(--line); }
+    .freshness-table tr:last-child td { border-bottom: none; }
+    .freshness-table td.sid-name { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text); }
+    .freshness-table td.date { color: var(--muted); }
+    .freshness-table td.days { font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+    .freshness-status { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .freshness-status.green { background: #e8f5e9; color: #2e7d32; }
+    .freshness-status.yellow { background: #fff3e0; color: #e65100; }
+    .freshness-status.red { background: #ffebee; color: #c62828; }
+    .freshness-legend { font-size: 12px; color: var(--muted); margin-top: 4px; }
     .controls {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -589,6 +623,7 @@
         <button class="tab" data-group="review">涨跌复盘</button>
         <button class="tab" data-group="equity">权益看板</button>
         <button class="tab" data-group="fxwatch">外汇看板</button>
+        <button class="tab" data-group="freshness">📊 数据状态</button>
       </nav>
       <nav class="tabs sub-tabs" id="sub-tabs" aria-label="Sub sections"></nav>
     </div>
@@ -976,6 +1011,17 @@
         <h2>数据口径</h2>
       </div>
       <div class="sources" id="sources"></div>
+    </section>
+
+    <section class="view" id="view-freshness">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>📊 数据状态</h2>
+          <p>本地数据库中各序列最新数据日期。以本次生成时间 <span id="freshness-ref-date"></span> 为基准，<b style="color:#2e7d32">绿=新鲜</b>(日频≤1天/月频当月)、<b style="color:#e65100">黄=轻微滞后</b>(2-5天)、<b style="color:#c62828">红=显著滞后</b>(&gt;5天)。</p>
+        </div>
+        <div class="freshness-summary" id="freshness-summary"></div>
+        <div class="freshness-tables" id="freshness-tables"></div>
+      </div>
     </section>
   </main>
 
@@ -2862,12 +2908,14 @@ const TAB_GROUPS = {
   review: { label: "涨跌复盘", children: ["returns","rates","fx"] },
   equity: { label: "权益看板", children: ["returns","valuation","emotion"] },
   fxwatch:{ label: "外汇看板", children: ["fx","spread","fixing","cost","topics"] },
+  freshness: { label: "📊 数据状态", children: [] },
 };
 
 const VIEW_LABELS = {
   world: "看世界", trend: "走势看板", returns: "股票涨跌", rates: "利率涨跌",
   fx: "汇率涨跌", spread: "中美利差", valuation: "估值看板",
   emotion: "市场情绪", topics: "专题图表", fixing: "中间价", cost: "套保成本",
+  freshness: "数据状态",
 };
 
 function viewGroup(viewName) {
@@ -2974,6 +3022,88 @@ function initTabs() {
   });
 }
 
+function initFreshness() {
+  const obs = DATA.observations || {};
+  const genStr = (DATA.generated_at || "").slice(0, 10);
+  const refEl = document.getElementById("freshness-ref-date");
+  if (refEl) refEl.textContent = genStr || "—";
+  if (!genStr) return;
+  const refMs = new Date(genStr + "T00:00:00").getTime();
+  const dayMs = 86400000;
+
+  const items = [];
+  for (const sid in obs) {
+    const pts = obs[sid];
+    if (!pts || !pts.length) continue;
+    const maxDate = pts[pts.length - 1][0];
+    const maxMs = new Date(maxDate + "T00:00:00").getTime();
+    if (!isFinite(maxMs)) continue;
+    const days = Math.max(0, Math.round((refMs - maxMs) / dayMs));
+    const cat = sid.split(":")[0];
+    const isMonthly = (cat === "super_cycle");
+    let status;
+    if (isMonthly) {
+      const refMonth = genStr.slice(0, 7);
+      const maxMonth = maxDate.slice(0, 7);
+      // monthly: same month or prev month → green; 2-3 months → yellow; > 3 → red
+      if (refMonth === maxMonth) status = "green";
+      else {
+        const monthsDiff = (parseInt(refMonth.slice(0,4))*12 + parseInt(refMonth.slice(5,7)))
+          - (parseInt(maxMonth.slice(0,4))*12 + parseInt(maxMonth.slice(5,7)));
+        if (monthsDiff <= 1) status = "green";
+        else if (monthsDiff <= 3) status = "yellow";
+        else status = "red";
+      }
+    } else {
+      if (days <= 1) status = "green";
+      else if (days <= 5) status = "yellow";
+      else status = "red";
+    }
+    const shortName = sid.includes(":") ? sid.split(":").slice(1).join(":") : sid;
+    items.push({ sid, shortName, cat, maxDate, days, status });
+  }
+
+  const counts = { green: 0, yellow: 0, red: 0 };
+  items.forEach(i => counts[i.status]++);
+  const sumEl = document.getElementById("freshness-summary");
+  if (sumEl) {
+    sumEl.innerHTML =
+      '<div class="freshness-stat green"><div class="num">' + counts.green + '</div><div class="label">已最新</div></div>' +
+      '<div class="freshness-stat yellow"><div class="num">' + counts.yellow + '</div><div class="label">轻微滞后</div></div>' +
+      '<div class="freshness-stat red"><div class="num">' + counts.red + '</div><div class="label">显著滞后</div></div>' +
+      '<div class="freshness-stat"><div class="num">' + items.length + '</div><div class="label">序列总数</div></div>';
+  }
+
+  const catLabels = {
+    trend: "趋势看板 (EDB/Wind 日频)",
+    fx: "外汇 (EDB/Wind 日频)",
+    htsc: "华泰智研情绪 (日频)",
+    valuation: "估值 PE/PB/DY (日频)",
+    super_cycle: "美元超级周期 (月频)"
+  };
+  const groups = {};
+  items.forEach(i => { (groups[i.cat] = groups[i.cat] || []).push(i); });
+
+  const statusText = s => s === "green" ? "新鲜" : s === "yellow" ? "滞后" : "显著滞后";
+  const dayText = d => d === 0 ? "今日" : d + "天前";
+
+  let html = "";
+  Object.keys(groups).sort().forEach(g => {
+    const arr = groups[g].sort((a, b) => b.days - a.days || a.sid.localeCompare(b.sid));
+    const rows = arr.map(i =>
+      '<tr><td class="sid-name">' + i.sid + '</td>' +
+      '<td class="date">' + i.maxDate + '</td>' +
+      '<td class="days">' + (i.cat === "super_cycle" ? i.maxDate.slice(0,7) : dayText(i.days)) + '</td>' +
+      '<td><span class="freshness-status ' + i.status + '">' + statusText(i.status) + '</span></td></tr>'
+    ).join("");
+    html += '<div class="freshness-group"><h3>' + (catLabels[g] || g) + ' · ' + arr.length + '</h3>' +
+      '<table class="freshness-table"><thead><tr><th>序列</th><th>最新日期</th><th>距今</th><th>状态</th></tr></thead><tbody>' +
+      rows + '</tbody></table></div>';
+  });
+  const tblEl = document.getElementById("freshness-tables");
+  if (tblEl) tblEl.innerHTML = html;
+}
+
 function init() {
   document.getElementById("freshness").textContent = `生成时间 ${DATA.generated_at}`;
   document.getElementById("cover-date").textContent = DATA.generated_at;
@@ -3016,6 +3146,7 @@ function init() {
     ["initTopics", initTopics],
     ["initFxFixing", initFxFixing],
     ["initFxCost", initFxCost],
+    ["initFreshness", initFreshness],
   ];
   for (var i = 0; i < _initFns.length; i++) {
     try { _initFns[i][1](); } catch(e) {
