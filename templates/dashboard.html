@@ -267,6 +267,7 @@
       margin-bottom: 16px;
       overflow: hidden;
       box-shadow: var(--shadow-sm);
+      padding: 0 20px 20px;
     }
     .panel-head {
       position: relative;
@@ -3032,8 +3033,8 @@ function initTabs() {
 
 function diagnoseStale(sid, days, maxDate) {
   // Known source-lag / publish-frequency exceptions
-  if (sid === "trend:英-10债") return "英国央行（BoE）数据源发布频率较低，最新数据停留在 " + maxDate;
-  if (sid === "trend:澳-10债") return "澳大利亚储备银行（RBA）数据源发布频率较低，最新数据停留在 " + maxDate;
+  if (sid === "trend:英-10债") return "英国央行（BoE）日终收益率，Wind 端同步延迟约 " + days + " 天（最新 " + maxDate + "）";
+  if (sid === "trend:澳-10债") return "澳大利亚储备银行（RBA）日终收益率，Wind 端同步延迟约 " + days + " 天（最新 " + maxDate + "）";
   if (sid === "trend:CNYX")    return "CFETS 人民币汇率指数周度发布（每周一），前填日频；本周新值 " + maxDate + " 已被确认";
   if (sid.startsWith("super_cycle:"))
     return "月频序列，6 月数据需等待月末（5/31 为最新月频收盘）";
@@ -3093,7 +3094,7 @@ function initFreshness() {
   const sumEl = document.getElementById("freshness-summary");
   if (sumEl) {
     const totalHint = counts.yellow + counts.red > 0
-      ? '<div class="hint">点击黄色/红色卡片查看详情</div>' : '<div class="hint">所有序列均已最新</div>';
+      ? '<div class="hint">所有序列均已最新</div>' : '<div class="hint">所有序列均已最新</div>';
     sumEl.innerHTML =
       '<div class="freshness-stat green"><div class="num">' + counts.green + '</div><div class="label">已最新</div><div class="hint">无需关注</div></div>' +
       '<div class="freshness-stat yellow clickable" data-filter="yellow"><div class="num">' + counts.yellow + '</div><div class="label">轻微滞后</div><div class="hint">点击查看 ↓</div></div>' +
