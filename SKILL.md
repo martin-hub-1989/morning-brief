@@ -330,15 +330,6 @@ Use the following full HTML template. Replace all `{PLACEHOLDERS}` with generate
   .section-bar.tech { background: #e3f2fd; color: #1565c0; }
   .section-bar.politics { background: #fce4ec; color: #c62828; }
   .section-bar.other { background: #f3e5f5; color: #7b1fa2; }
-  .market-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-  .market-table th { background: #1a1a2e; color: #fff; font-size: 12px; font-weight: 600; padding: 10px 16px; text-align: left; white-space: nowrap; }
-  .market-table td { padding: 9px 16px; font-size: 13px; border-bottom: 1px solid #f1f3f5; }
-  .market-table tr:last-child td { border-bottom: none; }
-  .market-table td.name { font-weight: 600; color: #1a1a2e; }
-  .market-table td.num { font-family: 'Inter', monospace; font-weight: 500; text-align: right; }
-  .market-table td.num.up { color: #d32f2f; }
-  .market-table td.num.down { color: #2e7d32; }
-  .sparkline-cell { width: 130px; text-align: center; }
   .card { background: #fff; border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 4px solid #dee2e6; transition: box-shadow 0.2s, transform 0.2s; }
   .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   .card.finance { border-left-color: #ff9800; }
@@ -358,8 +349,6 @@ Use the following full HTML template. Replace all `{PLACEHOLDERS}` with generate
   @media (max-width: 640px) {
     .tab-bar { flex-wrap: wrap; }
     .tab-bar button { min-width: calc(50% - 4px); font-size: 11px; padding: 10px 6px; }
-    .market-table th, .market-table td { padding: 7px 10px; font-size: 12px; }
-    .sparkline-cell { width: 80px !important; }
     .card { padding: 16px; }
     .card h3 { font-size: 15px; }
   }
@@ -389,20 +378,12 @@ Use the following full HTML template. Replace all `{PLACEHOLDERS}` with generate
   <!-- ===== FINANCIAL PANEL ===== -->
   <div class="panel active" id="panel-finance">
     <div class="section-bar finance">Financial Markets</div>
-    <table class="market-table">
-      <thead><tr><th>Index</th><th>Close</th><th>Day Chg</th><th>YTD</th><th>YTD Trend</th></tr></thead>
-      <tbody>{FINANCE_ROWS}</tbody>
-    </table>
     {FINANCE_CARDS}
   </div>
 
   <!-- ===== TECHNOLOGY PANEL ===== -->
   <div class="panel" id="panel-tech">
     <div class="section-bar tech">Technology</div>
-    <table class="market-table">
-      <thead><tr><th>Stock</th><th>Close</th><th>Day Chg</th><th>YTD</th><th>YTD Trend</th></tr></thead>
-      <tbody>{TECH_ROWS}</tbody>
-    </table>
     {TECH_CARDS}
   </div>
 
@@ -449,35 +430,6 @@ function switchTab(name) {
 
 **Tab panel mechanics**: `.panel { display:none } .panel.active { display:block }`. Default active = `#panel-finance`. Switch via `switchTab()` with 0.2s fade-in.
 
-##### Market Table Row Template
-
-```html
-<tr>
-  <td class="name">{NAME}</td>
-  <td class="num">{PRICE}</td>
-  <td class="num {up|down}">{DAY_CHG}</td>
-  <td class="num {up|down}">{YTD_CHG}</td>
-  <td class="sparkline-cell">{SPARKLINE_SVG}</td>
-</tr>
-```
-
-##### Sparkline SVG Template
-
-```svg
-<svg viewBox="0 0 120 32" width="120" height="32">
-  <defs><linearGradient id="g{ID}" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0%" stop-color="{COLOR}" stop-opacity="0.25"/>
-    <stop offset="100%" stop-color="{COLOR}" stop-opacity="0.02"/>
-  </linearGradient></defs>
-  <polygon fill="url(#g{ID})" points="0,30 {AREA_PTS} 120,30"/>
-  <polyline fill="none" stroke="{COLOR}" stroke-width="1.5"
-    stroke-linejoin="round" stroke-linecap="round" points="{LINE_PTS}"/>
-</svg>
-```
-- Color: Red (`#d32f2f`) if YTD > 0, Green (`#2e7d32`) if YTD < 0
-- Gradient ID unique per row (`gDow`, `gSp`, `gAapl`, etc.)
-- Points: x=0..120, y mapped to min/max range within 0..30
-
 ##### News Card Template (bilingual)
 
 ```html
@@ -501,15 +453,13 @@ function switchTab(name) {
 
 - [ ] All 15 indicators via Wind MCP: 1A quote (4), 1B global_stock (7), 1C economic_data (4)
 - [ ] economic_data response parsed: filter by codes (M0000271/S0031645/S0180938/G0000891), forward-chronological
-- [ ] YTD sparkline data generated for all 15 indicators
 - [ ] **YTD % validated**: Gold YTD ≈ negative in 2026, WTI YTD ≈ strongly positive (+25% to +35%), DXY YTD ≈ +1% to +3%
 - [ ] Merged WebSearch for news (max 2 calls, gap fill if needed)
 - [ ] Section source rules enforced: Financial (T1≥2 + T1/T2 only), Tech (T1/T2/T3), Politics (T1 only), Other (T1/T2/T3); no banned sources
 - [ ] De-dup applied; all stories < 24h; each section has 1 lead story
 - [ ] Built-in template used (CSS/layout self-contained, no dependency on prior report)
 - [ ] Title exactly "Global Top News", file named `Global News Report-YYYYMMDD.html`
-- [ ] All 8 financial indicators + 7 Mag 7 stocks present
-- [ ] Sparkline colors match YTD direction; gradient IDs unique
+- [ ] All 15 Wind market data indicators fetched (used for YTD context, not displayed as table)
 - [ ] All source links clickable; every card has `.cn-trans` block
 - [ ] No Chinese news sources used
 - [ ] Source line has no tier labels; TAG has no tier info
