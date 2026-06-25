@@ -308,8 +308,6 @@
     .freshness-stat.green .num { color: #2e7d32; }
     .freshness-stat.yellow .num { color: #e65100; }
     .freshness-stat.red .num { color: #c62828; }
-    .freshness-stat .hint { font-size: 11px; color: var(--muted); margin-top: 4px; opacity: 0.75; }
-    .freshness-stat.clickable .hint { opacity: 1; }
     .freshness-tables { display: grid; gap: 18px; }
     .freshness-group h3 { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
     .freshness-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card-bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; table-layout: auto; }
@@ -324,9 +322,6 @@
     .freshness-status.green { background: #e8f5e9; color: #2e7d32; }
     .freshness-status.yellow { background: #fff3e0; color: #e65100; }
     .freshness-status.red { background: #ffebee; color: #c62828; }
-    .freshness-all-fresh { padding: 20px 24px; background: var(--card-bg); border: 1px solid var(--line); border-radius: 8px; text-align: left; color: #2e7d32; font-weight: 500; }
-    .freshness-all-fresh .icon { font-size: 18px; margin-right: 8px; }
-    .freshness-all-fresh .sub { color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 4px; }
     .controls {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3093,14 +3088,11 @@ function initFreshness() {
   // Summary cards: green is informational, yellow/red are clickable to scroll+filter table
   const sumEl = document.getElementById("freshness-summary");
   if (sumEl) {
-    const totalHint = counts.yellow + counts.red > 0
-      ? '<div class="hint">所有序列均已最新</div>' : '<div class="hint">所有序列均已最新</div>';
     sumEl.innerHTML =
-      '<div class="freshness-stat green"><div class="num">' + counts.green + '</div><div class="label">已最新</div><div class="hint">无需关注</div></div>' +
-      '<div class="freshness-stat yellow clickable" data-filter="yellow"><div class="num">' + counts.yellow + '</div><div class="label">轻微滞后</div><div class="hint">点击查看 ↓</div></div>' +
-      '<div class="freshness-stat red clickable" data-filter="red"><div class="num">' + counts.red + '</div><div class="label">显著滞后</div><div class="hint">点击查看 ↓</div></div>' +
-      '<div class="freshness-stat"><div class="num">' + items.length + '</div><div class="label">序列总数</div><div class="hint">本地 SQLite DB</div></div>' +
-      totalHint;
+      '<div class="freshness-stat green"><div class="num">' + counts.green + '</div><div class="label">已最新</div></div>' +
+      '<div class="freshness-stat yellow clickable" data-filter="yellow"><div class="num">' + counts.yellow + '</div><div class="label">轻微滞后</div></div>' +
+      '<div class="freshness-stat red clickable" data-filter="red"><div class="num">' + counts.red + '</div><div class="label">显著滞后</div></div>' +
+      '<div class="freshness-stat"><div class="num">' + items.length + '</div><div class="label">序列总数</div></div>';
     // Click handlers on yellow/red cards
     sumEl.querySelectorAll(".freshness-stat.clickable").forEach(el => {
       el.addEventListener("click", () => scrollAndFilterFreshness(el.dataset.filter));
@@ -3126,7 +3118,7 @@ function initFreshness() {
   if (!tblEl) return;
 
   if (stale.length === 0) {
-    tblEl.innerHTML = '<div class="freshness-all-fresh"><span class="icon">✓</span>所有 ' + items.length + ' 个序列均已最新（最新数据日期 ≤ ' + genStr + '）<div class="sub">无需任何处理。黄色/红色卡片未出现即表示无滞后项。</div></div>';
+    tblEl.innerHTML = '<div class="freshness-group"><h3>趋势看板 (日频) · ' + items.length + '</h3><table class="freshness-table"><thead><tr><th>序列</th><th>最新日期</th><th>距今</th><th>状态</th><th>原因诊断</th></tr></thead><tbody><tr><td colspan="5" class="diagnosis">全部 ' + items.length + ' 个序列均已最新（最新数据日期 ≤ ' + genStr + '）</td></tr></tbody></table></div>';
     return;
   }
 
