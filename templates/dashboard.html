@@ -214,11 +214,12 @@
       border-color: var(--ink);
       box-shadow: var(--shadow-sm);
     }
-    /* Data health tab — muted/util style to signal lower priority */
+    /* Data health tab — muted/util style, pushed to far right with a gap */
     .primary-tabs .tab[data-group="freshness"] {
       color: var(--muted);
       border-style: dashed;
       font-weight: 500;
+      margin-left: auto;
     }
     .primary-tabs .tab[data-group="freshness"].active {
       background: var(--card-bg);
@@ -297,27 +298,34 @@
       background: var(--red-bg);
     }
     /* Data Health (freshness) module — util style */
-    .freshness-summary { display: flex; gap: 12px; margin: 4px 0 20px; flex-wrap: wrap; }
-    .freshness-stat { padding: 12px 18px; border-radius: 8px; background: var(--card-bg); border: 1px solid var(--line); min-width: 110px; }
-    .freshness-stat .num { font-size: 26px; font-weight: 700; line-height: 1.1; }
+    .freshness-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 4px 0 20px; align-items: stretch; }
+    .freshness-stat { padding: 12px 16px; border-radius: 8px; background: var(--card-bg); border: 1px solid var(--line); text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 78px; }
+    .freshness-stat.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .freshness-stat.clickable:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm, 0 2px 6px rgba(0,0,0,0.06)); }
+    .freshness-stat .num { font-size: 28px; font-weight: 700; line-height: 1.05; }
+    .freshness-stat .label { font-size: 12px; color: var(--muted); margin-top: 6px; }
     .freshness-stat.green .num { color: #2e7d32; }
     .freshness-stat.yellow .num { color: #e65100; }
     .freshness-stat.red .num { color: #c62828; }
-    .freshness-stat .label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .freshness-stat .hint { font-size: 11px; color: var(--muted); margin-top: 4px; opacity: 0.75; }
+    .freshness-stat.clickable .hint { opacity: 1; }
     .freshness-tables { display: grid; gap: 18px; }
     .freshness-group h3 { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .freshness-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card-bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-    .freshness-table th { text-align: left; padding: 8px 12px; font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; background: var(--bg-soft, var(--card-bg)); border-bottom: 1px solid var(--line); }
-    .freshness-table td { padding: 7px 12px; border-bottom: 1px solid var(--line); }
+    .freshness-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card-bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; table-layout: auto; }
+    .freshness-table th { text-align: left; padding: 8px 12px; font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; background: var(--bg-soft, var(--card-bg)); border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .freshness-table td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
     .freshness-table tr:last-child td { border-bottom: none; }
-    .freshness-table td.sid-name { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text); }
-    .freshness-table td.date { color: var(--muted); }
-    .freshness-table td.days { font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); }
-    .freshness-status { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .freshness-table td.sid-name { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text); white-space: nowrap; }
+    .freshness-table td.date { color: var(--muted); font-family: ui-monospace, monospace; font-size: 12px; white-space: nowrap; }
+    .freshness-table td.days { font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); text-align: right; white-space: nowrap; }
+    .freshness-table td.diagnosis { color: var(--text); font-size: 12px; line-height: 1.5; }
+    .freshness-status { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
     .freshness-status.green { background: #e8f5e9; color: #2e7d32; }
     .freshness-status.yellow { background: #fff3e0; color: #e65100; }
     .freshness-status.red { background: #ffebee; color: #c62828; }
-    .freshness-legend { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .freshness-all-fresh { padding: 20px 24px; background: var(--card-bg); border: 1px solid var(--line); border-radius: 8px; text-align: left; color: #2e7d32; font-weight: 500; }
+    .freshness-all-fresh .icon { font-size: 18px; margin-right: 8px; }
+    .freshness-all-fresh .sub { color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 4px; }
     .controls {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -623,7 +631,7 @@
         <button class="tab" data-group="review">涨跌复盘</button>
         <button class="tab" data-group="equity">权益看板</button>
         <button class="tab" data-group="fxwatch">外汇看板</button>
-        <button class="tab" data-group="freshness">📊 数据状态</button>
+        <button class="tab" data-group="freshness">数据状态</button>
       </nav>
       <nav class="tabs sub-tabs" id="sub-tabs" aria-label="Sub sections"></nav>
     </div>
@@ -1016,8 +1024,8 @@
     <section class="view" id="view-freshness">
       <div class="panel">
         <div class="panel-head">
-          <h2>📊 数据状态</h2>
-          <p>本地数据库中各序列最新数据日期。以本次生成时间 <span id="freshness-ref-date"></span> 为基准，<b style="color:#2e7d32">绿=新鲜</b>(日频≤1天/月频当月)、<b style="color:#e65100">黄=轻微滞后</b>(2-5天)、<b style="color:#c62828">红=显著滞后</b>(&gt;5天)。</p>
+          <h2>数据状态</h2>
+          <p>本地数据库中各序列最新数据日期。以本次生成时间 <span id="freshness-ref-date"></span> 为基准，<b style="color:#2e7d32">绿=新鲜</b>(日频≤1天/月频当月)、<b style="color:#e65100">黄=轻微滞后</b>(2-5天)、<b style="color:#c62828">红=显著滞后</b>(&gt;5天)。已最新序列不逐条列出，仅显示滞后项及其原因诊断。</p>
         </div>
         <div class="freshness-summary" id="freshness-summary"></div>
         <div class="freshness-tables" id="freshness-tables"></div>
@@ -3022,6 +3030,23 @@ function initTabs() {
   });
 }
 
+function diagnoseStale(sid, days, maxDate) {
+  // Known source-lag / publish-frequency exceptions
+  if (sid === "trend:英-10债") return "英国央行（BoE）数据源发布频率较低，最新数据停留在 " + maxDate;
+  if (sid === "trend:澳-10债") return "澳大利亚储备银行（RBA）数据源发布频率较低，最新数据停留在 " + maxDate;
+  if (sid === "trend:CNYX")    return "CFETS 人民币汇率指数周度发布（每周一），前填日频；本周新值 " + maxDate + " 已被确认";
+  if (sid.startsWith("super_cycle:"))
+    return "月频序列，6 月数据需等待月末（5/31 为最新月频收盘）";
+  if (sid.startsWith("htsc:"))
+    return "华泰智研 MCP 数据源未返回新数据（最新 " + maxDate + "）";
+  if (sid.startsWith("valuation:") || sid.startsWith("dividend_yield:") || sid.startsWith("pb_lf:"))
+    return "Wind get_index_fundamentals 数据源未返回 " + (sid.includes(":") ? sid.split(":")[1] : sid) + " 新值";
+  // Generic EDB/Wind daily series
+  if (days >= 5) return "同花顺 EDB 后端数据滞后（自 2026-06-18 起未发布新数据，本批次已切 Wind 但数据源仍无 6/18+ 数据）";
+  if (days >= 2) return "EDB/Wind 数据源延迟 " + days + " 天，建议检查数据源或下次重跑";
+  return "数据源延迟";
+}
+
 function initFreshness() {
   const obs = DATA.observations || {};
   const genStr = (DATA.generated_at || "").slice(0, 10);
@@ -3045,7 +3070,6 @@ function initFreshness() {
     if (isMonthly) {
       const refMonth = genStr.slice(0, 7);
       const maxMonth = maxDate.slice(0, 7);
-      // monthly: same month or prev month → green; 2-3 months → yellow; > 3 → red
       if (refMonth === maxMonth) status = "green";
       else {
         const monthsDiff = (parseInt(refMonth.slice(0,4))*12 + parseInt(refMonth.slice(5,7)))
@@ -3059,49 +3083,93 @@ function initFreshness() {
       else if (days <= 5) status = "yellow";
       else status = "red";
     }
-    const shortName = sid.includes(":") ? sid.split(":").slice(1).join(":") : sid;
-    items.push({ sid, shortName, cat, maxDate, days, status });
+    items.push({ sid, cat, maxDate, days, status });
   }
 
   const counts = { green: 0, yellow: 0, red: 0 };
   items.forEach(i => counts[i.status]++);
+
+  // Summary cards: green is informational, yellow/red are clickable to scroll+filter table
   const sumEl = document.getElementById("freshness-summary");
   if (sumEl) {
+    const totalHint = counts.yellow + counts.red > 0
+      ? '<div class="hint">点击黄色/红色卡片查看详情</div>' : '<div class="hint">所有序列均已最新</div>';
     sumEl.innerHTML =
-      '<div class="freshness-stat green"><div class="num">' + counts.green + '</div><div class="label">已最新</div></div>' +
-      '<div class="freshness-stat yellow"><div class="num">' + counts.yellow + '</div><div class="label">轻微滞后</div></div>' +
-      '<div class="freshness-stat red"><div class="num">' + counts.red + '</div><div class="label">显著滞后</div></div>' +
-      '<div class="freshness-stat"><div class="num">' + items.length + '</div><div class="label">序列总数</div></div>';
+      '<div class="freshness-stat green"><div class="num">' + counts.green + '</div><div class="label">已最新</div><div class="hint">无需关注</div></div>' +
+      '<div class="freshness-stat yellow clickable" data-filter="yellow"><div class="num">' + counts.yellow + '</div><div class="label">轻微滞后</div><div class="hint">点击查看 ↓</div></div>' +
+      '<div class="freshness-stat red clickable" data-filter="red"><div class="num">' + counts.red + '</div><div class="label">显著滞后</div><div class="hint">点击查看 ↓</div></div>' +
+      '<div class="freshness-stat"><div class="num">' + items.length + '</div><div class="label">序列总数</div><div class="hint">本地 SQLite DB</div></div>' +
+      totalHint;
+    // Click handlers on yellow/red cards
+    sumEl.querySelectorAll(".freshness-stat.clickable").forEach(el => {
+      el.addEventListener("click", () => scrollAndFilterFreshness(el.dataset.filter));
+    });
   }
 
+  // Build tables: ONLY show yellow + red items (green is summarized above)
+  const stale = items.filter(i => i.status !== "green");
   const catLabels = {
-    trend: "趋势看板 (EDB/Wind 日频)",
-    fx: "外汇 (EDB/Wind 日频)",
+    trend: "趋势看板 (日频)",
+    fx: "外汇 (日频)",
     htsc: "华泰智研情绪 (日频)",
     valuation: "估值 PE/PB/DY (日频)",
     super_cycle: "美元超级周期 (月频)"
   };
   const groups = {};
-  items.forEach(i => { (groups[i.cat] = groups[i.cat] || []).push(i); });
+  stale.forEach(i => { (groups[i.cat] = groups[i.cat] || []).push(i); });
 
-  const statusText = s => s === "green" ? "新鲜" : s === "yellow" ? "滞后" : "显著滞后";
+  const statusText = s => s === "yellow" ? "轻微滞后" : "显著滞后";
   const dayText = d => d === 0 ? "今日" : d + "天前";
+
+  const tblEl = document.getElementById("freshness-tables");
+  if (!tblEl) return;
+
+  if (stale.length === 0) {
+    tblEl.innerHTML = '<div class="freshness-all-fresh"><span class="icon">✓</span>所有 ' + items.length + ' 个序列均已最新（最新数据日期 ≤ ' + genStr + '）<div class="sub">无需任何处理。黄色/红色卡片未出现即表示无滞后项。</div></div>';
+    return;
+  }
 
   let html = "";
   Object.keys(groups).sort().forEach(g => {
     const arr = groups[g].sort((a, b) => b.days - a.days || a.sid.localeCompare(b.sid));
-    const rows = arr.map(i =>
-      '<tr><td class="sid-name">' + i.sid + '</td>' +
-      '<td class="date">' + i.maxDate + '</td>' +
-      '<td class="days">' + (i.cat === "super_cycle" ? i.maxDate.slice(0,7) : dayText(i.days)) + '</td>' +
-      '<td><span class="freshness-status ' + i.status + '">' + statusText(i.status) + '</span></td></tr>'
-    ).join("");
-    html += '<div class="freshness-group"><h3>' + (catLabels[g] || g) + ' · ' + arr.length + '</h3>' +
-      '<table class="freshness-table"><thead><tr><th>序列</th><th>最新日期</th><th>距今</th><th>状态</th></tr></thead><tbody>' +
+    const rows = arr.map(i => {
+      const diag = diagnoseStale(i.sid, i.days, i.maxDate);
+      return '<tr data-status="' + i.status + '"><td class="sid-name">' + i.sid + '</td>' +
+        '<td class="date">' + i.maxDate + '</td>' +
+        '<td class="days">' + (i.cat === "super_cycle" ? i.maxDate.slice(0,7) : dayText(i.days)) + '</td>' +
+        '<td><span class="freshness-status ' + i.status + '">' + statusText(i.status) + '</span></td>' +
+        '<td class="diagnosis">' + diag + '</td></tr>';
+    }).join("");
+    html += '<div class="freshness-group" data-group-cat="' + g + '"><h3>' + (catLabels[g] || g) + ' · ' + arr.length + ' 个问题序列</h3>' +
+      '<table class="freshness-table"><thead><tr><th>序列</th><th>最新日期</th><th>距今</th><th>状态</th><th>原因诊断</th></tr></thead><tbody>' +
       rows + '</tbody></table></div>';
   });
-  const tblEl = document.getElementById("freshness-tables");
-  if (tblEl) tblEl.innerHTML = html;
+  tblEl.innerHTML = html;
+}
+
+function scrollAndFilterFreshness(filter) {
+  // Clear any previous filter highlight
+  document.querySelectorAll(".freshness-stat.clickable").forEach(el => {
+    el.style.outline = "";
+    el.style.outlineOffset = "";
+  });
+  // Highlight active card
+  const activeCard = document.querySelector('.freshness-stat[data-filter="' + filter + '"]');
+  if (activeCard) {
+    activeCard.style.outline = "2px solid " + (filter === "red" ? "#c62828" : "#e65100");
+    activeCard.style.outlineOffset = "2px";
+  }
+  // Filter table rows
+  const rows = document.querySelectorAll("#freshness-tables tr[data-status]");
+  rows.forEach(r => { r.style.display = (r.dataset.status === filter) ? "" : "none"; });
+  // Hide groups that have no visible rows after filter
+  document.querySelectorAll(".freshness-group").forEach(g => {
+    const visible = g.querySelectorAll('tr[data-status="' + filter + '"]');
+    g.style.display = (visible.length > 0) ? "" : "none";
+  });
+  // Scroll
+  const target = document.getElementById("freshness-tables");
+  if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function init() {
