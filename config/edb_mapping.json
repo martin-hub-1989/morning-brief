@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "last_updated": "2026-06-24",
+  "last_updated": "2026-06-25",
   "auth": {
     "token_source": "mcp_config",
     "mcp_config_path": "~/.claude/mcp.json",
@@ -209,6 +209,72 @@
       "category": "us_bond_yield",
       "frequency": "D",
       "notes": "美国国债 1Y 收益率"
+    },
+    "msci:MSCI全球": {
+      "edb_query": "MSCI全球指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI全球综合指数。值与 Wind/DB 一致，EDB 为主力，Wind 为 fallback"
+    },
+    "msci:MSCI发达市场": {
+      "edb_query": "MSCI发达市场指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI发达市场指数"
+    },
+    "msci:MSCI新兴市场": {
+      "edb_query": "MSCI新兴市场指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI新兴市场指数"
+    },
+    "msci:MSCI美国": {
+      "edb_query": "MSCI美国指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI美国指数(美元)"
+    },
+    "msci:MSCI欧洲": {
+      "edb_query": "MSCI欧洲指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI欧洲指数(美元)"
+    },
+    "msci:MSCI欧澳远东": {
+      "edb_query": "MSCI欧澳远东指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI欧澳远东指数(美元)"
+    },
+    "msci:MSCI亚太地区": {
+      "edb_query": "MSCI亚太地区指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI亚太地区指数"
+    },
+    "msci:MSCI日本": {
+      "edb_query": "MSCI日本指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI日本指数(美元)"
+    },
+    "msci:MSCI中国(美元)": {
+      "edb_query": "MSCI中国指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI中国指数(美元)"
+    },
+    "msci:MSCI南下香港(美元)": {
+      "edb_query": "MSCI南下香港指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI南下香港指数(美元)"
+    },
+    "msci:MSCI香港(美元)": {
+      "edb_query": "MSCI香港指数收盘价",
+      "category": "msci_index",
+      "frequency": "D",
+      "notes": "MSCI香港指数(美元)"
     }
   },
   "batches": [
@@ -369,6 +435,22 @@
         "trend:中证红利全收益",
         "trend:创业板R",
         "trend:科创50(全)"
+      ]
+    },
+    {
+      "name": "msci_indices",
+      "series_ids": [
+        "msci:MSCI全球",
+        "msci:MSCI发达市场",
+        "msci:MSCI新兴市场",
+        "msci:MSCI美国",
+        "msci:MSCI欧洲",
+        "msci:MSCI欧澳远东",
+        "msci:MSCI亚太地区",
+        "msci:MSCI日本",
+        "msci:MSCI中国(美元)",
+        "msci:MSCI南下香港(美元)",
+        "msci:MSCI香港(美元)"
       ]
     }
   ]

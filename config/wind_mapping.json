@@ -512,9 +512,177 @@
       "category": "commodity",
       "notes": "ICE 布伦特原油期货连续",
       "skip_validation": true
+    },
+    "msci:MSCI全球": {
+      "method": "kline",
+      "windcode": "892400.MI",
+      "category": "msci_market",
+      "notes": "MSCI全球综合指数",
+      "skip_validation": true
+    },
+    "msci:MSCI发达市场": {
+      "method": "kline",
+      "windcode": "990100.MI",
+      "category": "msci_market",
+      "notes": "MSCI发达市场指数",
+      "skip_validation": true
+    },
+    "msci:MSCI新兴市场": {
+      "method": "kline",
+      "windcode": "891800.MI",
+      "category": "msci_market",
+      "notes": "MSCI新兴市场指数",
+      "skip_validation": true
+    },
+    "msci:MSCI美国": {
+      "method": "kline",
+      "windcode": "984000.MI",
+      "category": "msci_market",
+      "notes": "MSCI美国指数",
+      "skip_validation": true
+    },
+    "msci:MSCI欧洲": {
+      "method": "kline",
+      "windcode": "990500.MI",
+      "category": "msci_market",
+      "notes": "MSCI欧洲指数",
+      "skip_validation": true
+    },
+    "msci:MSCI欧澳远东": {
+      "method": "kline",
+      "windcode": "990300.MI",
+      "category": "msci_market",
+      "notes": "MSCI欧澳远东指数",
+      "skip_validation": true
+    },
+    "msci:MSCI亚太地区": {
+      "method": "kline",
+      "windcode": "302000.MI",
+      "category": "msci_market",
+      "notes": "MSCI亚太地区指数",
+      "skip_validation": true
+    },
+    "msci:MSCI日本": {
+      "method": "kline",
+      "windcode": "939200.MI",
+      "category": "msci_market",
+      "notes": "MSCI日本指数",
+      "skip_validation": true
+    },
+    "msci:MSCI韩国": {
+      "method": "kline",
+      "windcode": "941000.MI",
+      "category": "msci_market",
+      "notes": "MSCI韩国指数",
+      "skip_validation": true
+    },
+    "msci:MSCI中国(美元)": {
+      "method": "kline",
+      "windcode": "302400.MI",
+      "category": "msci_market",
+      "notes": "MSCI中国指数(美元)",
+      "skip_validation": true
+    },
+    "msci:MSCI南下香港(美元)": {
+      "method": "kline",
+      "windcode": "711524.MI",
+      "category": "msci_market",
+      "notes": "MSCI南下香港指数(美元)",
+      "skip_validation": true
+    },
+    "msci:MSCI香港(美元)": {
+      "method": "kline",
+      "windcode": "934400.MI",
+      "category": "msci_market",
+      "notes": "MSCI香港指数(美元)",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/能源Ⅰ": {
+      "method": "kline",
+      "windcode": "106745.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球能源行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/原材料Ⅰ": {
+      "method": "kline",
+      "windcode": "106746.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球原材料行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/工业": {
+      "method": "kline",
+      "windcode": "106747.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球工业行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/非日常消费品": {
+      "method": "kline",
+      "windcode": "106748.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球非日常消费品行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/日常消费品": {
+      "method": "kline",
+      "windcode": "106749.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球日常消费品行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/医疗保健": {
+      "method": "kline",
+      "windcode": "106750.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球医疗保健行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/金融": {
+      "method": "kline",
+      "windcode": "106751.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球金融行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/信息科技": {
+      "method": "kline",
+      "windcode": "106752.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球信息科技行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/电信业务Ⅰ": {
+      "method": "kline",
+      "windcode": "106753.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球电信业务行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI全球/公用事业Ⅰ": {
+      "method": "kline",
+      "windcode": "106754.MI",
+      "category": "msci_sector",
+      "notes": "MSCI全球公用事业行业指数",
+      "skip_validation": true
+    },
+    "msci:MSCI发达市场成长": {
+      "method": "kline",
+      "windcode": "105867.MI",
+      "category": "msci_style",
+      "notes": "MSCI发达市场成长风格指数",
+      "skip_validation": true
+    },
+    "msci:MSCI发达市场价值": {
+      "method": "kline",
+      "windcode": "105868.MI",
+      "category": "msci_style",
+      "notes": "MSCI发达市场价值风格指数",
+      "skip_validation": true
     }
   },
-  "note": "共 38 个序列（新增 14 个 fx: 外汇原始序列）。K-line 方法 18 个，economic 方法 20 个。 | 2026-06-24: 32 个 EDB 滞后序列改用 Wind（指数 kline + 债券/外汇/商品 economic）",
+  "note": "共 62 个序列（含 24 个 MSCI 指数 kline）。K-line 方法 42 个，economic 方法 20 个。 | 2026-06-25: 新增 24 个 MSCI 指数（综合市场/行业/风格）kline 映射",
   "valuation": {
     "note": "估值序列（PE TTM + PB LF + 股息率）。每次 get_index_fundamentals 调用返回三个指标，覆盖 3 个 series。16 个指数 × 1 次调用/天 = 16 次 Wind 调用/天。",
     "indices": {

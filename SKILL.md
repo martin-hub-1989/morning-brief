@@ -1,6 +1,6 @@
 ---
 name: morning-brief
-description: 运行 Daily Morning Brief 每日流水线 — 先生成全球新闻报告(看世界模块)，再从同花顺 EDB + Wind MCP 拉取最新市场数据，复算外汇衍生序列，更新本地 SQLite 数据库，生成交互式 HTML 看板。触发词：早报、morning brief、更新看板、run daily。
+description: 运行 Daily Morning Brief 每日流水线 — 先生成全球新闻报告(看世界模块)，再从同花顺 EDB + Wind MCP 拉取最新市场数据（含 MSCI 全球指数），复算外汇衍生序列，更新本地 SQLite 数据库，生成交互式 HTML 看板。触发词：早报、morning brief、更新看板、run daily。
 ---
 
 # Daily Morning Brief — Multi Asset Dashboard
@@ -538,8 +538,8 @@ python3 scripts/run_daily.py
 这将依次运行脚本：
 
 1. **update_data.py** — 扫描数据库，生成增量更新计划 (`data/update_plan.json`)
-2. **fetch_data.py** — 从同花顺 EDB API 拉取日频数据，验证后写入 SQLite。**EDB 拉取失败时自动降级到 Wind MCP**（需该序列在 `wind_mapping.json` 中有映射）
-3. **fetch_wind.py** — 从 Wind MCP 拉取外汇原始数据（CNH远期/掉期点）+ 全收益指数 + 估值
+2. **fetch_data.py** — 从同花顺 EDB API 拉取日频数据，验证后写入 SQLite。覆盖利率、汇率、商品、A/港/美股价格指数、MSCI 综合市场指数（11 个）。**EDB 拉取失败时自动降级到 Wind MCP**（需该序列在 `wind_mapping.json` 中有映射）
+3. **fetch_wind.py** — 从 Wind MCP 拉取外汇原始数据（CNH远期/掉期点）+ 全收益指数 + 估值 + MSCI 指数（全部 24 个，EDB 未覆盖的行业/风格/韩国指数以此为主力源）
 4. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（汇率拆解+套保成本+年化），幂等
 5. **fetch_emotion.py** — 从华泰智研 MCP 拉取市场情绪和资金面数据
 6. **generate_interactive_dashboard.py** — 从 DB & `templates/dashboard.html` 生成 `output/interactive_dashboard.html` + `docs/index.html`（GitHub Pages）。同时自动查找最新的 Global News Report 并**内联嵌入**到看板 HTML（通过 Blob URL 注入 iframe），使看板文件完全自包含，单个文件即可共享给他人并正常显示「看世界」模块。
@@ -562,17 +562,17 @@ python3 scripts/run_daily.py --skip-fetch-emotion  # 仅跳过华泰智研 MCP
 
 ```
 === THS EDB Fetch Summary ===
-Targeted: 36 series    ← 需要更新的序列总数
-Fetched:  36 series    ← 成功拉取（含 Wind 降级）
-Passed:   36 ok        ← 验证通过
+Targeted: 47 series    ← 需要更新的序列总数（含 MSCI 综合市场 11 个）
+Fetched:  47 series    ← 成功拉取（含 Wind 降级）
+Passed:   47 ok        ← 验证通过
 Wind fallback: 2       ← EDB 失败后自动切换 Wind 的序列数
 Wind API calls: 4      ← 降级拉取消耗的 Wind 调用次数
 New obs:  N observations
 
 === Wind Fetch Summary ===
-Targeted: 38 series    ← Wind 负责的序列
-Fetched:  38 series    ← 成功从 Wind 拉取
-Wind API calls: 52     ← Wind 调用总次数
+Targeted: 62 series    ← Wind 负责的序列（含 MSCI 24 个）
+Fetched:  62 series    ← 成功从 Wind 拉取
+Wind API calls: 76     ← Wind 调用总次数（趋势 62 + 估值 16）
 New obs:  N observations
 
 === Recompute FX Derived ===
@@ -586,6 +586,7 @@ New derived obs: N     ← 新增的复算观测（幂等，重复运行=0）
 - `skip_reason: 改用 Wind MCP` → 中信风格/德日债/GBPCNY/USDJPY，Wind 数据与 DB 一致
 - `skip_reason: EDB ... 全收益` → 全收益指数 EDB 不支持，已由 Wind MCP 接管
 - `skip_reason: EDB 无...` → EDB 无此指标（如万得全A），已由 Wind 接管
+- MSCI 行业/风格/韩国指数 → EDB 无精确匹配，直接走 Wind MCP kline
 
 ### 4. 报告结果
 
@@ -651,17 +652,19 @@ xdg-open output/interactive_dashboard.html
 |---|------|---------|---------|
 | 1 | 封面 | 默认 | 标题、日期、导航卡片完整 |
 | 2 | 看世界 | 看世界 | 内联加载成功（Blob URL），新闻表格+卡片内容正常；若无当天报告则显示占位提示 |
-| 3 | 走势看板 | 走势看板 | 图表+数据表正常，可选择不同指标和周期 |
-| 4 | 股票涨跌 | 涨跌复盘 | 柱状图+表格正常，中信风格子图正常。区间选项含 Since 924（以 2024-09-23 收盘为基准，即 9/24 拐点前一日） |
-| 5 | 利率涨跌 | 涨跌复盘 | 柱状图+表格正常。>1Y 时右侧显示年化 bp |
-| 6 | 汇率涨跌 | 外汇看板 | 柱状图+表格正常，分组颜色正确。>1Y 时右侧显示年化涨跌幅 |
-| 7 | 中美利差 | 外汇看板 | 10Y/2Y 两张图+表格正常 |
-| 8 | 估值看板 | 权益看板 | 图表+均值/σ参考线+Z分数表正常 |
-| 9 | 市场情绪 | 权益看板 | 情绪指数图+A股/港股对比图+表格正常。**若 HTSC 数据未拉取，模块显示友好提示而非空白** |
-| 10 | 中间价 | 外汇看板 | 中间价vs即期图+汇率拆解图+表格正常 |
-| 11 | 套保成本 | 外汇看板 | 期限结构图+3M时序图+1Y利差对比图+表格正常 |
-| 12 | 专题图表 | 外汇看板 | DXY超级周期图+D/AE超级周期图+表格正常 |
-| 13 | 数据口径 | 各标签底部 | 数据源说明文字显示正常 |
+| 3 | 走势看板 | 走势看板 | 图表+数据表正常，可选择不同指标和周期。含 MSCI 综合市场 9 个指数 |
+| 4 | 股票走势 | 权益看板 | 功能同走势看板，含全部股票指数（不含全收益），MSCI 指数可选 |
+| 5 | 股票涨跌 | 权益看板 | 柱状图+表格正常，中信风格子图正常。区间选项含 Since 924（以 2024-09-23 收盘为基准，即 9/24 拐点前一日） |
+| 6 | 国际股票 | 权益看板 | MSCI 综合市场涨跌（柱状图）+ MSCI 行业涨跌（柱状图）+ 发达市场成长 vs 价值走势（折线图） |
+| 7 | 利率涨跌 | 利率汇率 | 柱状图+表格正常。>1Y 时右侧显示年化 bp |
+| 8 | 汇率涨跌 | 外汇看板 | 柱状图+表格正常，分组颜色正确。>1Y 时右侧显示年化涨跌幅 |
+| 9 | 中美利差 | 外汇看板 | 10Y/2Y 两张图+表格正常 |
+| 10 | 估值看板 | 权益看板 | 图表+均值/σ参考线+Z分数表正常 |
+| 11 | 市场情绪 | 权益看板 | 情绪指数图+A股/港股对比图+表格正常。**若 HTSC 数据未拉取，模块显示友好提示而非空白** |
+| 12 | 中间价 | 外汇看板 | 中间价vs即期图+汇率拆解图+表格正常 |
+| 13 | 套保成本 | 外汇看板 | 期限结构图+3M时序图+1Y利差对比图+表格正常 |
+| 14 | 专题图表 | 外汇看板 | DXY超级周期图+D/AE超级周期图+表格正常 |
+| 15 | 数据口径 | 各标签底部 | 数据源说明文字显示正常 |
 
 验证方法：
 1. 打开看板后，**逐一**点击每个一级标签和二级标签
@@ -728,14 +731,14 @@ python3 scripts/fetch_wind.py --series fx:usdcnh-spot --verbose
 
 | 指标 | 数值 |
 |------|------|
-| 趋势序列 | 55 个 |
+| 趋势序列 | 55 个（含 MSCI 24 个） |
 | 估值序列 (PE/PB/DY) | 51 个 |
 | 外汇原始序列 | 13 个 |
 | 外汇衍生序列 | 24 个（Python 复算） |
 | 美元超级周期 | 9 个（3 原始月频 + 6 归一化周期） |
-| **总覆盖** | **152 序列，100%** |
-| **数据流** | Step 0 (新闻) → EDB(36) + Wind(38) + Python复算(30) → emotion(8) → dashboard |
-| 看板模块 | 封面 + 看世界 + 10 数据模块 + 专题图表 |
+| **总覆盖** | **176 序列，100%** |
+| **数据流** | Step 0 (新闻) → EDB(47) + Wind(62) + Python复算(30) → emotion(8) → dashboard |
+| 看板模块 | 封面 + 看世界 + 11 数据模块 + 专题图表 |
 | 图表功能 | 导出PNG图片 + 下载Excel数据（每个图表左上角悬停按钮） |
 | **Skill 来源** | Step 0 (看世界) 来自 [xk2133/global-news-report](https://github.com/xk2133/global-news-report) v2.3.1（NINA 标注区） |
 
@@ -743,8 +746,8 @@ python3 scripts/fetch_wind.py --series fx:usdcnh-spot --verbose
 
 | 数据源 | 负责序列 | 调用量/日 |
 |------|---------|:--:|
-| **THS EDB**（免费）| 利率、汇率、商品、A/港/美股价格指数、FX 中间价/即期/债券收益率 | ~36 次 |
-| **Wind MCP**（积分）| CNH远期/掉期点、全收益指数(12)、中信风格(5)、万得全A、CNYX、德/日债(3)、GBPCNY/USDJPY、估值 PE/PB/DY (51) | ~52 次 |
+| **THS EDB**（免费）| 利率、汇率、商品、A/港/美股价格指数、MSCI 综合市场指数(11)、FX 中间价/即期/债券收益率 | ~47 次 |
+| **Wind MCP**（积分）| MSCI 全部指数(24)、CNH远期/掉期点、全收益指数(12)、中信风格(5)、万得全A、CNYX、德/日债(3)、GBPCNY/USDJPY、估值 PE/PB/DY (51) | ~76 次 |
 | **Python 复算** | 汇率变动拆解(8) + 套保成本(8) + 年化套保(8) | 1 次 |
 | **华泰智研 MCP** | 情绪指数(2) + 资金面(6) | 1 次 |
 

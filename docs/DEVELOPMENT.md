@@ -45,7 +45,7 @@ seed/                                config/
 
 **首次运行**：`import_seed.py --replace`（一键导入 seed.xlsx 全部 7 个 sheet）。
 
-**数据源优先级**：THS EDB（免费，主力）→ Wind MCP（积分，补充外汇远期/掉期点+全收益指数+估值）→ Python 复算（衍生序列）→ 华泰智研 MCP（情绪/资金面）。
+**数据源优先级**：THS EDB（免费，主力，含 MSCI 综合市场 11 个）→ Wind MCP（积分，MSCI 全 24 个 + 外汇远期/掉期点+全收益指数+估值）→ Python 复算（衍生序列）→ 华泰智研 MCP（情绪/资金面）。
 
 ## 目录结构
 
@@ -109,6 +109,7 @@ seed/                                config/
 | `dividend_yield:*` | 股息率 | M | Wind MCP |
 | `fx:*` | 外汇 | D | EDB / Wind MCP / Python 复算 |
 | `super_cycle:*` | 美元超级周期 | M | Python 复算（从 seed 导入后复算） |
+| `msci:*` | MSCI 全球指数 | D | EDB（综合市场 11 个）/ Wind MCP kline（全部 24 个） |
 | `htsc:*` | 华泰智研 | D/W | HTSC MCP |
 
 ### update_plan.json 结构
@@ -178,8 +179,10 @@ seed/                                config/
 | 模块 | DOM ID | 渲染函数 | 图表类型 |
 | ---- | ---- | ---- | ---- |
 | 封面 | `view-cover` | (静态 HTML + CSS) | 导航卡片，浅色克制设计 |
-| 走势看板 | `view-trend` | `renderTrend()` | `renderSvgLine` 折线图 |
+| 走势看板 | `view-trend` | `renderTrend()` | `renderSvgLine` 折线图（含 MSCI 综合市场 9 个指数） |
+| 股票走势 | `view-equity-trend` | `renderEquityTrend()` | `renderSvgLine` 折线图（全部股票指数，不含全收益） |
 | 股票涨跌 | `view-returns` | `renderReturns()` | `renderBarChart` 水平柱状图 |
+| 国际股票 | `view-msci` | `renderMsciMarket()` / `renderMsciSector()` / `renderMsciStyle()` | `renderBarChart` 水平柱状图（2 张）+ `renderSvgLine` 折线图（1 张） |
 | 利率涨跌 | `view-rates` | `renderRates()` | `renderBarChart` 水平柱状图 |
 | 汇率涨跌 | `view-fx` | `renderFx()` | `renderBarChart` 水平柱状图 |
 | 中美利差 | `view-spread` | `renderSpread()` | `renderSvgLine` 折线图（两张） |
@@ -201,7 +204,7 @@ seed/                                config/
 
 在 `generate_interactive_dashboard.py` 中定义为 Python 常量，也以 JSON 形式嵌入 HTML：
 
-- `TREND_SERIES`：约 28 个日频走势指标（利率、汇率、股票指数、商品）
+- `TREND_SERIES`：约 48 个日频走势指标（利率、汇率、股票指数、商品、MSCI）
 - `RETURN_SERIES`：15 个含 region 标签的全收益/商品序列（A 股/港股/美股/商品）
 - `RATE_SERIES`：13 个利率指标
 - `FX_SERIES`：7 个汇率指标，分 group（兑人民币/美元交叉/指数）

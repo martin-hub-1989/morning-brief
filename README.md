@@ -56,14 +56,14 @@ open output/interactive_dashboard.html                # macOS
 ├── .gitignore
 ├── requirements.txt               ← Python 依赖
 ├── seed/                          ← 历史数据种子文件
-│   └── seed.xlsx                  ← 合并种子（走势/估值/外汇/债券/美元指数，7 个工作表）
+│   └── seed.xlsx                  ← 合并种子（走势/估值/外汇/债券/美元指数/MSCI，8 个工作表）
 ├── templates/                     ← HTML 模板
 │   └── dashboard.html             ← 看板 HTML/CSS/JS 模板（~2400 行独立文件）
 ├── config/                        ← 数据源查询映射
 │   ├── edb_mapping.json           ← series_id → EDB 查询词
 │   └── wind_mapping.json          ← series_id → Wind MCP 参数
 ├── data/                          ← 运行时数据（SQLite + JSON 计划）
-│   ├── morning_brief.sqlite       ← ~150 序列时序数据库
+│   ├── morning_brief.sqlite       ← ~176 序列时序数据库
 │   ├── update_plan.json           ← 增量更新计划
 │   └── fetch_summary.json         ← 最近拉取摘要
 ├── scripts/                       ← 所有 Python 脚本
@@ -115,8 +115,8 @@ python3 scripts/import_seed.py --replace
 
 | 优先级 | 数据源 | 状态 | 覆盖率 |
 | ---- | ---- | ---- | ---- |
-| 1 | 同花顺 EDB | ✅ 已接入 | 32 日频趋势 + 4 FX 原始序列 |
-| 2 | Wind MCP | ✅ 已接入 | 24 补充序列 + 14 FX 原始序列 + 51 估值序列 |
+| 1 | 同花顺 EDB | ✅ 已接入 | 32 日频趋势 + 4 FX 原始序列 + 11 MSCI 综合市场 |
+| 2 | Wind MCP | ✅ 已接入 | 24 补充序列 + 14 FX 原始序列 + 51 估值序列 + 24 MSCI（全系列） |
 | 3 | Python 复算 | ✅ 已接入 | 24 FX 衍生序列（汇率拆解 + 套保成本 + 年化） |
 | 4 | 华泰智研 MCP | ✅ 已接入 | 2 情绪指数 + 6 资金面序列 |
 | 5 | 美元超级周期 | ✅ 已接入 | 3 原始月频 + 6 归一化周期序列（DB 存储，不再依赖 Excel） |
@@ -147,7 +147,7 @@ python3 scripts/run_daily.py --skip-fetch
 
 - **封面**：Multi Asset Morning Brief，导航卡片直达各模块
 - **看世界**：全球宏观要闻、市场数据一览（内联嵌入，看板文件完全自包含，无需额外文件即可共享）
-- **10 个数据模块**：走势看板、股票涨跌（含 Since 924 区间，>1Y 显示年化）、利率涨跌（>1Y 显示年化 bp）、汇率涨跌（>1Y 显示年化）、中美利差、中间价、套保成本、估值看板、市场情绪
+- **11 个数据模块**：走势看板（含 MSCI 综合市场指数）、股票走势、股票涨跌（含 Since 924 区间，>1Y 显示年化）、国际股票（MSCI 市场/行业涨跌 + 成长vs价值走势）、利率涨跌（>1Y 显示年化 bp）、汇率涨跌（>1Y 显示年化）、中美利差、中间价、套保成本、估值看板、市场情绪
 - **专题图表**：美元超级周期（DXY + D/AE 对比）
 - **图表导出**：每个图表左上角悬停显示导出图片（PNG）和下载数据（Excel）按钮
 - **返回主页**：每个模块页面右上角提供 `← 主页` 按钮，一键回到欢迎封面
@@ -165,8 +165,8 @@ python3 scripts/run_daily.py --skip-fetch
 
 1. **import_seed.py** — 首次运行：从 Excel 种子文件导入全部历史数据（走势/估值/外汇/超级周期）
 2. **update_data.py** — 扫描数据库，生成增量更新计划
-3. **fetch_data.py** — 同花顺 EDB 拉取日频数据，验证后 UPSERT
-4. **fetch_wind.py** — Wind MCP 拉取外汇原始数据 + 全收益指数 + 估值
+3. **fetch_data.py** — 同花顺 EDB 拉取日频数据（含 MSCI 综合市场 11 个），验证后 UPSERT
+4. **fetch_wind.py** — Wind MCP 拉取 MSCI 全部指数 + 外汇原始数据 + 全收益指数 + 估值
 5. **recompute_fx_derived.py** — 从原始数据复算所有外汇衍生序列（幂等）
 6. **fetch_emotion.py** — 华泰智研 MCP 拉取市场情绪数据
 7. **generate_interactive_dashboard.py** — 生成单文件 HTML 看板
@@ -203,13 +203,13 @@ python3 scripts/run_daily.py --skip-fetch
 
 | 指标 | 数值 |
 | ---- | ---- |
-| 趋势序列 | 55 个 |
+| 趋势序列 | 55 个（含 MSCI 24 个） |
 | 估值序列 (PE/PB/DY) | 51 个 |
 | 外汇原始序列 | 13 个（中间价/即期/CNH远期/掉期点/债券收益率） |
 | 外汇衍生序列 | 24 个（汇率拆解 + 套保成本 + 年化） |
 | 美元超级周期 | 9 个（3 原始月频 + 6 归一化周期） |
-| **THS EDB 覆盖** | 36 个（32 趋势 + 4 FX） |
-| **Wind MCP 覆盖** | 38 个（25 趋势 + 13 FX） + 51 估值 |
+| **THS EDB 覆盖** | 47 个（32 趋势 + 4 FX + 11 MSCI 综合市场） |
+| **Wind MCP 覆盖** | 62 个（25 趋势 + 13 FX + 24 MSCI） + 51 估值 |
 | **Python 复算** | 24 FX 衍生 + 6 超级周期归一化 |
-| **总覆盖** | **152 序列，100% 覆盖** |
-| 数据起点 | 趋势 1989-06-05，估值 1990-12-19，外汇 1981-01-02，美元指数 1971-01-31 |
+| **总覆盖** | **176 序列，100% 覆盖** |
+| 数据起点 | 趋势 1989-06-05，估值 1990-12-19，外汇 1981-01-02，美元指数 1971-01-31，MSCI 1989-06-05 |
