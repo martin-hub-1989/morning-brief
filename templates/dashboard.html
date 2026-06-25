@@ -683,6 +683,14 @@
               <span class="cover-card-title">套保成本</span>
               <span class="cover-card-desc">Hedge Cost</span>
             </div>
+            <div class="cover-card" data-view="equity-trend">
+              <span class="cover-card-title">股票走势</span>
+              <span class="cover-card-desc">Equity Trends</span>
+            </div>
+            <div class="cover-card" data-view="msci">
+              <span class="cover-card-title">国际股票</span>
+              <span class="cover-card-desc">MSCI Global</span>
+            </div>
             <div class="cover-card" data-view="topics">
               <span class="cover-card-title">专题图表</span>
               <span class="cover-card-desc">Topics</span>
@@ -902,6 +910,91 @@
       </div>
     </section>
 
+    <!-- 股票走势（权益看板子模块） -->
+    <section class="view" id="view-equity-trend">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>股票走势</h2>
+          <p>选择 1 个或 2 个股票指数；选择 2 个时自动左右分轴。包含 A股/港股/美股/中信风格/MSCI 全部股票指数（不含全收益指数）。</p>
+        </div>
+        <div class="controls">
+          <div>
+            <label for="equity-trend-one">指标一</label>
+            <select id="equity-trend-one"></select>
+          </div>
+          <div>
+            <label for="equity-trend-two">指标二</label>
+            <select id="equity-trend-two"></select>
+          </div>
+          <div class="control-wide">
+            <label>展示周期</label>
+            <div class="segmented" id="equity-trend-period"></div>
+          </div>
+        </div>
+        <div class="chart-area" id="equity-trend-chart"></div>
+        <div class="table-wrap" id="equity-trend-table"></div>
+      </div>
+    </section>
+
+    <!-- 国际股票（权益看板子模块） -->
+    <section class="view" id="view-msci">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>国际股票</h2>
+          <p>MSCI 全球指数体系：综合市场涨跌、行业涨跌、发达市场成长 vs 价值风格走势。数据来源：Wind MSCI 指数。</p>
+        </div>
+
+        <!-- 图1: MSCI 综合市场涨跌 -->
+        <h3>MSCI 综合市场涨跌</h3>
+        <div class="controls">
+          <div class="control-wide">
+            <label>计算区间</label>
+            <div class="segmented" id="msci-market-period"></div>
+          </div>
+          <div>
+            <label for="msci-market-start">起始日期</label>
+            <input type="date" id="msci-market-start">
+          </div>
+          <div>
+            <label for="msci-market-end">结束日期</label>
+            <input type="date" id="msci-market-end">
+          </div>
+        </div>
+        <div class="chart-area" id="msci-market-chart"></div>
+        <div class="table-wrap" id="msci-market-table"></div>
+
+        <!-- 图2: MSCI 行业涨跌 -->
+        <h3 style="margin-top:32px">MSCI 行业涨跌</h3>
+        <div class="controls">
+          <div class="control-wide">
+            <label>计算区间</label>
+            <div class="segmented" id="msci-sector-period"></div>
+          </div>
+          <div>
+            <label for="msci-sector-start">起始日期</label>
+            <input type="date" id="msci-sector-start">
+          </div>
+          <div>
+            <label for="msci-sector-end">结束日期</label>
+            <input type="date" id="msci-sector-end">
+          </div>
+        </div>
+        <div class="chart-area" id="msci-sector-chart"></div>
+        <div class="table-wrap" id="msci-sector-table"></div>
+
+        <!-- 图3: MSCI 发达市场成长 vs 价值 -->
+        <h3 style="margin-top:32px">MSCI 发达市场成长 vs 价值</h3>
+        <div class="controls">
+          <div class="control-wide">
+            <label>展示周期</label>
+            <div class="segmented" id="msci-style-period"></div>
+          </div>
+        </div>
+        <div class="chart-area" id="msci-style-chart"></div>
+        <div class="table-wrap" id="msci-style-table"></div>
+      </div>
+    </section>
+
     <section class="view" id="view-topics">
       <div class="panel">
         <div class="panel-head">
@@ -1051,7 +1144,29 @@ const COLORS = {
   商品: "#B8974A",
   兑人民币: "#5B7F8A",
   美元交叉: "#6B8B7A",
-  指数: "#B8974A"
+  指数: "#B8974A",
+  // MSCI 区域颜色
+  全球: "#5B7F8A",
+  发达: "#6B8B7A",
+  新兴: "#C44B3B",
+  美洲: "#B8974A",
+  欧洲: "#8B6B7E",
+  欧澳远东: "#5B8A8A",
+  亚太: "#C47B3B",
+  // MSCI 行业颜色
+  能源: "#5B7F8A",
+  原材料: "#8B6B7E",
+  工业: "#6B8B7A",
+  可选消费: "#C44B3B",
+  必选消费: "#B8974A",
+  医疗: "#C47B3B",
+  金融: "#5B8A8A",
+  科技: "#5B7F8A",
+  电信: "#6B8B7A",
+  公用: "#8B6B7E",
+  // MSCI 风格颜色
+  成长: "#C44B3B",
+  价值: "#5B7F8A"
 };
 
 const PERIODS = [
@@ -1576,6 +1691,10 @@ let spreadPeriod = "3Y";
 let valuationWindow = "10";
 let valuationDisplayPeriod = "FULL";
 let emotionPeriod = "1Y";
+let equityTrendPeriod = "1Y";
+let msciMarketPeriod = "1Y";
+let msciSectorPeriod = "1Y";
+let msciStylePeriod = "1Y";
 
 function initTrend() {
   const one = document.getElementById("trend-one");
@@ -1640,6 +1759,71 @@ function renderTrend() {
     return [META[sid].display_name, first?.[0] || "n/a", last?.[0] || "n/a", ptsForRow.length, formatValue(last?.[1], META[sid].unit), chg];
   });
   document.getElementById("trend-table").innerHTML = tableHtml(["指标", "起点", "终点", "样本点数", "最新值", "区间涨跌"], rows);
+}
+
+// ── 股票走势（权益看板子模块）──────────────────────────────────────
+function initEquityTrend() {
+  const one = document.getElementById("equity-trend-one");
+  const two = document.getElementById("equity-trend-two");
+  one.innerHTML = "";
+  two.innerHTML = '<option value="">不选择第二个指标</option>';
+  DATA.equity_trend_options.forEach(opt => {
+    const label = opt.display_name;
+    one.add(new Option(label, opt.series_id));
+    two.add(new Option(label, opt.series_id));
+  });
+  one.value = DATA.equity_trend_options[0] ? DATA.equity_trend_options[0].series_id : "";
+  two.value = "";
+  one.addEventListener("change", renderEquityTrend);
+  two.addEventListener("change", renderEquityTrend);
+  renderSegmented("equity-trend-period", PERIODS, equityTrendPeriod, v => { equityTrendPeriod = v; renderEquityTrend(); });
+  renderEquityTrend();
+}
+function renderEquityTrend() {
+  const s1 = document.getElementById("equity-trend-one").value;
+  const s2 = document.getElementById("equity-trend-two").value;
+  const dual = s2 && s2 !== s1;
+  const end = latestDate([s1, s2].filter(Boolean));
+  const start = startForPeriod(equityTrendPeriod, end);
+  const raw1 = pointsInRange(s1, start, end, { skipZero: !dual });
+  const raw2 = dual ? pointsInRange(s2, start, end, { skipZero: false }) : [];
+  const p1 = dual ? fillZeroWithPrevious(raw1) : raw1;
+  const p2 = dual ? fillZeroWithPrevious(raw2) : raw2;
+  const unit1 = META[s1].unit;
+  const axis1 = axisFromValues(p1.map(p => p[1]));
+  const axis2 = p2.length ? axisFromValues(p2.map(p => p[1])) : null;
+  renderSvgLine("equity-trend-chart", {
+    title: "股票走势",
+    leftAxis: axis1,
+    rightAxis: axis2 || axis1,
+    leftFormat: v => formatValue(v, unit1),
+    rightFormat: v => formatValue(v, p2.length ? META[s2].unit : unit1),
+    series: [
+      { name: META[s1].display_name, points: p1, color: COLORS.blue, axis: "left" },
+      ...(p2.length ? [{ name: META[s2].display_name, points: p2, color: COLORS.red, axis: "right" }] : [])
+    ]
+  });
+  addChartExport("equity-trend-chart", {
+    type: "line", title: "股票走势",
+    series: [
+      { name: META[s1].display_name, points: p1 },
+      ...(p2.length ? [{ name: META[s2].display_name, points: p2 }] : [])
+    ]
+  });
+  const rows = [s1, ...(p2.length ? [s2] : [])].map(sid => {
+    const ptsForRow = dual
+      ? fillZeroWithPrevious(pointsInRange(sid, start, end, { skipZero: false }))
+      : pointsInRange(sid, start, end);
+    const first = ptsForRow[0], last = ptsForRow[ptsForRow.length - 1];
+    let chg = "n/a";
+    if (first && last) {
+      chg = META[sid].unit === "percent_point"
+        ? formatBp((last[1] - first[1]) * 100)
+        : (first[1] ? formatPct(last[1] / first[1] - 1) : "n/a");
+    }
+    return [META[sid].display_name, first?.[0] || "n/a", last?.[0] || "n/a", ptsForRow.length, formatValue(last?.[1], META[sid].unit), chg];
+  });
+  document.getElementById("equity-trend-table").innerHTML = tableHtml(["指标", "起点", "终点", "样本点数", "最新值", "区间涨跌"], rows);
 }
 
 function initReturns() {
@@ -2184,6 +2368,146 @@ function renderEmotion() {
     document.getElementById("emotion-chart-hk").innerHTML = "";
     document.getElementById("emotion-table-hk").innerHTML = "";
   }
+}
+
+// ── MSCI 国际股票（权益看板子模块）─────────────────────────────────
+function initMsci() {
+  // Chart 1: MSCI 综合市场涨跌
+  const mktEnd = latestDate(DATA.msci_market_options.map(o => o.series_id));
+  document.getElementById("msci-market-end").value = mktEnd;
+  document.getElementById("msci-market-start").value = startForPeriod(msciMarketPeriod, mktEnd);
+  document.getElementById("msci-market-start").addEventListener("change", () => { msciMarketPeriod = "CUSTOM"; activateSegment("msci-market-period", "CUSTOM"); renderMsciMarket(); });
+  document.getElementById("msci-market-end").addEventListener("change", () => { msciMarketPeriod = "CUSTOM"; activateSegment("msci-market-period", "CUSTOM"); renderMsciMarket(); });
+  renderSegmented("msci-market-period", RETURN_PERIODS, msciMarketPeriod, v => {
+    msciMarketPeriod = v;
+    if (v !== "CUSTOM") {
+      const e = latestDate(DATA.msci_market_options.map(o => o.series_id));
+      document.getElementById("msci-market-end").value = e;
+      document.getElementById("msci-market-start").value = startForPeriod(v, e);
+    }
+    renderMsciMarket();
+  });
+
+  // Chart 2: MSCI 行业涨跌
+  const secEnd = latestDate(DATA.msci_sector_options.map(o => o.series_id));
+  document.getElementById("msci-sector-end").value = secEnd;
+  document.getElementById("msci-sector-start").value = startForPeriod(msciSectorPeriod, secEnd);
+  document.getElementById("msci-sector-start").addEventListener("change", () => { msciSectorPeriod = "CUSTOM"; activateSegment("msci-sector-period", "CUSTOM"); renderMsciSector(); });
+  document.getElementById("msci-sector-end").addEventListener("change", () => { msciSectorPeriod = "CUSTOM"; activateSegment("msci-sector-period", "CUSTOM"); renderMsciSector(); });
+  renderSegmented("msci-sector-period", RETURN_PERIODS, msciSectorPeriod, v => {
+    msciSectorPeriod = v;
+    if (v !== "CUSTOM") {
+      const e = latestDate(DATA.msci_sector_options.map(o => o.series_id));
+      document.getElementById("msci-sector-end").value = e;
+      document.getElementById("msci-sector-start").value = startForPeriod(v, e);
+    }
+    renderMsciSector();
+  });
+
+  // Chart 3: MSCI 成长 vs 价值走势
+  renderSegmented("msci-style-period", PERIODS, msciStylePeriod, v => { msciStylePeriod = v; renderMsciStyle(); });
+
+  renderMsciMarket();
+  renderMsciSector();
+  renderMsciStyle();
+}
+function renderMsciMarket() {
+  const start = document.getElementById("msci-market-start").value;
+  const end = document.getElementById("msci-market-end").value;
+  const isLong = (toDate(end) - toDate(start)) / 365.25 / 86400000 > 1.05;
+  const regions = ["全球", "发达", "新兴", "美洲", "欧洲", "欧澳远东", "亚太"];
+  const values = DATA.msci_market_options
+    .filter(opt => regions.includes(opt.region))
+    .map(opt => {
+      const result = pctChange(opt.series_id, start, end);
+      if (!result) return null;
+      let annualized = null;
+      if (isLong) {
+        const years = (toDate(result.endDate) - toDate(result.startDate)) / 365.25 / 86400000;
+        if (years > 1.05) annualized = Math.pow(1 + result.value, 1 / years) - 1;
+      }
+      return { ...opt, ...result, annualized, color: COLORS[opt.region] };
+    }).filter(Boolean).sort((a, b) => b.value - a.value);
+  renderBarChart("msci-market-chart", values, {
+    title: "MSCI 综合市场涨跌幅",
+    format: formatPct,
+    showAnnualized: isLong,
+    annFormat: formatPct,
+    legend: regions.map(r => ({ label: r, color: COLORS[r] }))
+  });
+  addChartExport("msci-market-chart", { type: "bar", title: "MSCI 综合市场涨跌幅", values: values });
+  const cols = isLong
+    ? ["标的", "区域", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅", "年化涨跌幅"]
+    : ["标的", "区域", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅"];
+  const rows = values.map(v => {
+    const row = [v.display_name, v.region, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)];
+    if (isLong) row.push(v.annualized != null ? formatPct(v.annualized) : "—");
+    return row;
+  });
+  document.getElementById("msci-market-table").innerHTML = tableHtml(cols, rows);
+}
+function renderMsciSector() {
+  const start = document.getElementById("msci-sector-start").value;
+  const end = document.getElementById("msci-sector-end").value;
+  const isLong = (toDate(end) - toDate(start)) / 365.25 / 86400000 > 1.05;
+  const values = DATA.msci_sector_options.map(opt => {
+    const result = pctChange(opt.series_id, start, end);
+    if (!result) return null;
+    let annualized = null;
+    if (isLong) {
+      const years = (toDate(result.endDate) - toDate(result.startDate)) / 365.25 / 86400000;
+      if (years > 1.05) annualized = Math.pow(1 + result.value, 1 / years) - 1;
+    }
+    return { ...opt, ...result, annualized, color: COLORS[opt.region] };
+  }).filter(Boolean).sort((a, b) => b.value - a.value);
+  renderBarChart("msci-sector-chart", values, {
+    title: "MSCI 行业涨跌幅",
+    format: formatPct,
+    showAnnualized: isLong,
+    annFormat: formatPct,
+    legend: [{ label: "MSCI 全球行业", color: COLORS.blue }]
+  });
+  addChartExport("msci-sector-chart", { type: "bar", title: "MSCI 行业涨跌幅", values: values });
+  const cols = isLong
+    ? ["行业", "板块", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅", "年化涨跌幅"]
+    : ["行业", "板块", "起始读数日", "结束读数日", "起始值", "结束值", "涨跌幅"];
+  const rows = values.map(v => {
+    const row = [v.display_name, v.region, v.startDate, v.endDate, formatValue(v.start, META[v.series_id].unit), formatValue(v.end, META[v.series_id].unit), formatPct(v.value)];
+    if (isLong) row.push(v.annualized != null ? formatPct(v.annualized) : "—");
+    return row;
+  });
+  document.getElementById("msci-sector-table").innerHTML = tableHtml(cols, rows);
+}
+function renderMsciStyle() {
+  const styleIds = DATA.msci_style_options.map(o => o.series_id);
+  const end = latestDate(styleIds);
+  const start = startForPeriod(msciStylePeriod, end);
+  const growth = pointsInRange("msci:MSCI发达市场成长", start, end, { skipZero: true });
+  const value = pointsInRange("msci:MSCI发达市场价值", start, end, { skipZero: true });
+  if (growth.length === 0 && value.length === 0) {
+    document.getElementById("msci-style-chart").innerHTML = '<div class="empty">暂无 MSCI 风格数据</div>';
+    document.getElementById("msci-style-table").innerHTML = "";
+    return;
+  }
+  const allVals = [...growth.map(p => p[1]), ...value.map(p => p[1])];
+  renderSvgLine("msci-style-chart", {
+    title: "MSCI 发达市场成长 vs 价值",
+    leftAxis: axisFromValues(allVals),
+    leftFormat: v => formatValue(v, "index"),
+    series: [
+      { name: "发达市场成长", points: growth, color: COLORS.成长, axis: "left" },
+      { name: "发达市场价值", points: value, color: COLORS.价值, axis: "left" }
+    ]
+  });
+  addChartExport("msci-style-chart", { type: "line", title: "MSCI 发达市场成长 vs 价值",
+    series: [{ name: "发达市场成长", points: growth }, { name: "发达市场价值", points: value }] });
+  const rows = [
+    ["发达市场成长", growth[0]?.[0] || "n/a", growth[growth.length - 1]?.[0] || "n/a", growth.length,
+     growth.length ? formatValue(growth[growth.length - 1][1], "index") : "n/a"],
+    ["发达市场价值", value[0]?.[0] || "n/a", value[value.length - 1]?.[0] || "n/a", value.length,
+     value.length ? formatValue(value[value.length - 1][1], "index") : "n/a"]
+  ];
+  document.getElementById("msci-style-table").innerHTML = tableHtml(["指标", "起点", "终点", "样本点数", "最新值"], rows);
 }
 
 // ── Topics (Super Cycle) ────────────────────────────────────────────
@@ -2910,7 +3234,7 @@ const TAB_GROUPS = {
   world:  { label: "看世界", children: [] },
   trend:  { label: "走势看板", children: [] },
   review: { label: "涨跌复盘", children: ["returns","rates","fx"] },
-  equity: { label: "权益看板", children: ["returns","valuation","emotion"] },
+  equity: { label: "权益看板", children: ["equity-trend","returns","valuation","emotion","msci"] },
   fxwatch:{ label: "外汇看板", children: ["fx","spread","fixing","cost","topics"] },
   freshness: { label: "📊 数据状态", children: [] },
 };
@@ -2919,6 +3243,7 @@ const VIEW_LABELS = {
   world: "看世界", trend: "走势看板", returns: "股票涨跌", rates: "利率涨跌",
   fx: "汇率涨跌", spread: "中美利差", valuation: "估值看板",
   emotion: "市场情绪", topics: "专题图表", fixing: "中间价", cost: "套保成本",
+  "equity-trend": "股票走势", msci: "国际股票",
   freshness: "数据状态",
 };
 
@@ -3198,12 +3523,14 @@ function init() {
   var _initFns = [
     ["initTabs", initTabs],
     ["initTrend", initTrend],
+    ["initEquityTrend", initEquityTrend],
     ["initReturns", initReturns],
     ["initRates", initRates],
     ["initFx", initFx],
     ["initSpread", initSpread],
     ["initValuation", initValuation],
     ["initEmotion", initEmotion],
+    ["initMsci", initMsci],
     ["initTopics", initTopics],
     ["initFxFixing", initFxFixing],
     ["initFxCost", initFxCost],

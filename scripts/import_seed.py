@@ -40,6 +40,7 @@ SHEET_PREFIX = {
     "PE TTM": "pe_ttm",
     "PB LF": "pb_lf",
     "股息率": "dividend_yield",
+    "MSCI指数": "msci",
 }
 
 SHEET_FREQUENCY = {
@@ -47,6 +48,7 @@ SHEET_FREQUENCY = {
     "PE TTM": "D",
     "PB LF": "D",
     "股息率": "D",
+    "MSCI指数": "D",
 }
 
 DISPLAY_ALIASES = {

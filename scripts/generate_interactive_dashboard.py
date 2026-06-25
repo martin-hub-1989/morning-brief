@@ -25,6 +25,71 @@ TREND_SERIES = [
     "trend:中证1000", "trend:中证2000", "trend:中证红利", "trend:创业板指", "trend:科创50",
     "trend:恒生高股息率", "trend:恒生指数", "trend:恒生科技", "trend:纳斯达克指数", "trend:标普500",
     "trend:AUXCNY", "trend:伦敦金现", "trend:ICE布油", "trend:南华商品指数",
+    # MSCI 综合市场指数（走势看板用）
+    "msci:MSCI全球", "msci:MSCI发达市场", "msci:MSCI新兴市场", "msci:MSCI美国",
+    "msci:MSCI欧洲", "msci:MSCI日本", "msci:MSCI中国(美元)", "msci:MSCI香港(美元)",
+    "msci:MSCI南下香港(美元)",
+]
+
+# 股票走势模块：数据库中所有股票指数（排除全收益指数）
+EQUITY_TREND_SERIES = [
+    # A股
+    "trend:万得全A", "trend:上证指数", "trend:中证A500", "trend:沪深300", "trend:中证500",
+    "trend:中证1000", "trend:中证2000", "trend:中证红利", "trend:创业板指", "trend:科创50",
+    # 港股
+    "trend:恒生高股息率", "trend:恒生指数", "trend:恒生科技",
+    # 美股
+    "trend:纳斯达克指数", "trend:标普500",
+    # A股风格
+    "trend:金融(风格.中信)", "trend:周期(风格.中信)", "trend:消费(风格.中信)",
+    "trend:成长(风格.中信)", "trend:稳定(风格.中信)",
+    # MSCI 综合市场
+    "msci:MSCI全球", "msci:MSCI发达市场", "msci:MSCI新兴市场",
+    "msci:MSCI美国", "msci:MSCI欧澳远东", "msci:MSCI欧洲",
+    "msci:MSCI亚太地区", "msci:MSCI日本", "msci:MSCI韩国",
+    "msci:MSCI中国(美元)", "msci:MSCI南下香港(美元)", "msci:MSCI香港(美元)",
+    # MSCI 行业
+    "msci:MSCI全球/能源Ⅰ", "msci:MSCI全球/原材料Ⅰ", "msci:MSCI全球/工业",
+    "msci:MSCI全球/非日常消费品", "msci:MSCI全球/日常消费品", "msci:MSCI全球/医疗保健",
+    "msci:MSCI全球/金融", "msci:MSCI全球/信息科技", "msci:MSCI全球/电信业务Ⅰ", "msci:MSCI全球/公用事业Ⅰ",
+    # MSCI 风格
+    "msci:MSCI发达市场成长", "msci:MSCI发达市场价值",
+]
+
+# MSCI 综合市场指数涨跌（国际比较视角）
+MSCI_MARKET_RETURN_SERIES = [
+    {"series_id": "msci:MSCI全球", "region": "全球"},
+    {"series_id": "msci:MSCI发达市场", "region": "发达"},
+    {"series_id": "msci:MSCI新兴市场", "region": "新兴"},
+    {"series_id": "msci:MSCI美国", "region": "美洲"},
+    {"series_id": "msci:MSCI欧洲", "region": "欧洲"},
+    {"series_id": "msci:MSCI欧澳远东", "region": "欧澳远东"},
+    {"series_id": "msci:MSCI亚太地区", "region": "亚太"},
+    {"series_id": "msci:MSCI日本", "region": "亚太"},
+    {"series_id": "msci:MSCI韩国", "region": "亚太"},
+    {"series_id": "msci:MSCI中国(美元)", "region": "亚太"},
+    {"series_id": "msci:MSCI南下香港(美元)", "region": "亚太"},
+    {"series_id": "msci:MSCI香港(美元)", "region": "亚太"},
+]
+
+# MSCI 行业指数涨跌
+MSCI_SECTOR_RETURN_SERIES = [
+    {"series_id": "msci:MSCI全球/能源Ⅰ", "region": "能源"},
+    {"series_id": "msci:MSCI全球/原材料Ⅰ", "region": "原材料"},
+    {"series_id": "msci:MSCI全球/工业", "region": "工业"},
+    {"series_id": "msci:MSCI全球/非日常消费品", "region": "可选消费"},
+    {"series_id": "msci:MSCI全球/日常消费品", "region": "必选消费"},
+    {"series_id": "msci:MSCI全球/医疗保健", "region": "医疗"},
+    {"series_id": "msci:MSCI全球/金融", "region": "金融"},
+    {"series_id": "msci:MSCI全球/信息科技", "region": "科技"},
+    {"series_id": "msci:MSCI全球/电信业务Ⅰ", "region": "电信"},
+    {"series_id": "msci:MSCI全球/公用事业Ⅰ", "region": "公用"},
+]
+
+# MSCI 发达市场成长 vs 价值走势
+MSCI_STYLE_SERIES = [
+    "msci:MSCI发达市场成长",
+    "msci:MSCI发达市场价值",
 ]
 
 RETURN_SERIES = [
@@ -235,7 +300,15 @@ def build_payload(db_path):
         valuation_options, valuation_series = load_valuation_options(conn)
         return_items = [item["series_id"] for item in RETURN_SERIES]
         fx_items = [item["series_id"] for item in FX_SERIES]
-        all_series = sorted(set(TREND_SERIES + return_items + RATE_SERIES + fx_items + SPREAD_SERIES + valuation_series + EMOTION_SERIES + CAPITAL_SERIES + FX_FIXING_SERIES + FX_COST_SERIES))
+        msci_market_items = [item["series_id"] for item in MSCI_MARKET_RETURN_SERIES]
+        msci_sector_items = [item["series_id"] for item in MSCI_SECTOR_RETURN_SERIES]
+        all_series = sorted(set(
+            TREND_SERIES + return_items + RATE_SERIES + fx_items + SPREAD_SERIES
+            + valuation_series + EMOTION_SERIES + CAPITAL_SERIES
+            + FX_FIXING_SERIES + FX_COST_SERIES
+            + EQUITY_TREND_SERIES + msci_market_items + msci_sector_items
+            + MSCI_STYLE_SERIES
+        ))
         meta = load_metadata(conn, all_series)
         observations = load_observations(conn, all_series)
         super_cycle = extract_super_cycle_data(conn)
@@ -250,6 +323,9 @@ def build_payload(db_path):
         "observations": observations,
         "trend_options": [
             {"series_id": sid, **meta[sid]} for sid in TREND_SERIES if sid in meta
+        ],
+        "equity_trend_options": [
+            {"series_id": sid, **meta[sid]} for sid in EQUITY_TREND_SERIES if sid in meta
         ],
         "return_options": [
             {"series_id": item["series_id"], "region": item["region"], **meta[item["series_id"]]}
@@ -271,6 +347,19 @@ def build_payload(db_path):
         ],
         "fx_cost_options": [
             {"series_id": sid, **meta[sid]} for sid in FX_COST_SERIES if sid in meta
+        ],
+        "msci_market_options": [
+            {"series_id": item["series_id"], "region": item["region"], **meta[item["series_id"]]}
+            for item in MSCI_MARKET_RETURN_SERIES
+            if item["series_id"] in meta
+        ],
+        "msci_sector_options": [
+            {"series_id": item["series_id"], "region": item["region"], **meta[item["series_id"]]}
+            for item in MSCI_SECTOR_RETURN_SERIES
+            if item["series_id"] in meta
+        ],
+        "msci_style_options": [
+            {"series_id": sid, **meta[sid]} for sid in MSCI_STYLE_SERIES if sid in meta
         ],
         "super_cycle": super_cycle,
     }
