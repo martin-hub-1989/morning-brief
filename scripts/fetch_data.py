@@ -30,9 +30,11 @@ WIND_MAPPING_PATH = ROOT / "config" / "wind_mapping.json"
 
 # ── Wind CLI (for EDB → Wind fallback) ─────────────────────────────────
 
+# ⚠️ 必须用真实路径 ~/.agents/skills/，不能用软链接 ~/.claude/skills/
+# （见 fetch_wind.py 同名常量注释与 CLAUDE.md 变更禁忌 #2）
 _WIND_SKILL_DIR = Path(os.environ.get(
     "WIND_SKILL_DIR",
-    str(Path.home() / ".claude" / "skills" / "wind-mcp-skill")
+    str(Path.home() / ".agents" / "skills" / "wind-mcp-skill")
 ))
 
 # Global counter for Wind API calls (shared across modules)

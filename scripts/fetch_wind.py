@@ -24,9 +24,13 @@ from lib import (
 )
 
 DEFAULT_MAPPING = ROOT / "config" / "wind_mapping.json"
+# ⚠️ 必须用真实路径 ~/.agents/skills/，不能用软链接 ~/.claude/skills/
+# 软链接路径会让 cli.mjs 的 IS_MAIN guard 失效（import.meta.url vs
+# pathToFileURL(process.argv[1]) 不一致），返回空输出或超时；偶发还会
+# 触发 No such file or directory。CLAUDE.md 变更禁忌 #2。
 WIND_SKILL_DIR = Path(os.environ.get(
     "WIND_SKILL_DIR",
-    str(Path.home() / ".claude" / "skills" / "wind-mcp-skill")
+    str(Path.home() / ".agents" / "skills" / "wind-mcp-skill")
 ))
 
 # Global counter for Wind API calls
